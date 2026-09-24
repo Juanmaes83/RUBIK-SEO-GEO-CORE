@@ -1,0 +1,64 @@
+# Procedencia
+
+- **Repositorio fuente (solo lectura):** `Juanmaes83/WEB-RESTAURACI-N-PREMIUM-DIN-MICA`
+- **Commit de extracción:** `388e48a98e881aff4adf26f16a0679dc3e1f11f5` (`origin/main`, 21/09/2026, «docs: clarify Release E contract closure»)
+- **Bootstrap SCULPT previo:** `SCULPT-SOURCE.md` (`d49d0e3`) se conserva tal cual. Motivo del cambio de base: `DECISIONS.md` D-01.
+- **Método:** `git archive 388e48a`. No se modificó el working tree ni ninguna rama del repositorio fuente.
+
+## Ficheros trasladados
+
+Los blob ids de git son independientes de los finales de línea. «idéntico» significa que `git rev-parse 388e48a:<fuente>` coincide con `git hash-object` del fichero en este repositorio.
+
+| Destino | Fuente @388e48a | Blob fuente | Blob destino | Relación |
+|---|---|---|---|---|
+| `src/rubik-seo-geo-core.js` | `rubik-seo-geo-core.js` | `dd7c1d415059` | `dd7c1d415059` | idéntico |
+| `src/rubik-seo-geo-adapters.js` | `rubik-seo-geo-adapters.js` | `142d41303c38` | `142d41303c38` | idéntico |
+| `src/rubik-seo-geo-publisher.js` | `rubik-seo-geo-publisher.js` | `0d791f828366` | `0d791f828366` | idéntico |
+| `src/rubik-seo-geo-release-b.js` | `rubik-seo-geo-release-b.js` | `f7432eb72699` | `f7432eb72699` | idéntico |
+| `src/rubik-seo-geo-media.js` | `rubik-seo-geo-media.js` | `07422b3b6b05` | `07422b3b6b05` | idéntico |
+| `src/rubik-seo-geo-intelligence.js` | `rubik-seo-geo-intelligence.js` | `a72162b4ba48` | `a72162b4ba48` | idéntico |
+| `src/rubik-seo-geo-release-e.js` | `rubik-seo-geo-release-e.js` | `0cc98079cfb7` | `0cc98079cfb7` | idéntico |
+| `src/rubik-seo-geo-materialize.cjs` | `scripts/seo-geo-materialize-public.cjs` | `1ea145638d63` | `28909839c550` | derivado (D-03: parte Core) |
+| `hosts/restaurant/restaurant-host.cjs` | `scripts/seo-geo-materialize-public.cjs` | `1ea145638d63` | `7e8d3921fd1e` | derivado (D-03: parte host, funciones sin cambios) |
+| `tests/seo-geo-core.test.cjs` | `tests/seo-geo-core.test.cjs` | `f74003af5ac1` | `9bf1bee6c6dd` | adaptado (rutas `../src/`) |
+| `tests/seo-geo-publisher.test.cjs` | `tests/seo-geo-publisher.test.cjs` | `ce34b44cc811` | `e597bd42e6b4` | adaptado (rutas `../src/`) |
+| `tests/seo-geo-media-b1.test.cjs` | `tests/seo-geo-media-b1.test.cjs` | `e396d8f8adc4` | `c0a4901dc678` | adaptado (rutas `../src/`) |
+| `tests/seo-geo-release-b.test.cjs` | `tests/seo-geo-release-b.test.cjs` | `7e32b2b7ee4d` | `30dcd3cf4ed5` | adaptado (rutas `../src/`) |
+| `tests/seo-geo-release-c.test.cjs` | `tests/seo-geo-release-c.test.cjs` | `8b7073e43ce7` | `fe294d37fa42` | adaptado (rutas `../src/`) |
+| `tests/seo-geo-release-d.test.cjs` | `tests/seo-geo-release-d.test.cjs` | `33e3a4da506c` | `41268a25da0c` | adaptado (rutas `../src/`) |
+| `tests/seo-geo-release-e.test.cjs` | `tests/seo-geo-release-e.test.cjs` | `833a1bb0fcf5` | `0ae0289b15f7` | adaptado (rutas `../src/`) |
+| `tests/seo-geo-source-convergence.test.cjs` | `tests/seo-geo-source-convergence.test.cjs` | `4ada3297b1ab` | `718ca5d41281` | adaptado (rutas `../src/`) |
+| `tests/seo-geo-hardening-a-raw-html.test.cjs` | `tests/seo-geo-hardening-a-raw-html.test.cjs` | `4fde03f239c9` | `e5932852e30d` | adaptado (D-03 fixtures) |
+| `tests/seo-geo-hardening-b-page-contract.test.cjs` | `tests/seo-geo-hardening-b-page-contract.test.cjs` | `ed7319f11997` | `ea6406a6d7c8` | adaptado (D-03 fixtures, D-04 −5 tests host) |
+| `tests/seo-geo-encoding-gate.test.cjs` | `tests/seo-geo-encoding-gate.test.cjs` | `cd0865e43e74` | `4382a1c0bce6` | adaptado (ficheros propios) |
+| `docs/upstream/SEO-GEO-ENGINE-ARCHITECTURE.md` | `docs/SEO-GEO-ENGINE-ARCHITECTURE.md` | `26ca94420dd7` | `212245a4298d` | estado reconciliado (D-06) |
+| `docs/upstream/SEO-GEO-FOUNDATION.md` | `docs/SEO-GEO-FOUNDATION.md` | `ff0ed9f98e1a` | `ff0ed9f98e1a` | idéntico |
+| `docs/upstream/SEO-GEO-INTEGRATIONS.md` | `docs/SEO-GEO-INTEGRATIONS.md` | `e1d649c56dfb` | `e1d649c56dfb` | idéntico |
+| `docs/upstream/SEO-GEO-PRODUCTION-HARDENING-CONTRACT.md` | `docs/SEO-GEO-PRODUCTION-HARDENING-CONTRACT.md` | `132f62ed3e28` | `82344442f47f` | estado reconciliado (D-06) |
+| `docs/upstream/SEO-GEO-RELEASE-A-CONTRACT.md` | `docs/SEO-GEO-RELEASE-A-CONTRACT.md` | `45c680dc6409` | `c31b5e97a43c` | estado reconciliado (D-06) |
+| `docs/upstream/SEO-GEO-RELEASE-B-CONTRACT.md` | `docs/SEO-GEO-RELEASE-B-CONTRACT.md` | `3ca8b1528bc3` | `6c8784fd5e6e` | estado reconciliado (D-06) |
+| `docs/upstream/SEO-GEO-RELEASE-C-CONTRACT.md` | `docs/SEO-GEO-RELEASE-C-CONTRACT.md` | `4126c406656e` | `4d48546f352e` | estado reconciliado (D-06) |
+| `docs/upstream/SEO-GEO-RELEASE-D-CONTRACT.md` | `docs/SEO-GEO-RELEASE-D-CONTRACT.md` | `d2650a0a1788` | `316207620c2c` | estado reconciliado (D-06) |
+| `docs/upstream/SEO-GEO-RELEASE-E-AUTHORITY-CITATIONS-INDEXATION.md` | `docs/SEO-GEO-RELEASE-E-AUTHORITY-CITATIONS-INDEXATION.md` | `c8a5a02f4552` | `c8a5a02f4552` | idéntico |
+
+Para reproducir la comprobación:
+
+```bash
+git -C <fuente> rev-parse 388e48a:rubik-seo-geo-core.js
+git hash-object --path=src/rubik-seo-geo-core.js src/rubik-seo-geo-core.js
+```
+
+## Ficheros nuevos de este repositorio
+
+| Fichero | Origen |
+|---|---|
+| `tests/fixtures/restaurant-lumina-state.json` | `window.RestaurantDefaults` evaluado desde `class4-config.js@388e48a` (sha256 del fichero fuente `e01310e2…eb744`) con el mismo sandbox `vm` que `loadDefaultProjectState`. Contenido demo ya público en el repositorio fuente. |
+| `tests/fixtures/restaurant-home-template.html` | Estructura mínima de slots de `index.html@388e48a` (sha256 `e2a51f0c…c3c47`): solo los elementos que pinta `premiumHomeBody`. |
+| `tests/fixtures/golden/source-388e48a-publish.json` | Salida de `publish()` y `preview()` de los **módulos fuente** para LÚMINA (Restaurant) y Casa Norte (RealEstate), en preview y production (`scripts/generate-source-golden.cjs`). |
+| `tests/core-independence.test.cjs`, `tests/core-source-parity.test.cjs` | Gates nuevos (D-08). |
+| `scripts/run-tests.cjs`, `scripts/check-syntax.cjs`, `scripts/generate-source-golden.cjs` | Herramientas del repositorio. |
+| `.github/workflows/core-ci.yml` | Consolidación de los workflows Node del fuente (D-08). |
+
+## No trasladado (se queda en el host)
+
+`rubik-seo-geo-studio.js`, `rubik-seo-geo-release-{c,d,e}-studio.js`, `styles-seo-geo*.css`, `project-model.js`, `class4-*.js`, `index.html`, los tests E2E de Playwright, `hardening-c-performance.mjs`, `seo-geo-spain-first-contract.test.cjs` y los workflows `seo-geo-hardening-c.yml` y `project-model-schema.yml`. Motivos: `DECISIONS.md` D-04 y D-05.
