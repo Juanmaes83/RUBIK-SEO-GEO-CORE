@@ -43,6 +43,7 @@ Todo eso lo aporta cada producto anfitrión ([`docs/HOST-INTEGRATION-CONTRACT.md
 | Extracción CORE-1 | ✅ PR #1 mergeado en `main` (merge `995207f38080cf319d4246a531895c85bc10759e`); CI Node 20/22 verde, 86/86 (run 36103571133) |
 | Siguiente fase | ✅ CORE-6 cerrado en [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9), merge `304f655`. Sigue CORE-7 (contratos/mocks), después CORE-8 (SEO off-page Core-only) y finalmente CORE-9 (Platform Layer e integraciones reales). CORE-2/4/5 siguen sujetos a validación de host. |
 | Multidioma (CORE-6) | ✅ Cerrado por D-19 en [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9), merge `304f655`. CI verde en Node 20 y 22: 174/174 pruebas en cada versión, 0 omitidas, syntax/docs y smoke CLI ([run 36115604817](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36115604817)). La salida monolingüe sigue idéntica |
+| Contratos de proveedor (CORE-7) | 🔄 En progreso en PR de CORE-7 (`feat/core-7-provider-contracts`): sobre neutral con provenance, estados honestos, datos parciales y límites de coste, más el mapeo a Release C/E (D-21). Solo mocks; ningún proveedor activado |
 | SEO off-page (CORE-8) | 📋 Aprobada para después de CORE-7: señales externas con provenance y análisis Core-only; sin storage ni conexiones reales hasta CORE-9 |
 | Plataforma (CORE-9) | 📋 Última fase: plano de control multi-proyecto y backend seguro. Los Project States permanecen en sus hosts |
 | Seguridad del materializer | ✅ path traversal, enlaces/junctions dentro de `outputDir` y nombres válidos con `..` cubiertos por regresiones (D-11/D-11b) |
@@ -62,6 +63,7 @@ src/                       Core (UMD sin dependencias; materializer solo Node)
   rubik-seo-geo-intelligence.js  contratos OpenSEO* · Search Console · DataForSEO · GEO
                                  (*contrato heredado, aún no compatible con OpenSEO real)
   rubik-seo-geo-release-e.js     Authority, Citations & Indexation (E1–E4)
+  rubik-seo-geo-providers.js     contratos de proveedor C/E: provenance, estados, coste (D-21)
   rubik-seo-geo-materialize.cjs  rutas físicas + gates (CLI rubik-seo-geo-materialize)
 hosts/restaurant/          integración de referencia (pintado del HOME premium)
 tests/                     node:test · fixtures · golden del fuente

@@ -366,3 +366,76 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
 5. **Límite de repositorio:** la futura aplicación de plataforma se tratará como producto/proyecto separado. Esta decisión no autoriza acceder ni cambiar otro repositorio, y no cambia el alcance actual de RUBIK-SEO-GEO-CORE.
 
 **Secuencia aprobada:** CORE-6 → CORE-7 (contratos/mocks) → CORE-8 (SEO off-page Core-only) → CORE-9 (Platform Layer final; activación de proveedores reales). CORE-2/4/5 siguen condicionadas a adopción/validación de host y no se consideran resueltas por D-20.
+
+## D-21 · Contratos neutrales de integración para Release C y Release E (CORE-7)
+
+**Estado:** implementado en la rama `feat/core-7-provider-contracts`. En progreso hasta su merge. No activa ningún proveedor real; eso corresponde a CORE-9, según D-20.
+
+- **Problema:** las integraciones heredadas (`SearchConsoleAdapter`, `DataForSEOAdapter`, `OpenSEOAdapter` y las funciones de Release E) ya tienen estados honestos, pero cada una resuelve a su manera la procedencia, los errores, los datos parciales y el coste. Ninguna fija un sobre común ni límites de uso verificables. Para CORE-9 hace falta un contrato estable al que conectar transportes reales sin cambiar el Core.
+- **Decisión:** nuevo módulo `src/rubik-seo-geo-providers.js` (export `./providers`), sin dependencias, que no importa `core`, `intelligence` ni `release-e`. Los contratos existentes **no cambian** y el golden queda intacto.
+  1. **Catálogo declarativo** (`catalog`/`describe`): proveedor → operaciones, con `release` (C/E), `costModel` (`free`/`quota`/`paid`), `units` por petición, `sourceType` (vocabulario de Release E), `target` y `auth` descriptivo (siempre server-side).
+     - Sin endpoints, claves ni tarifas.
+     - Proveedores: `search-console` (`searchAnalytics` C, `urlInspection` E1), `bing-webmaster` (`urlInfo` E1), `indexnow` (`submit` E1), `dataforseo` (`keywords`/`serp`/`backlinks` C, de pago), `manual-import` (`presence`/`citation` E2/E4) y `openseo` (`siteAudit`, **diferido a CORE-7.1**).
+  2. **Dependencias explícitas.** `runProviderRequest({provider,operation,input,transport,clock,budget,cache,confirmCost,maxRows})`:
+     - `transport` es `{kind:'mock'|'live', request(op,input)}` y lo inyecta el host o la futura plataforma;
+     - `clock` hace que las fechas sean deterministas; `cache` es un Map-like en memoria que aporta quien llama; `budget` es un valor, se devuelve actualizado y no se muta;
+     - no usa `fetch`, `process.env` ni storage.
+  3. **Sobre de resultado** (inmutable), con `status` ∈ `OK`, `PARTIAL`, `EMPTY`, `NOT_CONFIGURED`, `NOT_CONNECTED`, `NOT_MEASURED`, `COST_CONFIRMATION_REQUIRED`, `BUDGET_EXCEEDED`, `RATE_LIMITED`, `ERROR` o `STALE`. Además lleva `data`, `partial`, `errors[]`, `cost`, `budget`, `cached`, `connection` y `provenance`.
+  4. **Provenance: fuente, fecha y evidencia.** Incluye `provider`, `sourceType`, `operation`, `requestedAt`, `capturedAt` y `method` (`api` solo con un transporte `live`; si no, `mock`).
+     - La `evidence` está en lista blanca: `rowCount`, `httpStatus`, `requestId`, `externalId`, `sourceUrl` redactada, `providerVersion`, `expected` y `truncated`.
+     - Nunca se copian cabeceras ni cuerpos crudos.
+  5. **Estados honestos.**
+     - Sin transporte → `NOT_CONNECTED`, sin llamar a nada.
+     - `rows` ausente → `NOT_MEASURED`; `rows:[]` → `EMPTY`.
+     - `connection:'VERIFIED'` solo con un transporte `live` que ha respondido. **Un mock nunca verifica una conexión.**
+     - OpenSEO devuelve `NOT_CONFIGURED`/`BRIDGE_PENDING`.
+  6. **Errores:**
+     - `401` → `NOT_CONNECTED`/`AUTH`; `403` → `ERROR`/`FORBIDDEN`; `5xx` → `ERROR` reintentable; `429` → `RATE_LIMITED` con `retryAfterSeconds`;
+     - una excepción → `TRANSPORT_ERROR`, o `TIMEOUT` si es un `AbortError`;
+     - los mensajes se limitan a 200 caracteres y se redactan (credenciales en URL, parámetros `key`/`token`/`sig`, `Bearer`/`Basic`);
+     - no hay reintentos automáticos.
+  7. **Datos parciales:** `truncated`, filas esperadas que faltan, filas inválidas (o con campos secretos), errores por elemento o el recorte `maxRows` → `PARTIAL`, con `partial.{received,expected,rejected,capped,reason}`. Nunca se rellena con ceros: las métricas ausentes siguen siendo `null` al mapear.
+  8. **Límites de uso y coste:**
+     - una operación `paid` exige `confirmCost:true` (si falta → `COST_CONFIRMATION_REQUIRED`, sin llamada);
+     - `budget.{maxUnits,maxRequests}` se comprueba **antes** de llamar (`BUDGET_EXCEEDED`);
+     - `cost.estimatedUsd` es siempre `null`, porque el Core no conoce tarifas;
+     - la caché inyectada deduplica peticiones idénticas (clave estable, independiente del orden) con coste 0 y no guarda errores;
+     - `markStale` marca como `STALE` un resultado antiguo y conserva datos y provenance.
+  9. **Secretos:** cualquier campo tipo `apiKey`, `token`, `password` o `authorization` en el input se rechaza (`SECRET_IN_INPUT`) antes de llamar. Los secretos viven en el transporte server-side.
+  10. **Mapeo a los contratos existentes, con módulos inyectados:**
+      - `toReleaseC(result,{intelligence})` reutiliza `SearchConsoleAdapter.normalize` y `DataForSEOAdapter.normalizeKeywords`/`normalizeSerps`, con `measuredAt` igual a la fecha de captura;
+      - `toReleaseE(result,{releaseE,adapter})` reutiliza `normalizeIndexationRecord`, `indexNowResult` (un envío nunca es `INDEXED`) y `normalizePresenceRecord`/`normalizeCitationObservation` con el descriptor del adapter (D-13, vertical neutral);
+      - la provenance de Release E es `MEASURED` solo si `method:'api'`; con un mock queda `UNKNOWN`;
+      - los resultados de C no se mapean a E ni al revés.
+- **Fuera de alcance:** transportes reales, backend, OAuth, secretos, trabajos programados e historial persistente (CORE-9); el puente OpenSEO/MCP (CORE-7.1). `crawl()` y `connectivity()` heredados siguen como estaban (D-09, D-14). D-16 sigue aplazada.
+- **Evidencia:**
+  - `tests/core-7-provider-contracts.test.cjs` (18 pruebas);
+  - verificación por mutación: marcar un mock como verificado, quitar la confirmación de coste o convertir `NOT_MEASURED` en `OK` rompe al menos una prueba;
+  - golden y fixtures sin cambios.
+
+### Correcciones tras la revisión del PR #10
+
+1. **Secretos.**
+   - **Búsqueda de claves:** el recorrido del input es completo, sin límite de profundidad, cubre arrays y es seguro ante ciclos. Las claves se comparan sin separadores ni mayúsculas, así que `x-api-key`, `client_secret`, `refresh_token`, `accessToken`, `Passwd`, `password`, `authorization`, `cookie`, `private_key` o `key` se detectan a cualquier profundidad.
+   - **Valores con credenciales en el input:** URL con usuario y contraseña, parámetros sensibles, esquemas `Bearer`/`Basic`/`Token` o pares `clave=valor`. También se rechazan (`SECRET_IN_INPUT`); el mensaje dice «credential-like value» sin repetir el valor.
+   - **Input no serializable:** un input con ciclos devuelve `ERROR`/`INVALID_INPUT` sin llamar al transporte.
+   - **Redacción:** cubre usuario y contraseña en URL; parámetros `key`, `api_key`, `x-api-key`, `token`, `access_token`, `refresh_token`, `id_token`, `client_secret`, `secret`, `password`, `sig`, `auth` y `code`; esquemas `Bearer`/`Basic`/`Token`; y pares `clave: valor`, `clave=valor` y `"clave":"valor"`. Se aplica a mensajes de error (200 caracteres como máximo), a todos los campos de `evidence` y, sin truncar, a todos los textos de las filas aceptadas.
+   - **Filas del proveedor:** una fila con una clave secreta, a cualquier profundidad, se rechaza y el resultado queda `PARTIAL`.
+2. **Presupuesto.**
+   - Las operaciones `quota` y `paid` exigen un presupuesto con `maxUnits` **y** `maxRequests` finitos y no negativos. Si falta o es inválido → `BUDGET_REQUIRED` (nuevo estado), **antes** de llamar al transporte.
+   - Orden de comprobación: la confirmación de coste de `paid` sigue primero (`COST_CONFIRMATION_REQUIRED`), después `BUDGET_REQUIRED` y después `BUDGET_EXCEEDED`.
+   - Las operaciones `free` (IndexNow, importación manual) no lo exigen.
+   - `estimatedUsd` sigue siendo `null`.
+   - Un resultado ya en la caché inyectada no llama ni cuesta, así que no necesita presupuesto.
+3. **Backlinks (Release C → `intelligence.backlinks`, entrada de CORE-8).** Nuevo `normalizeBacklinks(rows,{measuredAt,provider})`, pequeño y neutral, porque el Core no tenía normalizador de backlinks. `toReleaseC` lo usa para `dataforseo.backlinks` en lugar de copiar las filas.
+   - **Esquema de salida:** `{sourceUrl, targetUrl, sourceDomain, anchor|null, rel ('follow'|'nofollow'|'ugc'|'sponsored'|null), firstSeen|null, lastSeen|null, lost|null, sourceRank|null, measuredAt, provider}` más `provenance`.
+   - **Alias de entrada aceptados:** `url_from`/`url_to`, `anchor_text`, `dofollow`, `first_seen`/`last_seen`, `is_lost` y `domain_from_rank`/`rank`.
+   - **Valores ausentes o inválidos:** quedan en `null`, nunca en `0`.
+   - **Filas sin URL http(s) de origen y destino:** se rechazan y el mapeo pasa a `PARTIAL` con `partial.rejectedByNormalizer`.
+   - Las URLs y los anchors pasan por la redacción.
+- **Pares genéricos `token` / `key` (segunda revisión del PR #10):** la redacción de pares y el rechazo de valores en el input cubren también `token` y `key` como palabra completa seguida de `:` o `=` (JSON, `clave=valor`, cualquier combinación de mayúsculas). Los esquemas `Bearer`/`Basic`/`Token` solo se redactan si el valor parece una credencial (contiene un dígito, mezcla mayúsculas y minúsculas o incluye alguno de `._~+/=-`), así que la prosa que solo menciona «token», «key», «basic» o «bearer» no se toca.
+- **Límite conocido (conservador):** la detección por nombre de clave rechaza también claves no secretas con esos sufijos (por ejemplo `nextPageToken` o `key`). Si un proveedor necesitara paginación por token, el transporte debe gestionarla server-side, o se hará una excepción explícita cuando se active en CORE-9.
+- **Evidencia adicional:**
+  - 9 pruebas más en `tests/core-7-provider-contracts.test.cjs` (27 en total). Con el módulo anterior (`dcdbf61`) fallan 7 de ellas;
+  - mutaciones: reintroducir un límite de profundidad, quitar `BUDGET_REQUIRED` o volver a copiar los backlinks sin normalizar rompe pruebas;
+  - golden, fixtures y paridad sin cambios.

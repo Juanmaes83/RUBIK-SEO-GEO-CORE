@@ -13,6 +13,7 @@
     "./media": "./src/rubik-seo-geo-media.js",
     "./intelligence": "./src/rubik-seo-geo-intelligence.js",
     "./authority": "./src/rubik-seo-geo-release-e.js",
+    "./providers": "./src/rubik-seo-geo-providers.js",
     "./materialize": "./src/rubik-seo-geo-materialize.cjs",
     "./hosts/restaurant": "./hosts/restaurant/restaurant-host.cjs"
   },

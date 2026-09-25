@@ -198,3 +198,36 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - CI del HEAD del PR verde en Node 20.20.2 y 22.23.2: 174/174 pruebas por versión, 0 omitidas; syntax, documentación y ambos smoke checks del CLI también verdes ([run 36115604817](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36115604817)).
 - CORE-6/D-19 queda cerrado. No se hizo deploy ni validación en host. Se mantienen los límites documentados de D-19 y la deuda heredada de canonical/sitemap de home.
 - Próxima fase: CORE-7, contratos de integración y pruebas con mocks en este Core. No activar proveedores reales ni tocar otros repositorios; las conexiones reales permanecen para CORE-9.
+
+## Sesión 16 — CORE-7 contratos de integración (25/09/2026)
+
+**Rama:** `feat/core-7-provider-contracts` desde `main@82ab67e` (CORE-6 cerrado y D-20). Estado inicial: `npm run verify` daba 174 (172 pasan, 2 se omiten en Windows).
+
+1. **Decisión D-21:** módulo `src/rubik-seo-geo-providers.js` (export `./providers`), sin dependencias.
+   - Catálogo declarativo de proveedores y operaciones: release, coste, fuente y destino.
+   - `runProviderRequest` con transporte, reloj, caché y presupuesto inyectados.
+   - Sobre de resultado con provenance (fuente, fechas y evidencia en lista blanca), estados honestos, errores acotados y redactados, datos parciales, confirmación de coste y presupuesto.
+   - `toReleaseC`/`toReleaseE` reutilizan los normalizadores existentes.
+2. **Límites respetados:**
+   - sin red, secretos ni persistencia, y los mocks nunca verifican una conexión;
+   - OpenSEO queda diferido a CORE-7.1;
+   - los contratos heredados y el golden no cambian.
+3. **Pruebas:** `tests/core-7-provider-contracts.test.cjs` (18) y verificación por mutación. `npm run verify` da 192 (190 pasan, 2 se omiten en Windows), igual con Node 20.20.2 y 22.23.3.
+4. **Deuda:**
+   - no hay transportes reales (CORE-9);
+   - el puente MCP de OpenSEO (CORE-7.1);
+   - backlinks, presencia y citas con análisis off-page (CORE-8);
+   - los adapters heredados de Intelligence todavía no usan el sobre común; se migrarán cuando se conecten los transportes reales.
+
+**Pendiente:** CI Node 20/22 del PR de CORE-7 (`feat/core-7-provider-contracts`), revisión humana y merge. Sin merge ni deploy.
+
+### Sesión 16b — revisión del PR #10 (25/09/2026)
+
+1. **Secretos:**
+   - búsqueda completa de claves sensibles, sin límite de profundidad y segura ante ciclos;
+   - el input con valores tipo credencial también se rechaza;
+   - redacción ampliada (`client_secret`, `refresh_token`, `x-api-key`, `password`, Bearer/Basic/Token, credenciales en URL y pares clave-valor) en errores, evidencia y datos;
+   - el input con ciclos devuelve `INVALID_INPUT`.
+2. **Presupuesto:** las operaciones quota/paid sin presupuesto finito devuelven `BUDGET_REQUIRED` antes de llamar. La confirmación de pago se mantiene. `estimatedUsd` sigue en `null`.
+3. **Backlinks:** `normalizeBacklinks` neutral para `dataforseo.backlinks`, con esquema documentado en D-21 y en el contrato de host. Los valores ausentes son `null` y las filas inválidas dejan el mapeo en `PARTIAL`.
+4. **Pruebas:** 27 en `core-7-provider-contracts`; con el módulo anterior fallan 7 de las nuevas. Las mutaciones se detectan. `npm run verify` y Node 20.20.2/22.23.3 dan 201 (199 pasan, 2 se omiten en Windows). Smoke del CLI correcto; golden y paridad sin cambios.
