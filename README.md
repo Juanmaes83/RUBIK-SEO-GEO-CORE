@@ -45,8 +45,8 @@ Todo eso lo aporta cada producto anfitrión ([`docs/HOST-INTEGRATION-CONTRACT.md
 | Multidioma (CORE-6) | ✅ Cerrado por D-19 en [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9), merge `304f655`. CI verde en Node 20 y 22: 174/174 pruebas en cada versión, 0 omitidas, syntax/docs y smoke CLI ([run 36115604817](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36115604817)). La salida monolingüe sigue idéntica |
 | Contratos de proveedor (CORE-7) | ✅ Cerrado en [PR #10](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/10), merge `6ef8c4e`. D-21: contratos C/E, protección de secretos, presupuesto finito obligatorio para cuota/pago y normalización de backlinks. CI Node 20/22 verde: 205/205 por versión, 0 omitidas; syntax/docs y smoke CLI (run [36121912236](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36121912236)). Solo mocks; sin proveedores reales ni deploy |
 | Puente OpenSEO/MCP (CORE-7.1) | ✅ Cerrado en [PR #11](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/11), merge `bc271fe`. Contrato Core-only con cliente MCP inyectado y mocks (D-22); autenticación comprobada por `whoamiAuthenticated`, Lighthouse desactivado y auditoría manual. CI Node 20/22 verde: 233/233 por versión, 0 omitidas (run [36126029028](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36126029028)). Conexión real y backend siguen en CORE-9 |
-| SEO off-page (CORE-8) | 🟡 Implementada en `feat/core-8-offpage-authority`, pendiente de PR/CI/revisión (D-23). Servicio mensual Core-only: snapshots y comparación, menciones, NAP, GEO observacional, oportunidades, acciones con aprobación humana e informe; IA solo con salida validada. Ver [`OFFPAGE-SERVICE.md`](docs/integrations/OFFPAGE-SERVICE.md) |
-| Plataforma (CORE-9) | 📋 Última fase: plano de control multi-proyecto y backend seguro. Los Project States permanecen en sus hosts |
+| SEO off-page (CORE-8) | 🟡 PR #12 abierto, CI verde (262/262 Node 20/22), no fusionado. Auditoría pendiente: seis correcciones documentadas en [`AUTONOMOUS-CONTINUATION.md`](docs/AUTONOMOUS-CONTINUATION.md) |
+| CORE-8.1 | ✅ Alcance aprobado y documentado: operación continua asistida por IA, contenidos y borradores con evidencia, medición GEO y aprobación humana. Implementación tras cerrar CORE-8 |\n| Plataforma (CORE-9) | 📋 Última fase. Se permite preparar arquitectura, contratos y mocks en este repo; aplicación, integraciones reales y despliegue requieren autorización y destino explícitos. Los Project States permanecen en sus hosts |
 | Seguridad del materializer | ✅ path traversal, enlaces/junctions dentro de `outputDir` y nombres válidos con `..` cubiertos por regresiones (D-11/D-11b) |
 | OpenSEO | 📝 integración documentada y bloqueada ([`docs/integrations/OPENSEO.md`](docs/integrations/OPENSEO.md)). En CORE-3 `connectivity()` usa `/api/health` y nunca devuelve `CONNECTED` (D-14). `crawl()` sigue con el contrato heredado incompatible |
 
@@ -129,7 +129,7 @@ La CI está en `.github/workflows/core-ci.yml` (Node 20 y 22): verify + smoke de
 
 ## Retomar el trabajo
 
-1. Leer [`docs/README.md`](docs/README.md) (qué documento manda en cada tema), después [`docs/ROADMAP.md`](docs/ROADMAP.md) §3–§4 (siguiente tarea y bloqueos) y [`docs/HANDOFF.md`](docs/HANDOFF.md).
+1. Leer `CLAUDE.md`, [`docs/AUTONOMOUS-CONTINUATION.md`](docs/AUTONOMOUS-CONTINUATION.md), [`docs/README.md`](docs/README.md), [`docs/ROADMAP.md`](docs/ROADMAP.md) §3–§6 y [`docs/HANDOFF.md`](docs/HANDOFF.md).
 2. Ejecutar `npm run verify` antes de cambiar nada.
 3. El único repositorio de trabajo es `RUBIK-SEO-GEO-CORE`: no acceder, clonar, leer ni modificar otros repositorios.
 4. El estado se actualiza solo en `ROADMAP.md` y las decisiones con evidencia, en `DECISIONS.md`.
