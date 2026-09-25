@@ -315,3 +315,18 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 **Siguiente secuencia:** terminar correcciones CORE-8 y CI; luego implementar CORE-8.1 de acuerdo con D-24 y OFFPAGE-SERVICE §6; luego avanzar CORE-9 en este repo con diseño/contratos/mocks hasta el límite autorizado. Detalle paso a paso: [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS-CONTINUATION.md).
 
 **Persistencia para pausa por créditos:** antes de parar, Claude debe dejar commits coherentes y actualizar este handoff con fecha, rama/PR, HEAD, archivos, pruebas exactas, CI, hallazgos, bloqueos y el siguiente comando/tarea. Al reanudar, verificar el HEAD del remoto y el estado de CI antes de repetir trabajo. No merge/deploy y nunca acceder ni escribir en WEB-RESTAURACI-N-PREMIUM-DIN-MICA ni otro repositorio.
+
+
+## Sesión 21 — correcciones de la auditoría de CORE-8 (25/09/2026)
+
+- **Punto de partida verificado:** rama `feat/core-8-offpage-authority`, HEAD remoto `669c5ff` (documentación del propietario), PR #12 abierto y mergeable, con CI verde del HEAD anterior. Ese verde no resolvía los hallazgos.
+- **Hecho:** los seis hallazgos de AUTONOMOUS-CONTINUATION etapa 1 están corregidos (detalle en D-23, «Correcciones tras la auditoría»).
+  - `src/rubik-seo-geo-providers.js`: `isTrustedResult`; la caché no confiable vuelve como `NOT_VERIFIED`.
+  - `src/rubik-seo-geo-offpage.js`: trust, GEO por grupo exacto, rupturas de serie, conflicto frente a divergencia, minimización completa y validación estructural con candidatas.
+  - `tests/core-8-review-regressions.test.cjs`: 12 regresiones nuevas.
+  - `tests/core-8-offpage-authority.test.cjs`: actualizado a la nueva API.
+- **Pruebas locales:**
+  - Las 11 regresiones iniciales fallan contra `42d213d` en un worktree temporal (ya eliminado) y pasan ahora.
+  - Una mutación de 17 guardas mata las 17.
+  - `npm run verify`: 274 (272 pasan, 2 se omiten en Windows).
+- **Siguiente paso:** CI Node 20/22 del push; después, CORE-8.1 en la rama `feat/core-8-1-offpage-operations`, apilada sobre el HEAD corregido de CORE-8. El PR #12 sigue abierto para revisión humana; sin merge.

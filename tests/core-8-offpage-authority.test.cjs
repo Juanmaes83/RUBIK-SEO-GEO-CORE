@@ -245,7 +245,7 @@ test('GEO variability: overlapping intervals are within noise; changes need non-
   const other=offpage.summarizeGeo([],{querySet:qs2});
   assert.equal(offpage.compareGeo(prev,other).comparable,false);
   const modelChange=offpage.summarizeGeo(runs([[true,false],[false,true]],{model:'m2',month:'10'}),{querySet:QS});
-  assert.equal(offpage.compareGeo(prev,modelChange).groups[0].modelBreak,true);
+  assert.deepEqual([offpage.compareGeo(prev,modelChange).groups[0].change,offpage.compareGeo(prev,modelChange).groups[0].reason],['NOT_COMPARABLE','MODEL_CHANGED']);
 });
 
 test('GEO own citations use exact host match, control brands flag hallucinated mentions, excerpts are minimised',()=>{
@@ -455,23 +455,26 @@ test('AI output validation: facts need known evidence; invented numbers, URLs, p
   const r=offpage.validateAiOutput(out,{task:'detect-opportunities',evidence:EVIDENCE});
   assert.equal(r.status,'PARTIAL');
   assert.equal(r.canonical,false);assert.equal(r.requiresHumanReview,true);
-  assert.equal(r.accepted.length,2);
-  assert.equal(r.accepted[1].evidenceStatus,'INSUFFICIENT');assert.equal(r.accepted[1].confidence,'low','hypothesis without evidence is capped');
+  assert.equal(r.candidates.length,2);
+  assert.equal(r.candidates[1].evidenceStatus,'INSUFFICIENT');assert.equal(r.candidates[1].confidence,'low','hypothesis without evidence is capped');
   assert.deepEqual(r.rejected.map(x=>x.code),['UNSUPPORTED_NUMBER','UNSUPPORTED_URL','UNSUPPORTED_CLAIM','UNKNOWN_EVIDENCE_REF','PROMISE_NOT_ALLOWED','PERSONAL_DATA_OR_SECRET','MISSING_CONFIDENCE','MISSING_LIMITS','INVALID_KIND','NOT_AN_OBJECT']);
-  assert.doesNotMatch(JSON.stringify(r.accepted),/\b30\b|invented\.example/,'no invented number or link survives');
+  assert.doesNotMatch(JSON.stringify(r.candidates),/\b30\b|invented\.example/,'no invented number or link survives');
 });
+
+// Same subject, field, capture day, provider and method as e1, different value: a real contradiction.
+const E5={id:'e5',kind:'backlinks',subject:'casanorte.example',field:'referringDomains',value:12,text:'12 dominios de referencia',capturedAt:'2026-09-30',provider:'dataforseo',method:'import'};
 
 test('AI output: supported numbers pass; contradictory evidence cannot be stated as fact',()=>{
   const ok=offpage.validateAiOutput({items:[{kind:'FACT',claim:'14 dominios de referencia según la importación',evidenceRefs:['e1'],confidence:'medium',limits:'Muestra del proveedor'}]},{task:'summarize-evidence',evidence:[EVIDENCE[0]]});
-  assert.equal(ok.status,'VALID');
-  const conflicts=offpage.findConflicts(EVIDENCE);
-  assert.deepEqual(conflicts,[{group:'casanorte.example|referringDomains',evidenceIds:['e1','e3']}]);
+  assert.equal(ok.status,'STRUCTURALLY_VALID');
+  const conflicts=offpage.findConflicts([...EVIDENCE,E5]);
+  assert.deepEqual(conflicts,[{group:'casanorte.example|referringDomains',context:'2026-09-30|dataforseo|import',evidenceIds:['e1','e5']}]);
   const r=offpage.validateAiOutput({items:[
     {kind:'FACT',claim:'14 dominios de referencia',evidenceRefs:['e1'],confidence:'high',limits:'x'},
-    {kind:'INFERENCE',claim:'Las fuentes discrepan: 14 frente a 11 dominios',evidenceRefs:['e1','e3'],confidence:'low',limits:'Dos proveedores con cobertura distinta'}
-  ]},{task:'detect-changes',evidence:EVIDENCE});
+    {kind:'INFERENCE',claim:'La misma fuente da 14 y 12 dominios',evidenceRefs:['e1','e5'],confidence:'low',limits:'Dos lecturas del mismo proveedor'}
+  ]},{task:'detect-changes',evidence:[...EVIDENCE,E5]});
   assert.deepEqual(r.rejected.map(x=>x.code),['CONTRADICTORY_EVIDENCE']);
-  assert.equal(r.accepted[0].kind,'INFERENCE');
+  assert.equal(r.candidates[0].claimedKind,'INFERENCE');
 });
 
 test('AI output tolerates malformed, unstructured and empty responses',()=>{
@@ -484,7 +487,7 @@ test('AI output tolerates malformed, unstructured and empty responses',()=>{
   assert.equal(v({items:[]}).status,'EMPTY');
   assert.equal(v({items:[{kind:'FACT',claim:'Dato',evidenceRefs:[],confidence:'high',limits:'x'}]}).status,'REJECTED');
   const fenced=v('```json\n{"items":[{"kind":"FACT","claim":"Mención sin enlace","evidenceRefs":["e2"],"confidence":"low","limits":"manual"}]}\n```');
-  assert.equal(fenced.status,'VALID');
+  assert.equal(fenced.status,'STRUCTURALLY_VALID');
   assert.throws(()=>offpage.validateAiOutput({items:[]},{task:'send-emails'}),/Unknown AI task/);
 });
 
@@ -495,12 +498,12 @@ test('AI drafts are never sendable and always need human approval',()=>{
     {kind:'DRAFT',claim:'Os aseguramos el primer puesto en Google',evidenceRefs:[],confidence:'low',limits:'x'}
   ]},{task:'draft-outreach',evidence:EVIDENCE});
   assert.deepEqual(r.rejected.map(x=>x.code),['INVALID_KIND','PROMISE_NOT_ALLOWED']);
-  assert.equal(r.accepted[0].requiresHumanApproval,true);assert.equal(r.accepted[0].sendable,false);
+  assert.equal(r.candidates[0].requiresHumanApproval,true);assert.equal(r.candidates[0].sendable,false);
 });
 
 test('runAiTask reuses CORE-7 budget, cost confirmation, secret refusal and provenance; mocks are never verified',async()=>{
   const reply=output=>({kind:'mock',request:async(op,input)=>{assert.equal(op,'offpageAnalysis');assert.equal(input.task,'summarize-evidence');assert.doesNotMatch(JSON.stringify(input),/ana@mail|600 111 222/);return {rows:[{output}]};}});
-  // e3 is left out: it contradicts e1, so a FACT on e1 would be refused (tested above).
+  // e3 is left out: it comes from another provider, so a FACT citing e1 and e3 together would not be comparable.
   const ev=[EVIDENCE[0],EVIDENCE[1],{id:'e4',text:'Contacto ana@mail.example tel +34 600 111 222'}];
   const base={task:'summarize-evidence',evidence:ev,clock,budget:{maxUnits:2,maxRequests:2}};
   const noConfirm=await offpage.runAiTask({...base,transport:reply({items:[]})},{providers});
@@ -510,7 +513,7 @@ test('runAiTask reuses CORE-7 budget, cost confirmation, secret refusal and prov
   const noTransport=await offpage.runAiTask({...base,confirmCost:true},{providers});
   assert.equal(noTransport.providerStatus,'NOT_CONNECTED');
   const r=await offpage.runAiTask({...base,confirmCost:true,transport:reply({items:[{kind:'FACT',claim:'14 dominios de referencia',evidenceRefs:['e1'],confidence:'medium',limits:'importación'}]})},{providers});
-  assert.equal(r.status,'VALID');assert.equal(r.provenance.method,'mock');assert.equal(r.budget.requests,1);
+  assert.equal(r.status,'STRUCTURALLY_VALID');assert.equal(r.provenance.method,'mock');assert.equal(r.budget.requests,1);
   const secret=await offpage.runAiTask({...base,confirmCost:true,evidence:[{id:'s',text:'x',value:'Bearer abcdefghijklmnopqrstuvwxyz123456'}],transport:reply({items:[]})},{providers});
   assert.ok(['NOT_AVAILABLE','EMPTY'].includes(secret.status));
   const broken=await offpage.runAiTask({...base,confirmCost:true,transport:{kind:'mock',request:async()=>{throw new Error('model timeout token=abc123');}}},{providers});

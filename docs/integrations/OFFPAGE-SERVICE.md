@@ -29,8 +29,11 @@ No hay que forzar acciones nuevas cada mes. El seguimiento, la verificación y e
 - **Sin medición no hay cifra.** Una fuente que no midió da `value:null` y `NOT_MEASURED`, nunca `0`. Una respuesta de IA sin contenido cuenta como `NO_ANSWER`, no como cero.
 - **La ausencia en una muestra no demuestra ausencia.** Esta limitación viaja en cada `snapshot`, comparación y resumen GEO.
 - **«Sin cambios relevantes» solo con datos comparables.** Si el proveedor cambió o falta una medición, el resultado es `null` («no se sabe»), nunca `true`.
-- **Nada importado ni manual es «verificado».** Solo lo es un sobre de CORE-7 con `connection:'VERIFIED'`.
-- **Minimización de datos personales.** Los extractos pierden correos, teléfonos, credenciales y query strings de URL. La consistencia NAP devuelve estados, no el teléfono ni la dirección del cliente.
+- **La verificación viene de una frontera confiable, no de campos de entrada.** Solo cuenta como verificado un resultado que el módulo `providers` inyectado emitió en este proceso (`providers.isTrustedResult`), con transporte `live` (`method:'api'`) y `connection:'VERIFIED'`.
+  - Un objeto con la misma forma, una copia serializada o una caché externa rehidratada nunca son verificados, digan lo que digan `method` o `connection`. En `measurement()` quedan como `trust:'UNTRUSTED_ENVELOPE'` y método `import`.
+  - En `geoRun()` la ejecución solo es verificada si aporta ese resultado confiable en `providerResult`.
+  - Lo importado, lo manual y los mocks nunca son verificados. La confianza no sobrevive a la serialización: CORE-9 deberá restablecerla en el servidor (por ejemplo, con provenance firmada).
+- **Minimización de datos personales.** Los extractos pierden correos (también codificados como `%40`), teléfonos (incluidas secuencias de 9 a 15 dígitos), credenciales, cadenas con forma de token y query strings de URL. La regla de dígitos es conservadora: puede ocultar métricas muy grandes. La consistencia NAP devuelve estados, no el teléfono ni la dirección del cliente.
 
 ## 2. GEO off-page (dimensión observacional)
 
@@ -39,17 +42,21 @@ No es una técnica oficial: es una medición de lo que responden los motores gen
 - **Conjunto de consultas versionado** (`querySet`): id, versión, hash, locale y mercado; intención, si la consulta es de marca y su origen (`search-console`, `people-also-ask`, `host`, `manual` o `llm-generated`).
   - Un conjunto formado solo por consultas generadas por LLM se marca como tal (`ONLY_LLM_GENERATED_QUERIES`).
   - Admite **controles negativos**: marcas ficticias que detectan menciones alucinadas.
-- **Ejecución** (`geoRun`): motor, superficie (`api` o `consumer-ui`), modelo, locale, mercado, fecha, índice de repetición y método (`manual`, `import`, `mock` o `api`).
+- **Ejecución** (`geoRun`): motor, superficie (`api` o `consumer-ui`), modelo, fecha, índice de repetición y método (`manual`, `import`, `mock` o `api`). El locale y el mercado son siempre los de la consulta; una ejecución que declara otros se rechaza (`LOCALE_MARKET_MISMATCH`).
   - **Cualquier otro método, incluido el scraping, se rechaza** (`METHOD_NOT_ALLOWED`) para no incumplir términos de servicio.
   - La mención se detecta por coincidencia exacta de palabra con las variantes del nombre.
   - La cita propia exige que el host coincida exactamente o sea un subdominio, nunca una subcadena.
-  - Una observación manual nunca es «verificada».
-- **Resumen** (`summarizeGeo`), por motor, locale y mercado:
+  - Una observación nunca es «verificada» por sus campos declarados; ver §1.1.
+- **Resumen** (`summarizeGeo`), por grupo **motor × superficie × locale × mercado**. Una API y una interfaz de consumo nunca se mezclan.
+  - La cobertura y las repeticiones se calculan solo sobre las consultas de ese locale y mercado exactos (`queriesInGroup`, `queriesAnswered`, `queryCoverage`).
+  - `minUsableAnswersPerQuery` cuenta solo respuestas utilizables: `ERROR` y `NO_ANSWER` no inflan las repeticiones.
   - tasa de mención y de cita propia, con intervalo de Wilson al 95 %;
   - rango entre consultas, variabilidad (consultas con resultados inconsistentes entre repeticiones), posiciones de cita y dominios más citados;
-  - avisos `FEW_RUNS_PER_QUERY`, `INCOMPLETE_QUERY_COVERAGE`, `HALLUCINATED_CONTROL_MENTIONS`, `MODEL_CHANGED_WITHIN_WINDOW` y `MANUAL_OBSERVATIONS_UNVERIFIED`;
+  - avisos `FEW_RUNS_PER_QUERY`, `INCOMPLETE_QUERY_COVERAGE`, `HALLUCINATED_CONTROL_MENTIONS`, `MODEL_CHANGED_WITHIN_WINDOW`, `MODEL_NOT_EXPOSED`, `MIXED_METHODS` y `UNVERIFIED_OBSERVATIONS`;
   - la confianza nunca pasa de `medium`.
-- **Comparación** (`compareGeo`): exige el mismo hash de conjunto. Hay cambio (`UP`/`DOWN`) solo si los intervalos no se solapan; si se solapan, es `WITHIN_NOISE`. Un cambio de modelo se marca como ruptura de serie.
+- **Comparación** (`compareGeo`): exige el mismo hash de conjunto y el mismo grupo. La serie es `NOT_COMPARABLE`, con motivo, si cambia la superficie (`SURFACE_CHANGED`), el modelo (`MODEL_CHANGED`, o `MODEL_CHANGED_WITHIN_WINDOW` si cambia dentro de una ventana) o el método de observación (`METHOD_CHANGED`), o si no hay respuestas utilizables.
+  - Solo entre series comparables hay cambio (`UP`/`DOWN`), y solo si los intervalos no se solapan; si se solapan, es `WITHIN_NOISE`.
+  - Nunca se informa `UP`/`DOWN` entre series distintas.
 - **Acceso de rastreadores** (`aiCrawlerAccess`): reutiliza `intelligence.crawlerAudit`/`parseRobots` para OAI-SearchBot, GPTBot, Google-Extended y PerplexityBot, con el significado documentado de cada uno. No se infieren factores de ranking no documentados.
 - **Tráfico de referencia** (dimensión `referrals`): sesiones de `chatgpt.com` (`utm_source=chatgpt.com`) y de otros motores de IA.
   - Se mantiene **separado** de la visibilidad observada y del resultado de negocio.
@@ -62,6 +69,12 @@ No es una técnica oficial: es una medición de lo que responden los motores gen
 - La IA entra solo como adaptador inyectado:
   - `runAiTask` pasa por `providers.runProviderRequest` (proveedor `ai-assist`, operación `offpageAnalysis`, tratada como de pago). Así reutiliza la confirmación de coste, el presupuesto finito, el rechazo de secretos, la provenance y la redacción de CORE-7.
   - La salida se valida con `validateAiOutput`.
+- **Minimización completa de la evidencia enviada** (`evidenceItem`/`prepareEvidence`):
+  - Se revisan todos los campos: `id`, `kind`, `subject`, `field`, `provider`, `period`, `value`, `text` y `url`.
+  - Un `id` que no sea un identificador simple, o que contenga datos personales o secretos, excluye el elemento, porque los ids se devuelven como referencias. La exclusión se informa en `evidenceRejected` sin copiar el contenido.
+  - Los metadatos se minimizan y, si queda algo sensible, se sustituyen por `[redacted]`.
+  - Las URLs pierden credenciales, query y fragmento, y se descartan si la ruta aún contiene datos personales.
+  - Antes de llamar al transporte, `runAiTask` revisa la petición completa. Si sobrevive algún dato personal (por ejemplo, un teléfono guardado como número), no envía nada (`PERSONAL_DATA_IN_REQUEST`).
 
 **Tareas** (`AI_TASKS`): `classify-evidence`, `summarize-evidence`, `detect-opportunities`, `detect-changes`, `cluster`, `prioritize-explain`, `draft-outreach`, `draft-pr-brief`, `draft-report`, `compare-geo-answers` y `extract-learnings`.
 
@@ -73,12 +86,23 @@ No es una técnica oficial: es una medición de lo que responden los motores gen
   - hecho o inferencia sin evidencia (`UNSUPPORTED_CLAIM`);
   - referencia desconocida (`UNKNOWN_EVIDENCE_REF`);
   - hecho apoyado en evidencia contradictoria (`CONTRADICTORY_EVIDENCE`, detectada con `findConflicts`);
+  - hecho que cita evidencia sin fecha ni periodo (`UNDATED_EVIDENCE_FOR_FACT`);
+  - hecho que mezcla evidencia de contextos no comparables sobre el mismo dato (`NON_COMPARABLE_EVIDENCE_FOR_FACT`);
   - cifra que no aparece en la evidencia citada (`UNSUPPORTED_NUMBER`);
   - URL que no aparece en la evidencia citada (`UNSUPPORTED_URL`);
   - promesas (`PROMISE_NOT_ALLOWED`);
   - datos personales o secretos (`PERSONAL_DATA_OR_SECRET`);
   - falta de confianza o de límites.
-- Una hipótesis sin evidencia se acepta como `INSUFFICIENT`, con la confianza limitada a `low`.
+- Una hipótesis sin evidencia queda como candidata `INSUFFICIENT`, con la confianza limitada a `low`.
+- **Contradicción frente a evolución** (`compareEvidence`):
+  - Dos valores distintos para el mismo `subject`+`field` son un **conflicto** solo dentro del mismo contexto de medición: mismo periodo (o día de captura), proveedor y método.
+  - Si difieren el periodo, el proveedor o el método, es una **divergencia**: evolución o cobertura distinta, no contradicción. Se informa en `reviewFlags` (`EVIDENCE_DIFFERS_BY_PERIOD`, `_PROVIDER` o `_METHOD`) y no bloquea inferencias de tendencia.
+  - Los valores sin fecha ni periodo comparten el contexto `unscoped`, así que si difieren cuentan como conflicto: nada demuestra que sean mediciones distintas.
+- **La validación es solo estructural.** El Core no puede demostrar que una afirmación se desprenda de su evidencia (entailment): comprobar cifras y URLs no basta.
+  - El estado es `STRUCTURALLY_VALID`, `PARTIAL`, `REJECTED`, `EMPTY` o `INVALID_OUTPUT`, nunca «válido».
+  - Cada elemento que pasa es una **candidata** (`status:'CANDIDATE'`, `claimedKind`, `verification:'STRUCTURAL_ONLY'`, `semanticReview:'PENDING_HUMAN'`), y el resultado incluye `semanticVerification:'NOT_PERFORMED'`.
+  - `LOW_LEXICAL_OVERLAP` avisa al revisor cuando la afirmación apenas comparte términos con su evidencia. Es solo una pista, no una garantía.
+  - **Una persona valida la correspondencia entre afirmación y evidencia antes de usar el contenido.**
 - **El resultado nunca es estado canónico** (`canonical:false`, `requiresHumanReview:true`). Los borradores son `sendable:false` y `requiresHumanApproval:true`.
 
 ### 3.2 Lo que exige aprobación humana explícita

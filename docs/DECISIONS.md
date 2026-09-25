@@ -559,6 +559,39 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
   - La detección de promesas es conservadora: también marca negaciones como «no garantizamos».
   - La consistencia NAP compara cadenas normalizadas, no geocodifica.
 
+### Correcciones tras la auditoría del PR #12 (sesión 21, 25/09/2026)
+
+Resuelve los seis hallazgos de [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS-CONTINUATION.md) etapa 1. Cada corrección tiene regresiones en `tests/core-8-review-regressions.test.cjs` que fallan contra el HEAD auditado `42d213d` (comprobado en un worktree temporal: 11 de 11 fallan) y pasan con la corrección.
+
+1. **Provenance confiable.** CORE-7 registra cada sobre que emite (`WeakSet` interno) y expone `providers.isTrustedResult(result)`.
+   - `measurement(input,{providers})` y `geoRun(input,{providers})` (con `providerResult`) solo marcan verificado un resultado emitido por ese módulo, live (`method:'api'`) y `connection:'VERIFIED'`.
+   - Los objetos con la misma forma, las copias serializadas y los campos declarados nunca verifican. Un sobre no confiable se trata como `import` (`trust:'UNTRUSTED_ENVELOPE'`).
+   - Una entrada de caché que no sea el objeto emitido vuelve como `NOT_VERIFIED`. Es un endurecimiento compatible de CORE-7: no cambia ninguna prueba previa.
+   - La confianza no sobrevive a la serialización; restablecerla en el servidor es trabajo de CORE-9.
+2. **Cobertura GEO por grupo exacto.** Los grupos son motor × superficie × locale × mercado.
+   - La cobertura y las repeticiones usan solo las consultas del mismo locale y mercado.
+   - `minUsableAnswersPerQuery` excluye `ERROR` y `NO_ANSWER`.
+   - Una ejecución con otro locale o mercado que su consulta se rechaza (`LOCALE_MARKET_MISMATCH`).
+3. **Rupturas de serie.** Un cambio de superficie, de modelo (entre ventanas o dentro de una) o de método da `NOT_COMPARABLE` con motivo. Nunca `UP`/`DOWN` entre series distintas.
+4. **Conflicto frente a evolución.**
+   - `compareEvidence` separa los conflictos (mismo `subject`+`field` y mismo contexto: periodo o día, proveedor y método) de las divergencias por periodo, proveedor o método.
+   - Un FACT exige evidencia fechada y de un único contexto comparable (`UNDATED_EVIDENCE_FOR_FACT`, `NON_COMPARABLE_EVIDENCE_FOR_FACT`). Las tendencias como INFERENCE no se bloquean y llevan `reviewFlags`.
+5. **Minimización completa.**
+   - `evidenceItem`/`prepareEvidence` revisan todos los campos (id, kind, subject, field, provider, period, value, text, url) y excluyen los ids no seguros.
+   - `minimize` añade correos codificados, secuencias de 9 a 15 dígitos y cadenas con forma de token.
+   - `runAiTask` no envía nada si sobrevive un dato personal (`PERSONAL_DATA_IN_REQUEST`).
+6. **Honestidad semántica.**
+   - `validateAiOutput` devuelve `STRUCTURALLY_VALID`/`PARTIAL`/`REJECTED`, con `candidates` (antes `accepted`) en estado `CANDIDATE`, `verification:'STRUCTURAL_ONLY'`, `semanticReview:'PENDING_HUMAN'` y `semanticVerification:'NOT_PERFORMED'`.
+   - `LOW_LEXICAL_OVERLAP` es solo una pista para el revisor.
+   - Una persona valida la correspondencia semántica antes de usar el contenido.
+
+**Cambios de API antes del merge:** `accepted` → `candidates`; `VALID` → `STRUCTURALLY_VALID`; `minRunsPerQuery` (resultado) → `minUsableAnswersPerQuery`; `modelBreak` → `NOT_COMPARABLE`/`MODEL_CHANGED`; `findConflicts` devuelve también `context`. Se actualizaron las pruebas afectadas de `core-8-offpage-authority`.
+
+**Evidencia:**
+- 12 regresiones nuevas.
+- Una mutación de 17 guardas nuevas mata las 17.
+- `npm run verify` da 274 (272 pasan, 2 se omiten en Windows).
+- CI: pendiente del run de estas correcciones.
 
 ## D-24 · CORE-8.1 y continuidad autónoma por fases
 
