@@ -351,3 +351,16 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
   - golden (blob `5aa93a3`) y fixtures sin cambios.
 
 - **`apply()` (revisión del PR #9):** está limitado a la portada por diseño. Inyecta `publish().publisher.head`, que es el `<head>` del HOME, y el HOME solo existe en el idioma por defecto (`home-requires-default-locale`). `<html lang>` se toma ahora de `seo.site.defaultLanguage` reconciliado en lugar del literal `'es'`; el valor es el mismo, `es`. No acepta ni resuelve una página localizada, y un argumento extra se ignora. Las páginas localizadas obtienen su `lang` real con `renderPage` (`publish().publisher.pages` y el materializer). Las pruebas fijan ambos casos.
+
+
+## D-20 · SEO off-page como fase explícita y Platform Layer al final
+
+**Origen:** decisión aprobada por el usuario tras revisar el estado de Release E, Intelligence y la arquitectura host/Core. Esta decisión fija la secuencia futura; no declara capacidades externas ya implementadas.
+
+1. **SEO off-page se incorpora como CORE-8.** Parte de los contratos ya existentes de Release E (presencia, menciones, citas y provenance) y de Intelligence (fuentes de backlinks). CORE-8 debe definir/implementar en el Core contratos neutrales, normalización y análisis auditable de observaciones externas: backlinks, menciones/citas y presencia local. Cada observación necesita fuente, fecha y evidencia suficiente para poder revisarla; las fuentes parciales se etiquetan como tales y la ausencia de datos se mantiene como `NOT_MEASURED`/`UNKNOWN`, nunca como cero o puntuación inventada.
+2. **Límites de CORE-8:** el Core no adquiere storage, secretos ni llamadas autenticadas a proveedores; el host conserva la persistencia en su Project State. CORE-8 puede trabajar con datos explícitamente aportados o importados y fixtures deterministas. No crea, compra, intercambia ni automatiza enlaces; no promete posiciones y no produce un score opaco de autoridad. Las acciones off-site se presentan como recomendaciones/tareas revisables por una persona.
+3. **CORE-7/7.1 se preparan antes de la plataforma:** contratos, mapeos y pruebas con mocks pueden hacerse Core-only. Conexiones reales a Release E, Search Console/Bing, OpenSEO/MCP u otros proveedores quedan aplazadas hasta la fase final.
+4. **CORE-9 es la última fase: Platform Layer multi-proyecto.** Diseñar un plano de control con backend, autenticación/roles, almacenamiento seguro de secretos, trabajos programados, conectores, provenance y audit log. Activará las integraciones reales preparadas en CORE-7/7.1/8. El Project State, Studio, Media Library y Page Registry canónicos siguen perteneciendo a cada host; la plataforma no los duplica.
+5. **Límite de repositorio:** la futura aplicación de plataforma se tratará como producto/proyecto separado. Esta decisión no autoriza acceder ni cambiar otro repositorio, y no cambia el alcance actual de RUBIK-SEO-GEO-CORE.
+
+**Secuencia aprobada:** CORE-6 → CORE-7 (contratos/mocks) → CORE-8 (SEO off-page Core-only) → CORE-9 (Platform Layer final; activación de proveedores reales). CORE-2/4/5 siguen condicionadas a adopción/validación de host y no se consideran resueltas por D-20.
