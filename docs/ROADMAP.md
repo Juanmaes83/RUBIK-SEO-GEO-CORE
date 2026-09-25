@@ -1,6 +1,6 @@
 # Roadmap operativo — Rubik SEO/GEO Core
 
-**Única fuente de estado del Core.** Última verificación: 25/09/2026, contra `main@995207f` de este repositorio. El alcance operativo se limita a RUBIK-SEO-GEO-CORE; no se accede ni modifica ningún otro repositorio.
+**Única fuente de estado del Core.** Última verificación: 25/09/2026, contra `main@995207f` de este repositorio. Todo cambio de código y documentación se hace solo en RUBIK-SEO-GEO-CORE. No se modifica ningún repositorio externo ni se accede a WEB-RESTAURACI-N-PREMIUM-DIN-MICA. Las lecturas de otros repositorios requieren autorización expresa para una evaluación concreta.
 
 ## 1. Estado heredado (verificado)
 
@@ -48,6 +48,8 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 | CORE-7 | Conexiones server-side de Release E y Release C | Depende de la Platform Layer del host (auth, secretos, backend). Siempre con provenance real |
 | CORE-7.1 | **Integración OpenSEO (Release C · Intelligence) mediante un puente de proveedor server-side** que actúa como cliente MCP. Diseño en [`integrations/OPENSEO.md`](integrations/OPENSEO.md) | 📝 documentado · ⛔ **bloqueado** por CORE-2 y CORE-3 (interfaz de proveedor inyectable) y por la Platform Layer. Orden de cierre: (a) interfaz de proveedor definida, (b) contrato validado con mocks de respuestas MCP reales (sin red ni consultas de pago), (c) health `/api/health` en lugar de `GET` raíz, (d) puente en el backend del host, (e) revisión humana. No es una Release nueva: completa la fuente real que le falta a Release C |
 
+**Evaluación del ecosistema:** la revisión de referencias SEO/GEO está en [`ECOSYSTEM-REFERENCES.md`](ECOSYSTEM-REFERENCES.md). No añade dependencias ni altera el orden del roadmap: CORE-3 sigue siendo la siguiente fase Core-only; `open-seo` es candidato futuro sujeto a su contrato, mocks y bloqueos. Crawlers y proveedores de medición se mantienen intercambiables; skills y extensiones quedan como referencias de workflow/QA.
+
 ## 4. Bloqueos y riesgos abiertos
 
 | Bloqueo | Afecta a | Salida |
@@ -61,5 +63,5 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 
 - No crear un segundo Core, Studio, Project State, Media Library ni Page Registry.
 - Cualquier cambio de salida para Restaurant debe actualizar el golden (`scripts/generate-source-golden.cjs`) **con** una decisión en `DECISIONS.md`.
-- Todo cambio se hace únicamente en RUBIK-SEO-GEO-CORE. Cada fase sigue branch → PR → CI → revisión humana → merge. Sin acceso a otros repositorios y sin despliegues.
+- Todo cambio de código y documentación se hace únicamente en RUBIK-SEO-GEO-CORE. Cada fase sigue branch → PR → CI → revisión humana → merge. No modificar repositorios externos; solo hacer lecturas puntuales con autorización expresa del usuario. No acceder nunca a WEB-RESTAURACI-N-PREMIUM-DIN-MICA. Sin despliegues.
 - No declarar un proveedor externo como conectado sin fuente real verificable.
