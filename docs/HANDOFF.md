@@ -1,6 +1,6 @@
 # Handoff — extracción de Rubik SEO/GEO Core
 
-**Última sesión:** 25/09/2026 · **Estado:** CORE-3.2 fusionado en `main@3ad7b13` · **Alcance:** solo `Juanmaes83/RUBIK-SEO-GEO-CORE` (D-12)
+**Última sesión:** 25/09/2026 · **Estado:** CORE-6 cerrado en `main@304f655` (PR #9) · **Alcance:** solo `Juanmaes83/RUBIK-SEO-GEO-CORE` (D-12)
 
 > Este documento resume la última sesión. El estado con autoridad está en [`ROADMAP.md`](ROADMAP.md).
 
@@ -190,4 +190,11 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - CORE-8 cubre análisis verificable de backlinks, menciones/citas y presencia local. No crea enlaces automáticamente, no almacena datos en el Core y no promete posiciones. Los conectores externos dependen de CORE-9.
 - CORE-9 es un plano de control multi-proyecto con backend, autenticación, secretos, trabajos programados e historial. Cada host conserva su Project State canónico, Studio, Media Library y Page Registry.
 - La plataforma se planifica como producto aparte. Esta decisión no autoriza cambios ni accesos a otros repositorios; este repositorio solo conserva los contratos y la secuencia del Core.
-- CORE-6 continúa en revisión en PR #9; su CI de Actions sigue bloqueada por presupuesto según el propio PR. Sin merge ni deploy en esta actualización documental.
+- Estado en esa sesión: CORE-6 seguía en revisión y su CI estaba bloqueada. Se cerró después de esa sesión: merge PR #9 `304f655`, CI verde (run `36115604817`). Sin deploy.
+
+## Sesión 15 — cierre de CORE-6 (25/09/2026)
+
+- PR #9 (`feat/core-6-multilingual`) fusionado en `main` como `304f6555416210ff562343dea20a4a22db252a67`.
+- CI del HEAD del PR verde en Node 20.20.2 y 22.23.2: 174/174 pruebas por versión, 0 omitidas; syntax, documentación y ambos smoke checks del CLI también verdes ([run 36115604817](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36115604817)).
+- CORE-6/D-19 queda cerrado. No se hizo deploy ni validación en host. Se mantienen los límites documentados de D-19 y la deuda heredada de canonical/sitemap de home.
+- Próxima fase: CORE-7, contratos de integración y pruebas con mocks en este Core. No activar proveedores reales ni tocar otros repositorios; las conexiones reales permanecen para CORE-9.

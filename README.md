@@ -39,10 +39,10 @@ Todo eso lo aporta cada producto anfitrión ([`docs/HOST-INTEGRATION-CONTRACT.md
 | Hardening A–B | ✅ implementados en el Core (#53, #54) · Hardening C pertenece al host (#55) |
 | Release E | ✅ contratos base E1–E4 (#56) · ⏳ conexiones reales pendientes; su activación se planifica al final en CORE-9 |
 | Independencia | ✅ 153/153 en CI Node 20.20.2 y 22.23.2 (run 36111618492, CORE-3.2); en Windows local, 2 pruebas de symlink de fichero se omiten por permisos |
-| Compatibilidad Restaurant | ✅ golden de `publish()`/`preview()` sin cambios y materialización con 0 diferencias. CORE-3.2 elimina las rutas específicas de vertical en Intelligence; golden idéntico (blob `5aa93a3`) y contrato actualizado en D-18. En CORE-6 (en progreso) `core`, `release-b` y `publisher` derivan con decisión D-19 y la salida con solo `es` sigue idéntica |
+| Compatibilidad Restaurant | ✅ Golden de `publish()`/`preview()` sin cambios y materialización con 0 diferencias. CORE-3.2 eliminó rutas específicas de vertical en Intelligence (D-18). CORE-6 (PR #9, merge `304f655`) añadió multidioma explícito sin cambiar salida monolingüe; golden y fixtures sin cambios |
 | Extracción CORE-1 | ✅ PR #1 mergeado en `main` (merge `995207f38080cf319d4246a531895c85bc10759e`); CI Node 20/22 verde, 86/86 (run 36103571133) |
-| Siguiente fase | ✅ CORE-3.2 fusionado ([PR #7](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/7), merge `3ad7b13`). CORE-6 está en revisión en [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9); después: CORE-7 (contratos/mocks), CORE-8 (SEO off-page Core-only) y, al final, CORE-9 (Platform Layer y activación de integraciones reales). CORE-2/4/5 siguen sujetos a validación de host. |
-| Multidioma (CORE-6) | 🔄 en revisión en [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9): contrato D-19; CI de Actions bloqueada por presupuesto, validación local documentada en el PR. La salida con solo `es` sigue idéntica |
+| Siguiente fase | ✅ CORE-6 cerrado en [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9), merge `304f655`. Sigue CORE-7 (contratos/mocks), después CORE-8 (SEO off-page Core-only) y finalmente CORE-9 (Platform Layer e integraciones reales). CORE-2/4/5 siguen sujetos a validación de host. |
+| Multidioma (CORE-6) | ✅ Cerrado por D-19 en [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9), merge `304f655`. CI verde en Node 20 y 22: 174/174 pruebas en cada versión, 0 omitidas, syntax/docs y smoke CLI ([run 36115604817](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36115604817)). La salida monolingüe sigue idéntica |
 | SEO off-page (CORE-8) | 📋 Aprobada para después de CORE-7: señales externas con provenance y análisis Core-only; sin storage ni conexiones reales hasta CORE-9 |
 | Plataforma (CORE-9) | 📋 Última fase: plano de control multi-proyecto y backend seguro. Los Project States permanecen en sus hosts |
 | Seguridad del materializer | ✅ path traversal, enlaces/junctions dentro de `outputDir` y nombres válidos con `..` cubiertos por regresiones (D-11/D-11b) |
@@ -136,4 +136,4 @@ La CI está en `.github/workflows/core-ci.yml` (Node 20 y 22): verify + smoke de
 - Honestidad: no se inventan métricas, reseñas, indexación ni citas. `NOT_MEASURED`, `NOT_CONNECTED` y `UNKNOWN` son estados válidos.
 - Cualquier cambio de salida cubierto por fixtures/golden exige actualizar el golden **y** registrar una decisión en [`docs/DECISIONS.md`](docs/DECISIONS.md).
 - Todo cambio de código y documentación se realiza en este repositorio; no se accede ni se escribe en otros repositorios.
-- España-first (`es` por defecto). Otros idiomas solo con páginas traducidas reales declaradas por el host, según D-19 (CORE-6, en progreso). El Core no genera traducciones.
+- España-first (`es` por defecto). Otros idiomas solo con páginas traducidas reales declaradas por el host, según D-19 (CORE-6 cerrado). El Core no genera traducciones.

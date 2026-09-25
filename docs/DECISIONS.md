@@ -227,7 +227,7 @@ El gate de encoding se adapta: aplica la misma regla contra mojibake, pero sobre
 
 ## D-19 · Contrato multidioma del Core (CORE-6)
 
-**Estado:** contrato definido antes de implementar. La implementación está en la rama `feat/core-6-multilingual` y CORE-6 sigue en progreso hasta su merge.
+**Estado:** CORE-6 cerrado. El contrato se definió antes de implementar; la implementación de `feat/core-6-multilingual` se fusionó mediante PR #9 en `main@304f655` el 25/09/2026.
 
 ### Especificación local disponible (única fuente)
 
@@ -328,7 +328,7 @@ La especificación **no** define: sintaxis de locales, representación de corres
 
 Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `preview()`, el sitemap, los HTML materializados y el golden `source-388e48a-publish.json` deben ser idénticos byte a byte, y las barreras de rutas (D-11, D-15) no cambian. Cualquier diferencia exigiría detenerse y registrar una nueva decisión.
 
-### Implementación (rama `feat/core-6-multilingual`)
+### Implementación (CORE-6, PR #9 fusionado)
 
 - **`core`:**
   - exporta `normalizeLocale` y `languageSettings`; `reconcile` aplica `languageSettings`;
@@ -351,6 +351,8 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
   - golden (blob `5aa93a3`) y fixtures sin cambios.
 
 - **`apply()` (revisión del PR #9):** está limitado a la portada por diseño. Inyecta `publish().publisher.head`, que es el `<head>` del HOME, y el HOME solo existe en el idioma por defecto (`home-requires-default-locale`). `<html lang>` se toma ahora de `seo.site.defaultLanguage` reconciliado en lugar del literal `'es'`; el valor es el mismo, `es`. No acepta ni resuelve una página localizada, y un argumento extra se ignora. Las páginas localizadas obtienen su `lang` real con `renderPage` (`publish().publisher.pages` y el materializer). Las pruebas fijan ambos casos.
+
+**Cierre de CORE-6:** CI de PR #9 verde sobre HEAD `01076e49`: Node 20.20.2 y 22.23.2, 174/174 pruebas en cada job, 0 omitidas; syntax, documentación y smoke CLI verdes (run `36115604817`). Merge commit `304f6555416210ff562343dea20a4a22db252a67`. Sin deploy ni validación en host.
 
 
 ## D-20 · SEO off-page como fase explícita y Platform Layer al final
