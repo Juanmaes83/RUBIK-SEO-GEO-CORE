@@ -1,6 +1,6 @@
 # Roadmap operativo — Rubik SEO/GEO Core
 
-**Única fuente de estado del Core.** Última verificación: 25/09/2026, contra `main@995207f` de este repositorio. Todo cambio de código y documentación se hace solo en RUBIK-SEO-GEO-CORE. No se modifica ningún repositorio externo ni se accede a WEB-RESTAURACI-N-PREMIUM-DIN-MICA. Las lecturas de otros repositorios requieren autorización expresa para una evaluación concreta.
+**Única fuente de estado del Core.** Última verificación: 25/09/2026, contra `main@b382253` de este repositorio. Todo cambio de código y documentación se hace solo en RUBIK-SEO-GEO-CORE. No se modifica ningún repositorio externo ni se accede a WEB-RESTAURACI-N-PREMIUM-DIN-MICA. Las lecturas externas requieren autorización expresa y concreta.
 
 ## 1. Estado heredado (verificado)
 
@@ -40,28 +40,28 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 | ID | Tarea | Criterio de cierre |
 |---|---|---|
 | **CORE-1** | **Extracción independiente del Core** ([PR #1](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/1)) | ✅ Cerrada: merge a `main` `995207f38080cf319d4246a531895c85bc10759e`; CI Node 20/22 verde (86/86) |
-| CORE-2 | Sacar el bootstrap navegador de `core.js` y llevar la carga al host | ⛔ Fuera de alcance: su criterio requiere migrar y validar un host externo. No se accede ni modifica otro repositorio |
-| **CORE-3** | **Siguiente fase Core-only:** inyectar `releaseB` en `intelligence.pages`, derivar Release E del adapter activo, corregir health de OpenSEO según D-09 y validar rutas en Page Registry según D-11 | Tests con varios adapters, mocks locales sin red, rutas válidas e inválidas; golden existente estable salvo decisión documentada |
+| CORE-2 | Sacar el bootstrap navegador de `core.js` y llevar la carga al host | ⛔ Fuera de alcance: su criterio requiere migrar y validar un host externo. No se accede ni modifica otro repositorio. No iniciado (D-12) |
+| **CORE-3** | **Inyección explícita y validación de contratos Core-only** | ✅ Cerrada en [PR #3](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/3), merge `b38225320f4b3dde3f2820f2935603adea33c8dc`; D-12…D-15. CI Node 20/22 verde: 113/113, 0 omitidos (run 36106021399). `entityGraph().products` mantiene una dependencia residual de `config.dishes`, anotada para trabajo posterior |
 | CORE-4 | Adopción del Core por un host externo | ⛔ Fuera de alcance mientras el trabajo se limite a este repositorio |
 | CORE-5 | Validación externa del adapter `real-estate` con Sarah Katerina | Estado real del host → golden y HTML materializado revisados. Ni datos inventados ni NAP sin confirmar |
 | CORE-6 | Deuda multidioma (TECH DEBT · MULTILINGUAL SEO) | Solo con decisión canónica: locales, hreflang y canonical por idioma |
 | CORE-7 | Conexiones server-side de Release E y Release C | Depende de la Platform Layer del host (auth, secretos, backend). Siempre con provenance real |
-| CORE-7.1 | **Integración OpenSEO (Release C · Intelligence) mediante un puente de proveedor server-side** que actúa como cliente MCP. Diseño en [`integrations/OPENSEO.md`](integrations/OPENSEO.md) | 📝 documentado · ⛔ **bloqueado** por CORE-2 y CORE-3 (interfaz de proveedor inyectable) y por la Platform Layer. Orden de cierre: (a) interfaz de proveedor definida, (b) contrato validado con mocks de respuestas MCP reales (sin red ni consultas de pago), (c) health `/api/health` en lugar de `GET` raíz, (d) puente en el backend del host, (e) revisión humana. No es una Release nueva: completa la fuente real que le falta a Release C |
+| CORE-7.1 | **Integración OpenSEO (Release C · Intelligence) mediante un puente de proveedor server-side** que actúa como cliente MCP. Diseño en [`integrations/OPENSEO.md`](integrations/OPENSEO.md) | 📝 documentado · ⛔ **bloqueado** por CORE-2 (fuera de alcance) y la Platform Layer. La conectividad `/api/health` está implementada y fusionada en CORE-3 (D-14); faltan el contrato MCP validado con mocks, el puente en el backend del host y revisión humana. No es una Release nueva: completa la fuente real que le falta a Release C |
 
-**Evaluación del ecosistema:** la revisión de referencias SEO/GEO está en [`ECOSYSTEM-REFERENCES.md`](ECOSYSTEM-REFERENCES.md). No añade dependencias ni altera el orden del roadmap: CORE-3 sigue siendo la siguiente fase Core-only; `open-seo` es candidato futuro sujeto a su contrato, mocks y bloqueos. Crawlers y proveedores de medición se mantienen intercambiables; skills y extensiones quedan como referencias de workflow/QA.
-
-## 4. Bloqueos y riesgos abiertos
+**Evaluación del ecosistema:** referencias y decisiones en [`ECOSYSTEM-REFERENCES.md`](ECOSYSTEM-REFERENCES.md). No añade dependencias ni altera el alcance del Core.\n\n## 4. Bloqueos y riesgos abiertos
 
 | Bloqueo | Afecta a | Salida |
 |---|---|---|
 | CORE-1 | Cerrado en `main@995207f`; sin deploy | Ninguno |
+| CORE-3 | Cerrado en `main@b382253`; D-12…D-15, CI Node 20/22 verde | Ninguno |
+| Microcopy OpenSEO | Mensaje de éxito de conectividad puede dar a entender que la autorización MCP ya está verificada | Corregir en una fase posterior según D-16; el estado devuelto sigue siendo `NOT_CONNECTED` / `NOT_VERIFIED` |
 | CORE-2/CORE-4 | Requieren migración o adopción en un host externo | Fuera de alcance: este proyecto solo trabaja en RUBIK-SEO-GEO-CORE |
 | Sin Platform Layer (backend, auth, secretos) en ningún host | CORE-7, CORE-7.1 | Fase Platform Layer del host |
-| El contrato `OpenSEOAdapter` no coincide con el OpenSEO real (falso `CONNECTED` en `GET` raíz, no existe acción `crawl`) | CORE-7.1 | CORE-3 + mocks; `DECISIONS.md` D-09. No se toca el código hasta entonces |
+| `crawl()` de `OpenSEOAdapter` sigue con el contrato HTTP heredado (no existe la acción `crawl` en OpenSEO). La conectividad ya usa `/api/health` y nunca devuelve `CONNECTED` (D-14, en revisión en PR #3) | CORE-7.1 | Puente MCP server-side con Platform Layer; `DECISIONS.md` D-09 |
 
 ## 5. Reglas de continuidad
 
 - No crear un segundo Core, Studio, Project State, Media Library ni Page Registry.
 - Cualquier cambio de salida para Restaurant debe actualizar el golden (`scripts/generate-source-golden.cjs`) **con** una decisión en `DECISIONS.md`.
-- Todo cambio de código y documentación se hace únicamente en RUBIK-SEO-GEO-CORE. Cada fase sigue branch → PR → CI → revisión humana → merge. No modificar repositorios externos; solo hacer lecturas puntuales con autorización expresa del usuario. No acceder nunca a WEB-RESTAURACI-N-PREMIUM-DIN-MICA. Sin despliegues.
+- Todo cambio de código y documentación se hace únicamente en RUBIK-SEO-GEO-CORE. Cada fase sigue branch → PR → CI → revisión humana → merge. No modificar repositorios externos; hacer lecturas puntuales solo con autorización expresa. No acceder nunca a WEB-RESTAURACI-N-PREMIUM-DIN-MICA. Sin despliegues.
 - No declarar un proveedor externo como conectado sin fuente real verificable.
