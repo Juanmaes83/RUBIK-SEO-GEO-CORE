@@ -130,14 +130,14 @@ No se copiaron repositorios, skills, documentación, código ni publicaciones: s
 | [Rastreadores comunes de Google](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers) (actualizada el 14/07/2026) | OFICIAL | Google-Extended controla el uso en entrenamiento y grounding de Gemini, sin efecto en Google Search. → Nota de `aiCrawlerAccess`. |
 | [OpenAI: FAQ para editores y desarrolladores](https://help.openai.com/en/articles/12627856-publishers-and-developers-faq) (fecha relativa en la página) | OFICIAL | No bloquear OAI-SearchBot si se quiere aparecer en ChatGPT search. GPTBot solo afecta al entrenamiento. ChatGPT añade `utm_source=chatgpt.com`. Una página bloqueada puede mostrarse como enlace y título; para excluirla hace falta `noindex` con el rastreador permitido. No documenta factores de ranking. → `aiCrawlerAccess`, dimensión `referrals`. La consulta directa devolvió 403 y se leyó una copia en caché. |
 | [Bing: directrices para webmasters](https://www.bing.com/webmasters/help/webmaster-guidelines-30fba23a) | OFICIAL | La compra de enlaces, las redes privadas y la promoción social falsa son infracciones. Manipular los modelos de lenguaje de Bing puede reducir la visibilidad. NOARCHIVE/NOCACHE limitan Copilot. IndexNow para cambios. |
-| [Bing: AI Performance (vista previa)](https://www.bing.com/webmasters/help/ai-performance-9f8e7d6c) | OFICIAL, **solo por resultados de búsqueda** | Informe de citas en Copilot y de «grounding queries». Mide citas, no rankings ni clics. Fuente candidata para CORE-9, sin verificar. |
+| [Bing: AI Performance (vista previa)](https://www.bing.com/webmasters/help/ai-performance-9f8e7d6c) | OFICIAL; página oficial identificada, detalles de producto pendientes de verificación directa | Referencia candidata para CORE-9. No basar conectores ni afirmaciones de medición en funciones que no se hayan confirmado en la documentación accesible. |
 | [Perplexity: rastreadores](https://docs.perplexity.ai/guides/bots) | OFICIAL | PerplexityBot respeta robots.txt. Perplexity-User generalmente no. → Nota de `aiCrawlerAccess`. |
 
 ### 5.2 Investigación (Hugging Face y arXiv)
 
 | Fuente | Tipo | Licencia | Uso en el Core |
 |---|---|---|---|
-| [GEO-bench](https://huggingface.co/datasets/GEO-Optim/geo-bench) · [arXiv 2311.09735](https://arxiv.org/abs/2311.09735) | Dataset de benchmark y artículo | CC BY-NC-SA 4.0 | **Solo referencia**. Un entorno controlado en inglés no describe cómo se comportan los motores en producción. No se incorpora. |
+| [GEO-bench](https://huggingface.co/datasets/GEO-Optim/geo-bench) · [arXiv 2311.09735](https://arxiv.org/abs/2311.09735) | Dataset de benchmark y artículo | **No resuelta:** la ficha/README declara CC BY-NC-SA 4.0, mientras los metadatos de Hugging Face muestran CC BY-SA 4.0 | **Solo referencia; no reutilizar ni redistribuir datos** hasta confirmar la licencia con la fuente responsable. Un benchmark controlado en inglés no describe producción. |
 | [NorGEO-Bench](https://huggingface.co/datasets/dervig/NorGEO-Bench) | Evidencia de producción (noruego) | CC BY 4.0 | Patrón: conjunto de preguntas fijo, repeticiones, citas y menciones de entidades. Solo metodología; no es la verdad sobre otros mercados. |
 | [AI Recommendation Index](https://huggingface.co/datasets/nikoalho/ai-recommendation-index) | Evidencia de producción (144 respuestas) | CC BY 4.0 | Muestra demasiado pequeña: anecdótica. Solo refuerza la idea de instantánea fechada y no determinista. |
 | [arXiv 2603.08924](https://arxiv.org/abs/2603.08924) | INVESTIGACIÓN | CC BY 4.0 | La variabilidad de citas exige repetir y dar intervalos. El tamaño de muestra se fija antes, sin parar pronto. → Intervalos y `WITHIN_NOISE`. |
@@ -168,3 +168,27 @@ Estos patrones inspiran las reglas (sin cuotas, «no vistos» frente a perdidos,
 - **DECISIÓN:** la puntuación usa pesos visibles (relevancia 3, confianza 2, esfuerzo 1, riesgo 2) y es solo un orden interno. Los pesos se pueden inyectar.
 - **DECISIÓN:** el intervalo de Wilson es determinista y reproducible. Como las repeticiones de una misma consulta están correlacionadas, el intervalo es optimista y así se indica. Un bootstrap con semilla queda como mejora posible.
 - **HIPÓTESIS a medir en CORE-9:** cuántas repeticiones por consulta y motor hacen falta para que los intervalos sean útiles en cada mercado y vertical. El Core solo avisa con `FEW_RUNS_PER_QUERY` por debajo de 3.
+
+
+## 6. CORE-8.1 · operación off-page continua asistida por IA (alcance aprobado)
+
+**Estado:** aprobado el 25/09/2026 (D-24); preparado para implementación después de cerrar CORE-8. La continuidad a largo plazo es propia del servicio off-page; no se exige que cada periodo invente acciones nuevas. Seguimiento, verificación, aprendizaje, informe o «sin cambios relevantes» con mediciones comparables son trabajo válido.
+
+### 6.1 Capacidades que debe habilitar el Core
+
+- Seguimiento entre periodos de clientes, campañas, oportunidades, acciones abiertas, bloqueos, respuestas, resultados verificados y aprendizajes. Mantener la relación entre una observación y el siguiente paso; no perder el historial cuando una campaña cruza meses. La persistencia real corresponde a CORE-9/host.
+- Mediciones GEO repetidas sobre consultas versionadas, por motor/superficie/modelo, idioma y mercado; registrar menciones, fuentes citadas y evolución con límites claros. No usar scraping ni presentar menciones/citas como garantizadas. Una API y una interfaz de consumo no son observaciones equivalentes.
+- Preparar con IA artículos y guías a partir de servicios, productos, preguntas frecuentes, datos y experiencia **aprobados** del cliente; generar adaptaciones para redes, newsletters, perfiles/publicaciones de negocio y otros canales. Cada borrador conserva las referencias que respaldan sus hechos y señala como desconocido lo que no pueda respaldar.
+- Proponer estudios, casos de éxito e infografías solo cuando existan datos reales suficientes, permisos de uso y metodología/periodo/fuente identificables. No inventar resultados, clientes, testimonios, muestras, cifras ni causalidad.
+- Proponer temas de PR, colaboraciones y respuestas a solicitudes periodísticas; crear borradores individualizados de contacto para medios o sitios pertinentes. Sin scraping de contactos, envíos en lote, cuotas ni outreach automatizado.
+- Preparar respuestas a reseñas y solicitudes neutrales de opinión. Nunca inventar reseñas, ofrecer incentivos, filtrar a quién se pide opinión ni ocultar críticas; cualquier envío/publicación requiere revisión y aprobación humanas.
+- Producir informes periódicos que separen lo observado, lo ejecutado, lo que no se pudo verificar y lo siguiente recomendado. La IA usa solo fuentes identificadas y datos aprobados; si no hay evidencia, declara el vacío.
+
+### 6.2 Criterios de aceptación y fronteras
+
+- Cada afirmación factual del borrador enlaza a evidencia aprobada; cifras y citas conservan fuente, periodo, cobertura y método. Inferencias e hipótesis quedan etiquetadas y sujetas a revisión humana. La validación estructural del Core no equivale a verificación semántica automática.
+- La IA solo propone y redacta. Ningún mensaje, publicación, edición de perfil, solicitud de reseña ni otra acción externa se envía sin aprobación humana explícita y vigente. No se promete ranking, venta, backlink ni cita.
+- Generar contenido no equivale a publicarlo: el Core devuelve borradores revisables; el CMS/canal y su publicación los aporta el host o CORE-9.
+- CORE-8.1 en este repo define contratos, validaciones, provenance y mocks. No introduce credenciales, llamadas reales a modelos/proveedores, envío externo ni storage. Debe probar más de un vertical y datos faltantes/contradictorios.
+- Al iniciar CORE-8.1, Claude debe convertir este alcance en entregables pequeños y criterios verificables antes de codificar; no ampliar ni sustituir estas decisiones sin registrar una decisión y pedir autorización cuando cambie el alcance.
+
