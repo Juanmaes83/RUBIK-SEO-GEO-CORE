@@ -51,25 +51,22 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 2. **Falsos positivos léxicos:** `isInside` ya no rechaza `/..foo/` ni `/.../`.
 3. **Pruebas:** 13 en `core-materialize-path-safety`. Con el código de `ca33d7e` fallan las 6 regresiones nuevas; con la corrección pasan 11 y 2 se omiten en Windows (symlinks de fichero), pruebas que sí se ejecutan en la CI de Linux. `npm run verify` da 86 (84 pasan, 2 se omiten). Paridad 0 diferencias, golden sin cambios.
 
+## Sesión 6 — cierre de CORE-1 (25/09/2026)
+
+1. PR #1 se mergeó en `main` mediante `995207f38080cf319d4246a531895c85bc10759e`.
+2. El HEAD `44b1f5c` pasó `core-ci` en Node 20.20.2 y 22.23.2: 86/86, 0 omitidos en Linux (run 36103571133).
+3. CORE-1/EX-1…EX-8 quedan cerradas, incluido D-11/D-11b. No hubo deploy.
+4. El único repositorio de trabajo es RUBIK-SEO-GEO-CORE. No se accede ni modifica ningún otro repositorio.
+5. CORE-2 requiere cambios de host y queda fuera de alcance. CORE-3 pasa a ser la siguiente fase Core-only, según ROADMAP.
+
 ## Pendiente
 
-- PR #1: comprobar la CI del commit D-11, hacer la revisión humana y el merge (decisión del propietario). No se ha hecho merge ni deploy.
-- Avisar al propietario del repo fuente del path traversal equivalente (D-11).
-- D-07: acoplamientos del host dentro del Core (CORE-2, CORE-3).
-- D-09: contrato OpenSEO incompatible (CORE-3 → CORE-7.1).
-- Restaurantes sigue usando su propia copia (CORE-4).
-
-## Siguiente tarea concreta
-
-**CORE-1:** revisión humana del [PR #1](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/1) y merge por el propietario.
-
-Después, **CORE-2** (bootstrap navegador fuera de `core.js`) y **CORE-3** (interfaz de proveedor inyectable + health check honesto), que desbloquean CORE-7.1.
+- CORE-3: inyección explícita de dependencias, vertical activo en Release E, health honesto de OpenSEO según el contrato ya documentado y validación temprana de rutas del Page Registry.
+- CORE-2 y CORE-4 quedan fuera de alcance porque exigen cambios o validación en un host/repo externo.
+- Release E externo sigue pendiente de Platform Layer; no se simulan conexiones, citas ni métricas.
 
 ## Cómo retomar
 
-```bash
-git switch feat/seo-geo-core-extraction
-npm run verify
-```
-
-Leer `docs/README.md` → `ROADMAP.md` §3–§4 → `DECISIONS.md`.
+1. Leer `docs/README.md`, `ROADMAP.md` §3–§4, `HANDOFF.md` y las decisiones pertinentes.
+2. Ejecutar `npm run verify` antes de cambiar nada.
+3. Crear una rama nueva desde `main` en este repositorio; no acceder ni modificar otros repositorios.

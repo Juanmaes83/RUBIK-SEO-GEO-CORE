@@ -13,23 +13,17 @@ Cada tema tiene **un solo documento con autoridad**. Si dos documentos chocan, m
 | Contrato de producto SEO/GEO (fórmulas, AUTO/CUSTOM, gates, GEO) | [`upstream/`](upstream/README.md) | Los estados de esos documentos no son normativos |
 | Integraciones con proveedores | [`integrations/`](integrations/) (p. ej. [`OPENSEO.md`](integrations/OPENSEO.md)) | `upstream/SEO-GEO-INTEGRATIONS.md` (contrato heredado) |
 
-## Sincronización con upstream
+## Contratos upstream y alcance de repositorio
 
-`docs/upstream/` es una **copia congelada** de `WEB-RESTAURACI-N-PREMIUM-DIN-MICA@388e48a`. No se sincroniza automáticamente.
+`docs/upstream/` es una copia histórica congelada usada para procedencia del Core; no se sincroniza ni contrasta con repositorios externos. No acceder, clonar, leer ni modificar otros repositorios.
 
-1. Desde la extracción, el Core es la autoridad del contrato SEO/GEO. Los cambios de contrato se hacen **aquí**, con una entrada en `DECISIONS.md`.
-2. Si el repositorio fuente modifica un contrato `docs/SEO-GEO-*.md` después de `388e48a`, el cambio se trae a mano:
-   - comparar con `git -C <fuente> diff 388e48a <nuevo> -- docs/SEO-GEO-*.md`;
-   - copiar el contenido;
-   - volver a aplicar solo las marcas `[Core·D-06]` de estado;
-   - actualizar los blob ids y el commit en `PROVENANCE.md`.
-3. Hasta CORE-4, el código SEO/GEO del host sigue en su repositorio. Cualquier cambio allí en `rubik-seo-geo-*.js` debe traerse con el mismo procedimiento y con el golden de paridad (`scripts/generate-source-golden.cjs`).
+Los cambios de contrato se deciden y documentan aquí, con pruebas y una entrada en `DECISIONS.md`. El estado operativo vive solo en `ROADMAP.md`.
 
 ## Cómo retomar el trabajo (persona o IA)
 
 1. Leer, en este orden: `ROADMAP.md` §3–§4 (qué sigue y qué bloquea), `HANDOFF.md` y `DECISIONS.md`.
 2. Ejecutar `npm run verify`. Debe terminar sin errores antes de tocar nada.
-3. Trabajar en una rama nueva desde la rama vigente y no modificar el repositorio fuente.
+3. Trabajar en una rama nueva de este repositorio. No acceder ni modificar otros repositorios.
 4. Al cerrar:
    - actualizar el estado **solo** en `ROADMAP.md`;
    - añadir las decisiones con evidencia en `DECISIONS.md`;
