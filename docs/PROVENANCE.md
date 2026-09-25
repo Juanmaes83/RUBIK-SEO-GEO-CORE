@@ -18,7 +18,7 @@ Los blob ids de git son independientes de los finales de línea. «idéntico» s
 | `src/rubik-seo-geo-media.js` | `rubik-seo-geo-media.js` | `07422b3b6b05` | `07422b3b6b05` | idéntico |
 | `src/rubik-seo-geo-intelligence.js` | `rubik-seo-geo-intelligence.js` | `a72162b4ba48` | `a72162b4ba48` | idéntico |
 | `src/rubik-seo-geo-release-e.js` | `rubik-seo-geo-release-e.js` | `0cc98079cfb7` | `0cc98079cfb7` | idéntico |
-| `src/rubik-seo-geo-materialize.cjs` | `scripts/seo-geo-materialize-public.cjs` | `1ea145638d63` | `28909839c550` | derivado (D-03: parte Core) |
+| `src/rubik-seo-geo-materialize.cjs` | `scripts/seo-geo-materialize-public.cjs` | `1ea145638d63` | `28909839c550` | derivado (D-03: parte Core; D-11: rutas validadas y contenidas en outputDir) |
 | `hosts/restaurant/restaurant-host.cjs` | `scripts/seo-geo-materialize-public.cjs` | `1ea145638d63` | `7e8d3921fd1e` | derivado (D-03: parte host, funciones sin cambios) |
 | `tests/seo-geo-core.test.cjs` | `tests/seo-geo-core.test.cjs` | `f74003af5ac1` | `9bf1bee6c6dd` | adaptado (rutas `../src/`) |
 | `tests/seo-geo-publisher.test.cjs` | `tests/seo-geo-publisher.test.cjs` | `ce34b44cc811` | `e597bd42e6b4` | adaptado (rutas `../src/`) |
@@ -56,6 +56,7 @@ git hash-object --path=src/rubik-seo-geo-core.js src/rubik-seo-geo-core.js
 | `tests/fixtures/restaurant-home-template.html` | Estructura mínima de slots de `index.html@388e48a` (sha256 `e2a51f0c…c3c47`): solo los elementos que pinta `premiumHomeBody`. |
 | `tests/fixtures/golden/source-388e48a-publish.json` | Salida de `publish()` y `preview()` de los **módulos fuente** para LÚMINA (Restaurant) y Casa Norte (RealEstate), en preview y production (`scripts/generate-source-golden.cjs`). |
 | `tests/core-independence.test.cjs`, `tests/core-source-parity.test.cjs` | Gates nuevos (D-08). |
+| `tests/core-materialize-path-safety.test.cjs` | Prueba de seguridad de path traversal (D-11). |
 | `scripts/run-tests.cjs`, `scripts/check-syntax.cjs`, `scripts/check-docs.cjs`, `scripts/generate-source-golden.cjs` | Herramientas del repositorio. |
 | `docs/integrations/OPENSEO.md` | Documento propio, basado en la lectura del código de `Juanmaes83/open-seo@0ffff93101043aad7600a3b6a499a0cd2887ef49` (idéntico a `every-app/open-seo`). No se copió código de OpenSEO. |
 | `docs/README.md` | Mapa de autoridad documental propio (D-10). |

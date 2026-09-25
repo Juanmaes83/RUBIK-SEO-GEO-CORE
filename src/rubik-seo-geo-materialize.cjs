@@ -47,13 +47,35 @@ function notFoundHtml(){
   return '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>404 · Página no encontrada</title></head><body><main><h1>404</h1><p>Página no encontrada.</p><p><a href="/">Volver al inicio</a></p></main></body></html>';
 }
 
-function routeFile(outputDir,route){
-  if(route==='/') return path.join(outputDir,'index.html');
-  const clean=route.replace(/^\/+|\/+$/g,'');
-  return path.join(outputDir,clean,'index.html');
+/* Route paths come from the Project State (Page Registry) and are therefore untrusted:
+   release-b `pathOf` keeps `..` segments. Every materialized file must stay inside
+   outputDir (docs/DECISIONS.md D-11). */
+function unsafeRoute(route,reason){
+  return new Error('Unsafe route path rejected ('+reason+'): '+JSON.stringify(route));
 }
 
-function writeFile(file,body){
+function isInside(root,file){
+  const rel=path.relative(root,file);
+  return rel!==''&&!rel.startsWith('..')&&!path.isAbsolute(rel);
+}
+
+function routeFile(outputDir,route){
+  const root=path.resolve(outputDir);
+  if(typeof route!=='string'||!route.startsWith('/')) throw unsafeRoute(route,'must be a string starting with /');
+  if(/[\0\\:]/.test(route)) throw unsafeRoute(route,'NUL, backslash or colon');
+  const segments=route.split('/').filter(Boolean);
+  for(const segment of segments){
+    let decoded=segment;
+    try{decoded=decodeURIComponent(segment);}catch{throw unsafeRoute(route,'malformed percent-encoding');}
+    if(segment==='.'||segment==='..'||decoded==='.'||decoded==='..'||/[\0\\/:]/.test(decoded)) throw unsafeRoute(route,'dot or encoded separator segment');
+  }
+  const file=path.join(root,...segments,'index.html');
+  if(!isInside(root,file)) throw unsafeRoute(route,'resolves outside outputDir');
+  return file;
+}
+
+function writeFile(root,file,body){
+  if(!isInside(root,file)) throw new Error('Refusing to write outside outputDir: '+file);
   fs.mkdirSync(path.dirname(file),{recursive:true});
   fs.writeFileSync(file,body,'utf8');
 }
@@ -74,27 +96,32 @@ function materializeSite({state,template,outputDir,environment='preview',baseUrl
     throw new Error('Production materialization requires a valid HTTPS baseUrl');
   }
 
+  const root=path.resolve(outputDir);
   const home=materializeHome(template,normalized,environment,renderHomeBody);
   const working={...normalized,seo:home.published.seo};
   const registry=releaseB.registry(working);
   const homePage=registry.find(page=>page.path==='/');
   const homeGate=publisher.rawHtmlContract(working,homePage,home.html,environment);
   if(environment==='production'&&!homeGate.ok)throw new Error('HOME raw HTML contract failed: '+homeGate.blockers.join(','));
-  writeFile(routeFile(outputDir,'/'),home.html);
+
+  /* Validate every publishable route before the first write: an unsafe path fails
+     the whole build with no partial output. */
+  const routes=registry.filter(page=>page.path!=='/'&&releaseB.canPublish(working,page)).map(page=>({page,file:routeFile(root,page.path)}));
+
+  writeFile(root,routeFile(root,'/'),home.html);
 
   const materialized=['/'],contracts={'/':homeGate};
-  for(const page of registry){
-    if(page.path==='/'||!releaseB.canPublish(working,page)) continue;
+  for(const {page,file} of routes){
     const html=publisher.renderPage(working,page,environment),gate=publisher.rawHtmlContract(working,page,html,environment);
     if(environment==='production'&&!gate.ok)throw new Error(page.path+' raw HTML contract failed: '+gate.blockers.join(','));
-    writeFile(routeFile(outputDir,page.path),html);
+    writeFile(root,file,html);
     materialized.push(page.path);contracts[page.path]=gate;
   }
 
   const sitemap=home.published.publisher.sitemap||emptySitemap();
-  writeFile(path.join(outputDir,'sitemap.xml'),sitemap);
-  writeFile(path.join(outputDir,'robots.txt'),home.published.publisher.robotsTxt);
-  writeFile(path.join(outputDir,'404.html'),notFoundHtml());
+  writeFile(root,path.join(root,'sitemap.xml'),sitemap);
+  writeFile(root,path.join(root,'robots.txt'),home.published.publisher.robotsTxt);
+  writeFile(root,path.join(root,'404.html'),notFoundHtml());
 
   const manifest={
     version:1,
@@ -106,7 +133,7 @@ function materializeSite({state,template,outputDir,environment='preview',baseUrl
     canonical:home.published.publisher.canonical,
     contracts
   };
-  writeFile(path.join(outputDir,'seo-geo-routes.json'),JSON.stringify(manifest,null,2)+'\n');
+  writeFile(root,path.join(root,'seo-geo-routes.json'),JSON.stringify(manifest,null,2)+'\n');
 
   return {state:working,publisher:home.published.publisher,manifest};
 }
@@ -146,5 +173,6 @@ module.exports=Object.freeze({
   materializeHome,
   normalizeState,
   stripCanonicalSeoHead,
-  identityHomeBody
+  identityHomeBody,
+  routeFile
 });

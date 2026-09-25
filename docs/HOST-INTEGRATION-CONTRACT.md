@@ -94,6 +94,7 @@ rubik-seo-geo-materialize --project-state=state.json --template=home.html \
 ```
 
 - `preview`: `noindex,nofollow`, sin canonical, `robots.txt` con `Disallow: /`.
+- Las rutas del Page Registry son entrada no confiable. Si alguna ruta publicable contiene `..`, `.`, `\`, `:`, NUL o separadores codificados, la build falla antes de escribir nada, y ningún fichero puede quedar fuera de `--output` (D-11).
 - `production`: solo se materializan las rutas que pasan `canPublish` y el gate raw-HTML. Si el gate falla, la build se detiene. Salida: `index.html` por ruta, `sitemap.xml`, `robots.txt`, `404.html` y `seo-geo-routes.json` (manifiesto con redirects 301/308 que el hosting debe aplicar).
 - Si `--environment` no se indica, el CLI usa production solo cuando `VERCEL_ENV=production` y hay una base URL válida (`--base-url` o `SEO_GEO_PRODUCTION_BASE_URL`).
 

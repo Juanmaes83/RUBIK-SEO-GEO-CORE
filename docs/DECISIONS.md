@@ -82,3 +82,18 @@ El gate de encoding se adapta: aplica la misma regla contra mojibake, pero sobre
 - `docs/upstream/` es una copia congelada, sin sincronización automática; el procedimiento manual está en `docs/README.md`.
 - `upstream/SEO-GEO-INTEGRATIONS.md` se conserva sin cambios porque es contrato heredado. Para OpenSEO manda `integrations/OPENSEO.md` (señalado en `upstream/README.md`).
 - Se añade `scripts/check-docs.cjs` (`npm run check:docs`, incluido en `verify`), que comprueba enlaces relativos, documentos obligatorios y encoding UTF-8 sin mojibake.
+
+## D-11 · Path traversal en el materializer: corregido y con prueba
+
+- **Hallazgo (revisión del PR #1):** `routeFile` hacía `path.join(outputDir, route)` con `page.path` del Page Registry. `release-b.pathOf` conserva `..`, y una página con `path:'/../../escape/'` pasa `canPublish`. Reproducido con el código de `007bb2e`: se escribió `<outputDir>/../../escape/index.html`.
+- **Origen:** es código heredado. `scripts/seo-geo-materialize-public.cjs@388e48a` del repositorio fuente tiene la misma `routeFile`, así que el host Restaurant sigue expuesto hasta que lo corrija o adopte el Core (CORE-4). El fuente no se modifica desde aquí.
+- **Corrección** (`src/rubik-seo-geo-materialize.cjs`):
+  - `routeFile` exige una ruta absoluta de URL (`/…`);
+  - rechaza NUL, `\` y `:` (separador de Windows, unidades y ADS);
+  - rechaza segmentos `.`/`..` en claro o codificados con % y separadores codificados (`%2f`, `%5c`);
+  - comprueba con `path.relative` que el fichero resultante queda dentro de `outputDir`;
+  - `writeFile` repite esa comprobación de contención para todos los ficheros (páginas, sitemap, robots, 404 y manifiesto);
+  - todas las rutas publicables se validan **antes de la primera escritura**, así que una ruta insegura hace fallar la build sin salida parcial, tanto en preview como en production.
+- **Compatibilidad:** las rutas legítimas no cambian. La materialización con el `index.html` real y el estado LÚMINA sigue dando 0 diferencias contra el script fuente, y el golden de `publish()` no cambia. Los módulos `release-b` y `publisher` siguen idénticos al fuente: la defensa está en la frontera de escritura.
+- **Prueba:** `tests/core-materialize-path-safety.test.cjs`. Con el código de `007bb2e` falla 4/4 y con la corrección pasa 4/4.
+- **Pendiente:** que el Page Registry rechace `..` al crear la página (`release-b.createPage` / `pathOf`) es una mejora de UX, no de seguridad. Cambiaría la salida del módulo copiado del fuente, así que se deja para CORE-3 con una decisión propia.
