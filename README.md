@@ -38,11 +38,11 @@ Todo eso lo aporta cada producto anfitrión ([`docs/HOST-INTEGRATION-CONTRACT.md
 | Releases A–D | ✅ implementadas (fuente: PRs #44, #45, #46, #50) |
 | Hardening A–B | ✅ implementados en el Core (#53, #54) · Hardening C pertenece al host (#55) |
 | Release E | ✅ contrato base E1–E4 (#56) · ⏳ conexiones externas pendientes de backend |
-| Independencia | ✅ 86 tests desde este repositorio, sin el repo de Restaurantes: 84 pasan y 2 se omiten en Windows local (symlinks de fichero sin privilegio); 73/73 en CI Node 20 y 22 hasta `007bb2e` |
+| Independencia | ✅ 86/86 en CI Linux con Node 20.20.2 y 22.23.2 (run 36103571133); en Windows local, 84 pasan y 2 pruebas de symlink de fichero se omiten por permisos |
 | Compatibilidad Restaurant | ✅ módulos Core con blob idéntico al fuente · golden de `publish()` · materialización con 0 diferencias |
-| Extracción | ⏳ en revisión: [PR #1](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/1) desde `feat/seo-geo-core-extraction`, sin fusionar. `core-ci` en verde en Node 20.20.2 y 22.23.2 sobre `8486054` ([run 36101061645](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36101061645)) y sobre `007bb2e` ([run 36101151706](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36101151706)). La CI de la corrección de seguridad D-11 (commit posterior) se verifica en el PR |
-| Acoplamientos al host pendientes | ⏳ bootstrap navegador de `core.js`, `intelligence.pages()` vía global, vertical por defecto de Release E ([`docs/DECISIONS.md`](docs/DECISIONS.md) D-07) |
-| Seguridad del materializer | ✅ path traversal por rutas `..` y escritura a través de enlaces dentro de `outputDir` bloqueados ([`docs/DECISIONS.md`](docs/DECISIONS.md) D-11), con regresiones |
+| Extracción CORE-1 | ✅ PR #1 mergeado en `main` (merge `995207f38080cf319d4246a531895c85bc10759e`); CI Node 20/22 verde, 86/86 (run 36103571133) |
+| Siguiente fase | ▶ CORE-3: inyección explícita y adapters no Restaurant. CORE-2 queda bloqueado porque requiere migrar un host fuera del alcance de este repositorio |
+| Seguridad del materializer | ✅ path traversal, enlaces/junctions dentro de `outputDir` y nombres válidos con `..` cubiertos por regresiones (D-11/D-11b) |
 | OpenSEO | 📝 integración documentada y bloqueada: el contrato heredado **no es compatible** con el OpenSEO real ([`docs/integrations/OPENSEO.md`](docs/integrations/OPENSEO.md)) |
 
 Estado operativo y siguientes pasos: [`docs/ROADMAP.md`](docs/ROADMAP.md) · Handoff: [`docs/HANDOFF.md`](docs/HANDOFF.md)
@@ -124,12 +124,13 @@ La CI está en `.github/workflows/core-ci.yml` (Node 20 y 22): verify + smoke de
 
 1. Leer [`docs/README.md`](docs/README.md) (qué documento manda en cada tema), después [`docs/ROADMAP.md`](docs/ROADMAP.md) §3–§4 (siguiente tarea y bloqueos) y [`docs/HANDOFF.md`](docs/HANDOFF.md).
 2. Ejecutar `npm run verify` antes de cambiar nada.
-3. El repositorio de Restaurantes Premium es **solo fuente de lectura**. El desarrollo SEO/GEO se hace aquí.
+3. El único repositorio de trabajo es `RUBIK-SEO-GEO-CORE`: no acceder, clonar, leer ni modificar otros repositorios.
 4. El estado se actualiza solo en `ROADMAP.md` y las decisiones con evidencia, en `DECISIONS.md`.
 
 ## Reglas
 
 - No crear un segundo Studio, Project State, Media Library ni Page Registry: el Core se conecta a los del host.
 - Honestidad: no se inventan métricas, reseñas, indexación ni citas. `NOT_MEASURED`, `NOT_CONNECTED` y `UNKNOWN` son estados válidos.
-- Cualquier cambio en la salida de Restaurant exige actualizar el golden **y** registrar una decisión en [`docs/DECISIONS.md`](docs/DECISIONS.md).
+- Cualquier cambio de salida cubierto por fixtures/golden exige actualizar el golden **y** registrar una decisión en [`docs/DECISIONS.md`](docs/DECISIONS.md).
+- Todo cambio de código y documentación se realiza en este repositorio; no se accede ni se escribe en otros repositorios.
 - España-first (`es`). El multidioma es deuda explícita.

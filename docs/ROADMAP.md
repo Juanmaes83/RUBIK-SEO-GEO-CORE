@@ -1,6 +1,6 @@
 # Roadmap operativo — Rubik SEO/GEO Core
 
-**Única fuente de estado del Core.** Última verificación: 24/09/2026, contra GitHub y el repositorio fuente `Juanmaes83/WEB-RESTAURACI-N-PREMIUM-DIN-MICA` en `main@388e48a`.
+**Única fuente de estado del Core.** Última verificación: 25/09/2026, contra `main@995207f` de este repositorio. El alcance operativo se limita a RUBIK-SEO-GEO-CORE; no se accede ni modifica ningún otro repositorio.
 
 ## 1. Estado heredado (verificado)
 
@@ -22,27 +22,27 @@ Sobre Release E: la arquitectura fuente todavía la llama «FUTURO», pero es un
 
 Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing Webmaster, IndexNow, ingestión real de crawlers y citas IA, backend con autorización y secretos, histórico y observabilidad.
 
-## 2. Extracción (esta rama)
+## 2. CORE-1 · Extracción (cerrada en main)
 
 | ID | Tarea | Estado |
 |---|---|---|
 | EX-1 | Copiar los 7 módulos Core sin modificar | ✅ |
 | EX-2 | Separar el materializer en Core + hook de host Restaurant | ✅ paridad 0 diferencias |
-| EX-3 | Tests A–E + Hardening A/B ejecutables sin el repo de Restaurantes | ✅ 86 en local (84 pasan y 2 se omiten en Windows), incluidas las pruebas de seguridad D-11; 73/73 en CI hasta `007bb2e` |
-| EX-4 | CI propio (`core-ci.yml`, Node 20 y 22) | ✅ verde en GitHub: `8486054` ([run 36101061645](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36101061645)) y `007bb2e` ([run 36101151706](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36101151706)), en Node 20.20.2 y 22.23.2, 73/73, docs y smoke del CLI. La CI del commit D-11 se verifica en el PR |
+| EX-3 | Tests A–E + Hardening A/B, independencia, paridad y seguridad del materializer | ✅ 86/86 en CI Linux Node 20/22, 0 omitidos (run 36103571133); Windows local: 84 pasan y 2 symlink tests se omiten por EPERM |
+| EX-4 | CI propio (`core-ci.yml`, Node 20 y 22) | ✅ run 36103571133 en `44b1f5c`: ambos jobs (Node 20.20.2 y 22.23.2), syntax, docs, 86 tests y CLI smoke verdes |
 | EX-5 | Contratos canónicos copiados con estados reconciliados | ✅ `docs/upstream/` |
 | EX-6 | README, arquitectura, contrato de host, decisiones, procedencia, handoff | ✅ |
-| EX-8 | Materializer: path traversal y enlaces dentro de `outputDir` (D-11, D-11b) + regresiones | ✅ en local (paridad 0 diferencias, golden sin cambios) · CI en el PR |
+| EX-8 | Materializer: path traversal, enlaces dentro de `outputDir` y nombres con puntos (D-11/D-11b) | ✅ regresiones y CI verde; paridad 0 diferencias, golden sin cambios |
 | EX-7 | Auditoría documental: índice de autoridad (`docs/README.md`), `check:docs`, OpenSEO documentado | ✅ |
 
 ## 3. Siguiente trabajo del Core (en orden)
 
 | ID | Tarea | Criterio de cierre |
 |---|---|---|
-| **CORE-1** | **Revisar y fusionar esta extracción** ([PR #1](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/1) desde `feat/seo-geo-core-extraction`) | ✅ PR abierto · ✅ CI verde · ⏳ revisión humana · ⏳ merge a `main` (por el propietario) |
-| CORE-2 | Sacar el bootstrap navegador de `core.js` (`RestaurantDefaults`, inyección de `release-d-studio.js`) y llevarlo a un loader del host | Core sin referencias a ficheros o globales del host, y Restaurantes sigue funcionando con su loader. Requiere un PR coordinado en el repo fuente |
-| CORE-3 | Inyectar dependencias explícitas: `intelligence.pages(config,{releaseB})` y `release-e` con vertical derivado del adapter activo | Mismo golden para Restaurant; nuevos tests para los verticales no Restaurant |
-| CORE-4 | Consumo del Core por Restaurantes Premium desde este repositorio (paquete git, submódulo o vendor con hash) | El fuente deja de tener copia propia y sus tests E2E siguen verdes |
+| **CORE-1** | **Extracción independiente del Core** ([PR #1](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/1)) | ✅ Cerrada: merge a `main` `995207f38080cf319d4246a531895c85bc10759e`; CI Node 20/22 verde (86/86) |
+| CORE-2 | Sacar el bootstrap navegador de `core.js` y llevar la carga al host | ⛔ Fuera de alcance: su criterio requiere migrar y validar un host externo. No se accede ni modifica otro repositorio |
+| **CORE-3** | **Siguiente fase Core-only:** inyectar `releaseB` en `intelligence.pages`, derivar Release E del adapter activo, corregir health de OpenSEO según D-09 y validar rutas en Page Registry según D-11 | Tests con varios adapters, mocks locales sin red, rutas válidas e inválidas; golden existente estable salvo decisión documentada |
+| CORE-4 | Adopción del Core por un host externo | ⛔ Fuera de alcance mientras el trabajo se limite a este repositorio |
 | CORE-5 | Validación externa del adapter `real-estate` con Sarah Katerina | Estado real del host → golden y HTML materializado revisados. Ni datos inventados ni NAP sin confirmar |
 | CORE-6 | Deuda multidioma (TECH DEBT · MULTILINGUAL SEO) | Solo con decisión canónica: locales, hreflang y canonical por idioma |
 | CORE-7 | Conexiones server-side de Release E y Release C | Depende de la Platform Layer del host (auth, secretos, backend). Siempre con provenance real |
@@ -52,9 +52,8 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 
 | Bloqueo | Afecta a | Salida |
 |---|---|---|
-| El repo fuente (`scripts/seo-geo-materialize-public.cjs@388e48a`) tiene el mismo path traversal (D-11) | Host Restaurant | Aviso al propietario; corrección en el fuente o adopción del Core (CORE-4). No se modifica el fuente desde aquí |
-| PR #1 pendiente de revisión humana y merge | CORE-1 → CORE-2… | Decisión del propietario |
-| Bootstrap navegador de `core.js` acoplado al host | CORE-2, CORE-4 | PR coordinado con Restaurantes Premium |
+| CORE-1 | Cerrado en `main@995207f`; sin deploy | Ninguno |
+| CORE-2/CORE-4 | Requieren migración o adopción en un host externo | Fuera de alcance: este proyecto solo trabaja en RUBIK-SEO-GEO-CORE |
 | Sin Platform Layer (backend, auth, secretos) en ningún host | CORE-7, CORE-7.1 | Fase Platform Layer del host |
 | El contrato `OpenSEOAdapter` no coincide con el OpenSEO real (falso `CONNECTED` en `GET` raíz, no existe acción `crawl`) | CORE-7.1 | CORE-3 + mocks; `DECISIONS.md` D-09. No se toca el código hasta entonces |
 
@@ -62,5 +61,5 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 
 - No crear un segundo Core, Studio, Project State, Media Library ni Page Registry.
 - Cualquier cambio de salida para Restaurant debe actualizar el golden (`scripts/generate-source-golden.cjs`) **con** una decisión en `DECISIONS.md`.
-- Cada bloque sigue el mismo flujo: branch → PR → CI → revisión humana → merge. Sin despliegues desde este repositorio.
+- Todo cambio se hace únicamente en RUBIK-SEO-GEO-CORE. Cada fase sigue branch → PR → CI → revisión humana → merge. Sin acceso a otros repositorios y sin despliegues.
 - No declarar un proveedor externo como conectado sin fuente real verificable.
