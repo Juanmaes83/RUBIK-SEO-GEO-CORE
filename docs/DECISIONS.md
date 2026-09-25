@@ -56,8 +56,8 @@ El gate de encoding se adapta: aplica la misma regla contra mojibake, pero sobre
 | Ubicación | Acoplamiento | Por qué no se toca ahora |
 |---|---|---|
 | `src/rubik-seo-geo-core.js`, rama navegador del UMD | Escribe `RestaurantDefaults.seo` e inyecta `rubik-seo-geo-adapters.js` y `rubik-seo-geo-release-d-studio.js` al recibir `rubik:seo-geo-request`, o con `?review=seo-geo-d`. | Es el bootstrap del lazy loading de Hardening C en Restaurantes. Cambiarlo rompería al host hasta que este adopte el nuevo contrato. En Node no se ejecuta. → ROADMAP CORE-2. |
-| `src/rubik-seo-geo-intelligence.js` `pages()` | Lee `globalThis.RubikSEOGeoReleaseB`. En Node devuelve `[]` salvo que el host registre ese global. | Comportamiento del fuente cubierto por tests. → ROADMAP CORE-3 (inyección explícita). |
-| `src/rubik-seo-geo-release-e.js` | `normalizePresenceRecord` usa `vertical:'restaurant'` por defecto. | Resultado del fuente fijado por tests. → ROADMAP CORE-3 (derivar del adapter activo). |
+| `src/rubik-seo-geo-intelligence.js` `pages()` | ~~Lee `globalThis.RubikSEOGeoReleaseB`.~~ **Resuelto en CORE-3 (D-13):** `pages(config,{releaseB})`, sin global. | — |
+| `src/rubik-seo-geo-release-e.js` | ~~`normalizePresenceRecord` usa `vertical:'restaurant'` por defecto.~~ **Resuelto en CORE-3 (D-13):** el vertical se deriva del adapter inyectado o queda `UNKNOWN`. | — |
 | `src/rubik-seo-geo-core.js` `fallbackRegistry` y `restaurantSource` | Copia embebida del adapter Restaurant para cuando no hay registry. | Garantiza el arranque en frío del host. Se mantiene. |
 
 ## D-08 · Paquete y CI propios
@@ -75,6 +75,7 @@ El gate de encoding se adapta: aplica la misma regla contra mojibake, pero sobre
   - la integración se rediseña como puente server-side MCP en `docs/integrations/OPENSEO.md` y se planifica como ROADMAP CORE-7.1, bloqueada por CORE-3 (interfaz de proveedor inyectable) y por la Platform Layer;
   - la corrección de conectividad (`/api/health`) se hará en CORE-3, con tests y una decisión que actualice el golden si hace falta;
   - hasta entonces, **ningún host debe mostrar OpenSEO como conectado** basándose en `connectivity()`.
+- **Actualización (CORE-3, D-14):** `connectivity()` ya usa `GET /api/health` y nunca devuelve `CONNECTED`. `crawl()` sigue con el contrato heredado hasta CORE-7.1.
 
 ## D-10 · Autoridad documental y sincronización
 
@@ -96,7 +97,7 @@ El gate de encoding se adapta: aplica la misma regla contra mojibake, pero sobre
   - todas las rutas publicables se validan **antes de la primera escritura**, así que una ruta insegura hace fallar la build sin salida parcial, tanto en preview como en production.
 - **Compatibilidad:** las rutas legítimas no cambian. La materialización con el `index.html` real y el estado LÚMINA sigue dando 0 diferencias contra el script fuente, y el golden de `publish()` no cambia. Los módulos `release-b` y `publisher` siguen idénticos al fuente: la defensa está en la frontera de escritura.
 - **Prueba:** `tests/core-materialize-path-safety.test.cjs`. Con el código de `007bb2e` falla 4/4 y con la corrección pasa 4/4.
-- **Pendiente:** que el Page Registry rechace `..` al crear la página (`release-b.createPage` / `pathOf`) es una mejora de UX, no de seguridad. Cambiaría la salida del módulo copiado del fuente, así que se deja para CORE-3 con una decisión propia.
+- **Pendiente:** que el Page Registry rechace `..` al crear la página (`release-b.createPage` / `pathOf`) es una mejora de UX, no de seguridad. Cambiaría la salida del módulo copiado del fuente, así que se deja para CORE-3 con una decisión propia. **→ Hecho en CORE-3 (D-15).**
 - **Seguimiento de la revisión (D-11b):**
   1. **La contención era solo léxica.** `writeFile` seguía enlaces ya presentes dentro de `outputDir`. Reproducido: un enlace `out/blog` apuntando fuera (una junction en Windows) y una página `/blog/post/` escribían fuera de `outputDir`. Corrección:
      - `assertNoLinkInside` hace `lstat` de cada componente existente entre `outputDir` (exclusive) y el destino. Rechaza enlaces simbólicos o junctions, componentes que no son directorio y destinos que no son un fichero regular.
@@ -112,3 +113,67 @@ El gate de encoding se adapta: aplica la misma regla contra mojibake, pero sobre
     - un `outputDir` que es a su vez un enlace sigue funcionando.
     - Si la plataforma no permite crear un tipo de enlace, esa prueba se omite indicando el motivo. En Windows sin privilegio, los symlinks de fichero dan EPERM y los de directorio se prueban con junction.
   - **Compatibilidad:** la paridad Restaurant sigue en 0 diferencias y los fixtures y el golden no cambian.
+
+## D-12 · CORE-2 bloqueado por alcance; CORE-3 pasa a ser la siguiente fase Core-only
+
+- **Contexto:** el roadmap ponía CORE-2 antes que CORE-3. CORE-2 consiste en sacar el bootstrap navegador de `core.js` a un loader del host, y eso exige migrar y validar el host Restaurantes Premium en su propio repositorio.
+- **Regla de alcance vigente (25/09/2026):** el trabajo se hace exclusivamente en `Juanmaes83/RUBIK-SEO-GEO-CORE`, sin acceder, leer ni modificar el repositorio de Restaurantes ni ningún otro.
+- **Decisión:**
+  - CORE-2 queda ⛔ **bloqueado por alcance**. No se ha iniciado ni se declara completado, y el acoplamiento de `core.js` (D-07, primera fila) sigue igual;
+  - CORE-3 se activa como la siguiente fase, porque solo afecta a módulos de este repositorio.
+- **Alcance de CORE-3:**
+  1. inyección explícita de Release B en Release C (D-13);
+  2. vertical de Release E derivado del adapter activo (D-13);
+  3. conectividad OpenSEO por `/api/health` (D-14);
+  4. validación de rutas en el Page Registry (D-15).
+- **Fuera de alcance:** el puente MCP y el backend de OpenSEO (CORE-7.1), multidioma y CORE-4…CORE-7.
+- **Consecuencia:** CORE-7.1 sigue bloqueado. Su dependencia de CORE-3 queda en revisión (PR de CORE-3), pero dependen además de CORE-2 y de la Platform Layer.
+
+## D-13 · Dependencias explícitas en Release C y Release E
+
+- **Release C.**
+  - Firmas nuevas: `intelligence.pages(config,{releaseB})` y `intelligence.entityGraph(config,{releaseB})`.
+  - Se elimina la lectura de `globalThis.RubikSEOGeoReleaseB`, sin ningún fallback global.
+  - Sin dependencia inyectada (`undefined`/`null`), el resultado es una lista vacía nueva en cada llamada: determinista y sin estado compartido. Es el mismo resultado que daba antes en Node.
+  - Un valor inyectado sin `registry()` lanza `TypeError`, porque indica un error de cableado.
+- **Release E.**
+  - Firmas nuevas: `normalizePresenceRecord(input,{adapter})`, `normalizeCitationObservation(input,{adapter})` y `record(state,kind,value,{adapter})`. `adapter` es el descriptor del adapter activo (`{id, schemaType}`), tal como lo devuelven `core.adapter(config)` o `adapters.describe(config)`.
+  - Release E sigue **sin dependencias de módulo**, así que no se crea ningún ciclo. Hoy no hay ningún llamador de Release E dentro de este repositorio: el llamador es el Studio del host.
+  - Los registros de presencia y las observaciones de cita incluyen ahora `vertical` y `entityType`.
+  - Con adapter, se toman `id` y `schemaType`. Si el input declara otro `vertical`, se lanza un error para no mezclar verticales.
+  - Sin adapter, se conserva un `vertical` explícito del input o, si no hay, `UNKNOWN`. **Nunca `restaurant`.**
+  - Un descriptor sin `id` o sin `schemaType` lanza `TypeError`.
+  - Provenance y estados no cambian: sin mención ni cita, `status` sigue siendo `UNKNOWN`.
+- **Compatibilidad:** la salida de `publish()`/`preview()` no cambia y el golden `source-388e48a-publish.json` queda intacto. Para el host es un cambio de contrato: al adoptar el Core (CORE-4) debe pasar `{releaseB}` y `{adapter}`. Sin ellos obtiene `[]` y `UNKNOWN`, sin errores silenciosos de vertical.
+- **Pruebas:** `tests/core-3-explicit-injection.test.cjs` §1–§2. Incluyen seis adapters no Restaurant y Restaurant, un global contaminado que se ignora y entornos inyectados alternos sin contaminación entre llamadas.
+
+## D-14 · Conectividad OpenSEO por `GET /api/health`
+
+- **Corrige D-09:** `OpenSEOAdapter.connectivity()` ya no hace `GET` a la raíz. Solo consulta `GET <endpoint>/api/health` (respetando un posible path base del endpoint), con `accept: application/json` y sin credenciales.
+- **Estados** (alineados con `integrations/OPENSEO.md` §7):
+
+  | Respuesta de `/api/health` | Estado devuelto |
+  |---|---|
+  | `status:"ok"` | `NOT_CONNECTED` con `health:'ok'`, `reachable:true`, `authorization:'NOT_VERIFIED'` |
+  | `status:"issues"` | `ERROR` con `failingChecks`: solo los nombres de los checks, nunca sus valores |
+  | Sin JSON, payload inesperado, HTTP no 2xx o error de red | `ERROR` |
+  | Endpoint vacío o inválido | `NOT_CONFIGURED` / `ERROR`, sin llamar a la red |
+
+- **Por qué `NOT_CONNECTED` y no `CONNECTED`:** según OPENSEO.md §7, `CONNECTED` exige que el health esté bien **y** que la autenticación MCP (`whoami`) funcione. Esa comprobación la hará el puente server-side (CORE-7.1), que no existe todavía. Una instancia sana pero sin autorización verificada es, por definición de §7, `NOT_CONNECTED`. Se corrige en consecuencia la redacción de §4 paso 3, que decía «`ok` ⇒ `CONNECTED`».
+- El test heredado de Release C que esperaba `CONNECTED` ante un GET 200 con cualquier JSON ahora espera `ERROR`: es exactamente el falso positivo de D-09.
+- No se implementan el puente MCP, el backend ni las credenciales, y no se hacen llamadas de red (todo con mocks locales). `crawl()` sigue con el contrato heredado (D-09) hasta CORE-7.1.
+
+## D-15 · Validación de rutas en el Page Registry (compromiso de D-11)
+
+- `release-b` añade `unsafePathReason(path)`, exportada, con las mismas reglas que la barrera del materializer. Rechaza segmentos `.`/`..` (también con codificación %), separadores codificados (`%2f`, `%5c`), barra invertida, `:`, NUL y codificación % mal formada. Conserva como válidos `/..foo/`, `/.../`, `/a..b/` y los acentos.
+- **Al crear o migrar:** `createPage` y `migratePath` lanzan `unsafe page path` y no modifican el Project State (ni la página ni los redirects).
+- **Al normalizar:** una ruta insegura ya guardada no se reescribe en silencio. `pageContract` añade el bloqueo `unsafe-path` (mensaje «Ruta insegura…»), así que `canPublish` es falso, la auditoría la muestra y queda fuera del sitemap y de la materialización.
+- **Defensa en profundidad:** la barrera del materializer (D-11) se mantiene. Los e2e de materialización con `/../../escape/` pasan a comprobar el primer bloqueo (el Page Registry la bloquea y la build la omite, sin escribir fuera) y que `routeFile` sigue rechazando esa ruta. La barrera física (enlaces) sigue cubierta por sus e2e.
+- **Compatibilidad:** las rutas válidas no cambian y el golden queda intacto.
+
+
+## D-16 · Microcopy de conectividad OpenSEO pendiente
+
+- **Contexto:** tras CORE-3 (D-14), `connectivity()` consulta `/api/health` y devuelve `NOT_CONNECTED` con `authorization: 'NOT_VERIFIED'` cuando la instancia responde correctamente. Un mensaje de éxito asociado todavía puede dar a entender que la autorización MCP ya fue verificada por un puente server-side.
+- **Decisión:** se aplaza la corrección de ese texto para una fase posterior. No se cambia ahora el código ni el contrato de estados: mientras no exista y se valide el puente MCP, no declarar `CONNECTED`; conservar `NOT_CONNECTED` / `NOT_VERIFIED`.
+- **Trabajo posterior:** ajustar el mensaje para que indique que el health responde, pero que la autorización MCP aún no se ha verificado. Añadir o actualizar la prueba de texto junto con la corrección, sin relajar las pruebas de estado.
