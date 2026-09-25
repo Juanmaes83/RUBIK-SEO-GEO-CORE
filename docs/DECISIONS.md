@@ -198,5 +198,29 @@ El gate de encoding se adapta: aplica la misma regla contra mojibake, pero sobre
 - **Golden:** `publish()`/`preview()` no usan Intelligence. El golden `source-388e48a-publish.json` y los fixtures no cambian (blob `5aa93a3` idéntico a `main`).
 - **Pruebas:** `tests/core-3-1-entity-products.test.cjs`, 16 tests.
 - **Deuda restante, fuera de este alcance:**
-  - `geoReadiness()` sigue leyendo `config.dishes` para sus señales heurísticas de producto;
+  - `geoReadiness()` sigue leyendo `config.dishes` para sus señales heurísticas de producto; **→ abordado en CORE-3.2 (D-18)**, junto con `business`/`location`;
   - `entityGraph().business` y `.location` leen `brand.name` y `modules.location.address`, sin las alternativas `business.*` de los adapters genéricos.
+
+## D-18 · Intelligence sin acoplamientos verticales: `geoReadiness()` y `entityGraph().business/location` (CORE-3.2)
+
+- **Contexto (D-17):**
+  - `geoReadiness()` leía `config.dishes`, `brand.name` y `modules.location.address.city`;
+  - `entityGraph().business` y `.location` leían `brand.name` y `modules.location.address` en bruto, sin las alternativas `business.*` de los adapters genéricos y sin respetar la visibilidad.
+- **Contrato observado** (`src/rubik-seo-geo-adapters.js`, sin cambios): `source(config)` de los 7 adapters devuelve `name`, `city`, `address` y `offerings`, con valores visibles vía `pub()`.
+  - `address` usa claves de schema.org: `streetAddress`, `addressLocality`, `addressRegion`, `postalCode`, `addressCountry`.
+  - `restaurant` (`restaurantSource`): `name` = `brand.name`; `address` desde `modules.location.address`, y `visit.address` como calle heredada.
+  - Los genéricos (`genericSource`/`addressFrom`): `name` = `brand.name` o `business.name`; `address` desde `modules.location.address` o `business.address`, más `visit.address`.
+- **Decisión** (`src/rubik-seo-geo-intelligence.js`):
+  - **Resolución única del source:** `adapterSource(config,{core})` resuelve `core.source(config)` una vez. Devuelve `null` si no hay `core` y lanza `TypeError` si `core` no tiene `source()`. `products()` y `entityGraph()` la reutilizan, y la proyección de oferta (`offeringsOf`) es la de D-17, sin duplicar lo que hacen los adapters.
+  - **`entityGraph(config,{releaseB,core})`:** `business` = `text(source.name)`, `location` = copia de `source.address`, `products` = oferta del adapter, `pages` = `pages(config,{releaseB})` (D-13) y `people` = `config.seo.people` (namespace propio del Core). Sin `core`: `business:''`, `location:{}`, `products:[]`.
+  - **`geoReadiness(config,{schemaGraph,publicHtml,core})`:** las señales `businessName`, `location` (`source.city`) y `products` (`source.offerings`) salen del adapter. Los gaps, las fortalezas y debilidades de cita y `content.factualSignals` se calculan igual que antes, sobre esos datos.
+    - Sin `core`: `entity.adapterSource:'NOT_PROVIDED'`, esas tres señales a `null` (desconocidas, nunca `false`), sin gaps ni fortalezas o debilidades inferidas y `factualSignals:null`.
+    - Con `core`: `adapterSource:'PROVIDED'`.
+    - Todo sigue etiquetado como HEURISTIC y `technical`/`aiSearch` no cambian.
+- **Cambios de contrato para el host (CORE-4):**
+  1. `entityGraph().location` pasa de la forma del host (`street`/`city`… en bruto) a la `address` de schema.org del adapter, **solo con valores públicos**;
+  2. `geoReadiness` necesita `{core}` para sus señales de entidad;
+  3. `business` y `location` quedan vacíos sin `core`.
+- **Sin cambios:** adapters, Publisher, materializer, `products()` (D-17) y `pages()` (D-13). El golden `source-388e48a-publish.json` y los fixtures son idénticos a `main` (blob `5aa93a3`), porque `publish()`/`preview()` no usan Intelligence. Sin dependencias circulares: `core` se inyecta y el módulo no lo importa.
+- **Pruebas:** `tests/core-3-2-neutral-intelligence.test.cjs` (24). Cubren los 7 adapters, las formas genéricas `business.*` y `services|products|offerings`, la visibilidad, la calle sin ciudad, datos incompletos, Core ausente o inválido, globals contaminados, resolución única y la copia de `location`.
+- **Deuda restante:** las dos lecturas que quedan en Intelligence, `config.seo.people` y los campos de integraciones, pertenecen al namespace `seo` del Core, no a un vertical. No quedan lecturas de rutas propias de Restaurant en `src/rubik-seo-geo-intelligence.js` (lo verifica la prueba de código fuente). D-16 sigue aplazada.
