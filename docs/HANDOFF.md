@@ -109,3 +109,15 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 3. **Microcopy OpenSEO aplazada (D-16):** un mensaje positivo de conectividad puede sugerir que la autorización MCP está verificada. El código devuelve `NOT_CONNECTED` y `authorization: NOT_VERIFIED`; no cambiar comportamiento ahora. Corregir el texto en una fase posterior para reflejar que la autorización está pendiente de verificación.
 4. La dependencia residual `entityGraph().products` → `config.dishes` sigue anotada para una fase Core-only posterior.
 
+
+## Sesión 10 — CORE-3.1 (25/09/2026)
+
+**Rama:** `feat/core-3-1-entity-products` desde `main@345cef0`. Estado inicial: `npm run verify` daba 113 (111 pasan, 2 se omiten en Windows).
+
+1. **Contrato detectado:** los 7 adapters exponen `source(config).offerings`. `restaurant` los toma de `dishes`; los 6 genéricos, del primer array presente entre `services`, `products` y `offerings`.
+2. **Cambio (D-17):** `intelligence.products(config,{core})` y `entityGraph(config,{releaseB,core})`. Ya no se lee `config.dishes` en `entityGraph`. Sin `core` inyectado, lista vacía nueva; un `core` sin `source()` lanza `TypeError`.
+3. **Compatibilidad:** con LÚMINA coincide con la proyección anterior. Los valores privados ya no se exponen y un `origin` ausente pasa a `''`.
+4. **Pruebas:** `tests/core-3-1-entity-products.test.cjs` (16). Contra el `intelligence` de `main` fallan 15; la que pasa (entradas `null` ⇒ `TypeError`) lo hace porque en `main` `products()` no existe. `npm run verify` da 129 (127 pasan, 2 se omiten en Windows). Golden idéntico (blob `5aa93a3`).
+5. **Deuda restante:** `geoReadiness()` sigue leyendo `config.dishes`; `entityGraph().business/location` no usan las alternativas genéricas. D-16 (microcopy OpenSEO) sigue aplazada, sin cambios.
+
+**Pendiente:** CI Node 20/22 del PR de CORE-3.1 (`feat/core-3-1-entity-products`), revisión humana y merge. Sin merge ni deploy.

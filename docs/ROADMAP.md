@@ -42,7 +42,7 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 | **CORE-1** | **Extracción independiente del Core** ([PR #1](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/1)) | ✅ Cerrada: merge a `main` `995207f38080cf319d4246a531895c85bc10759e`; CI Node 20/22 verde (86/86) |
 | CORE-2 | Sacar el bootstrap navegador de `core.js` y llevar la carga al host | ⛔ Fuera de alcance: su criterio requiere migrar y validar un host externo. No se accede ni modifica otro repositorio. No iniciado (D-12) |
 | **CORE-3** | **Inyección explícita y validación de contratos Core-only** | ✅ Cerrada en [PR #3](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/3), merge `b38225320f4b3dde3f2820f2935603adea33c8dc`; D-12…D-15. CI Node 20/22 verde: 113/113, 0 omitidos (run 36106021399). `entityGraph().products` mantiene una dependencia residual de `config.dishes`, anotada para trabajo posterior |
-| **CORE-3.1** | **Desacoplar `entityGraph().products` de `config.dishes`** mediante el contrato de datos por adapter ya existente | Siguiente trabajo Core-only. Revisar primero los 7 adapters y sus fixtures; no inventar un campo común sin evidencia. Preservar Restaurant y cubrir verticales no Restaurant. Golden solo cambia con decisión documentada |
+| **CORE-3.1** | **Desacoplar `entityGraph().products` de `config.dishes`** mediante el contrato de datos por adapter ya existente | 🔄 **Implementado, en revisión** en PR de CORE-3.1 (`feat/core-3-1-entity-products`) (D-17): `products` sale de `source(config).offerings` del adapter activo mediante `{core}` inyectado; compatibilidad Restaurant con LÚMINA ✅; 6 adapters genéricos + Restaurant ✅; ausencia de datos y de dependencias ✅; golden idéntico ✅. `npm run verify` 129 (127 pasan, 2 se omiten en Windows). Falta: CI del PR, revisión humana y merge |
 | CORE-4 | Adopción del Core por un host externo | ⛔ Fuera de alcance mientras el trabajo se limite a este repositorio |
 | CORE-5 | Validación externa del adapter `real-estate` con Sarah Katerina | Estado real del host → golden y HTML materializado revisados. Ni datos inventados ni NAP sin confirmar |
 | CORE-6 | Deuda multidioma (TECH DEBT · MULTILINGUAL SEO) | Solo con decisión canónica: locales, hreflang y canonical por idioma |
@@ -57,6 +57,7 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 |---|---|---|
 | CORE-1 | Cerrado en `main@995207f`; sin deploy | Ninguno |
 | CORE-3 | Cerrado en `main@b382253`; D-12…D-15, CI Node 20/22 verde | Ninguno |
+| Señales Restaurant residuales en Intelligence | `geoReadiness()` lee `config.dishes`; `entityGraph().business/location` no usan las alternativas `business.*` de los adapters genéricos | Fase Core-only posterior (D-17). No bloquea CORE-3.1 |
 | Microcopy OpenSEO | Mensaje de éxito de conectividad puede dar a entender que la autorización MCP ya está verificada | Corregir en una fase posterior según D-16; el estado devuelto sigue siendo `NOT_CONNECTED` / `NOT_VERIFIED` |
 | CORE-2/CORE-4 | Requieren migración o adopción en un host externo | Fuera de alcance: este proyecto solo trabaja en RUBIK-SEO-GEO-CORE |
 | Sin Platform Layer (backend, auth, secretos) en ningún host | CORE-7, CORE-7.1 | Fase Platform Layer del host |

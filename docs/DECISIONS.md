@@ -177,3 +177,26 @@ El gate de encoding se adapta: aplica la misma regla contra mojibake, pero sobre
 - **Contexto:** tras CORE-3 (D-14), `connectivity()` consulta `/api/health` y devuelve `NOT_CONNECTED` con `authorization: 'NOT_VERIFIED'` cuando la instancia responde correctamente. Un mensaje de éxito asociado todavía puede dar a entender que la autorización MCP ya fue verificada por un puente server-side.
 - **Decisión:** se aplaza la corrección de ese texto para una fase posterior. No se cambia ahora el código ni el contrato de estados: mientras no exista y se valide el puente MCP, no declarar `CONNECTED`; conservar `NOT_CONNECTED` / `NOT_VERIFIED`.
 - **Trabajo posterior:** ajustar el mensaje para que indique que el health responde, pero que la autorización MCP aún no se ha verificado. Añadir o actualizar la prueba de texto junto con la corrección, sin relajar las pruebas de estado.
+
+## D-17 · `entityGraph().products` desde el contrato de oferta del adapter (CORE-3.1)
+
+- **Contexto:** tras CORE-3, `intelligence.entityGraph()` seguía leyendo `config.dishes` directamente, una forma de Restaurant. En un proyecto `real-estate` con `services`, `products` quedaba vacío, y en cualquier vertical con un `dishes` ajeno lo habría leído.
+- **Contrato detectado** (sin inventar un campo común): cada adapter ya expone `source(config).offerings`, que `publish`, `preview` y `signature` usan desde Release D.
+  - `restaurant`: `config.dishes` con `enabled!==false`, valores visibles con `pub()`; conserva las filas sin nombre.
+  - Los seis genéricos (`offerRows`): el **primer array presente** entre `services`, `products` y `offerings` (aunque esté vacío), con `name`, o `title` si falta, y `enabled!==false`; descarta las filas sin nombre visible.
+  - `core.source(config)` resuelve el adapter activo.
+- **Decisión:**
+  - Nueva función `intelligence.products(config,{core})`. `entityGraph(config,{releaseB,core})` la usa, con cada dependencia inyectada de forma independiente.
+  - `products` mantiene su forma `{id,name,origin}` y los valores salen de `offerings`.
+  - Sin `core` inyectado devuelve una lista vacía nueva, sin fallback global y sin default de Restaurant (mismo patrón que `pages`, D-13).
+  - Un `core` sin `source()` lanza `TypeError`.
+  - Las entradas `null` en el array de oferta lanzan `TypeError`, igual que `core.source`: se hereda el contrato del adapter, sin reparación silenciosa.
+- **Compatibilidad Restaurant:** con el fixture LÚMINA, el resultado coincide con la proyección anterior sobre `dishes`. Diferencias intencionadas y ya propias del contrato del adapter:
+  - los valores privados (`{value,visibility:'private'}`) dejan de exponerse;
+  - un `origin` ausente pasa de `undefined` a `''`.
+- **Contrato del host:** `entityGraph` necesita `{core}` además de `{releaseB}`. Sin `core`, `products` queda vacío.
+- **Golden:** `publish()`/`preview()` no usan Intelligence. El golden `source-388e48a-publish.json` y los fixtures no cambian (blob `5aa93a3` idéntico a `main`).
+- **Pruebas:** `tests/core-3-1-entity-products.test.cjs`, 16 tests.
+- **Deuda restante, fuera de este alcance:**
+  - `geoReadiness()` sigue leyendo `config.dishes` para sus señales heurísticas de producto;
+  - `entityGraph().business` y `.location` leen `brand.name` y `modules.location.address`, sin las alternativas `business.*` de los adapters genéricos.
