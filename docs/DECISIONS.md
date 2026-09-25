@@ -170,3 +170,10 @@ El gate de encoding se adapta: aplica la misma regla contra mojibake, pero sobre
 - **Al normalizar:** una ruta insegura ya guardada no se reescribe en silencio. `pageContract` añade el bloqueo `unsafe-path` (mensaje «Ruta insegura…»), así que `canPublish` es falso, la auditoría la muestra y queda fuera del sitemap y de la materialización.
 - **Defensa en profundidad:** la barrera del materializer (D-11) se mantiene. Los e2e de materialización con `/../../escape/` pasan a comprobar el primer bloqueo (el Page Registry la bloquea y la build la omite, sin escribir fuera) y que `routeFile` sigue rechazando esa ruta. La barrera física (enlaces) sigue cubierta por sus e2e.
 - **Compatibilidad:** las rutas válidas no cambian y el golden queda intacto.
+
+
+## D-16 · Microcopy de conectividad OpenSEO pendiente
+
+- **Contexto:** tras CORE-3 (D-14), `connectivity()` consulta `/api/health` y devuelve `NOT_CONNECTED` con `authorization: 'NOT_VERIFIED'` cuando la instancia responde correctamente. Un mensaje de éxito asociado todavía puede dar a entender que la autorización MCP ya fue verificada por un puente server-side.
+- **Decisión:** se aplaza la corrección de ese texto para una fase posterior. No se cambia ahora el código ni el contrato de estados: mientras no exista y se valide el puente MCP, no declarar `CONNECTED`; conservar `NOT_CONNECTED` / `NOT_VERIFIED`.
+- **Trabajo posterior:** ajustar el mensaje para que indique que el health responde, pero que la autorización MCP aún no se ha verificado. Añadir o actualizar la prueba de texto junto con la corrección, sin relajar las pruebas de estado.
