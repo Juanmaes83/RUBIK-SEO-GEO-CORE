@@ -120,4 +120,4 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 4. **Pruebas:** `tests/core-3-1-entity-products.test.cjs` (16). Contra el `intelligence` de `main` fallan 15; la que pasa (entradas `null` ⇒ `TypeError`) lo hace porque en `main` `products()` no existe. `npm run verify` da 129 (127 pasan, 2 se omiten en Windows). Golden idéntico (blob `5aa93a3`).
 5. **Deuda restante:** `geoReadiness()` sigue leyendo `config.dishes`; `entityGraph().business/location` no usan las alternativas genéricas. D-16 (microcopy OpenSEO) sigue aplazada, sin cambios.
 
-**Pendiente:** CI Node 20/22 del PR de CORE-3.1 (`feat/core-3-1-entity-products`), revisión humana y merge. Sin merge ni deploy.
+**Pendiente:** revisión humana y merge del PR de CORE-3.1 (`feat/core-3-1-entity-products`). CI Node 20/22 verde, 129/129, 0 omitidos (run 36108440350). Sin merge ni deploy.
