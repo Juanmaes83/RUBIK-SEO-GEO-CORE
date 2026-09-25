@@ -280,3 +280,54 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - CI del HEAD `688e3bb`: run `36126029028`, Node 20.20.2 y 22.23.2, 233/233 por job, 0 omitidas. Tests locales: 233 (231 pasan, 2 omitidas en Windows por symlinks de fichero); golden/paridad sin cambios.
 - No hay conexión real, secretos ni deploy. Transporte MCP autenticado, backend, persistencia y validación con instancia real (incluidos estados de auditoría y forma de páginas) quedan en CORE-9; `crawl()` conserva su contrato heredado hasta esa integración.
 - Siguiente fase: CORE-8, SEO off-page & Authority Core-only. CORE-2/4/5 siguen dependiendo de validación de un host.
+
+## Sesión 19 — CORE-8, SEO off-page & Authority Core-only (25/09/2026)
+
+- **Rama:** `feat/core-8-offpage-authority` desde `main@a031224`. Decisión D-23. Modelo de servicio, IA frente a aprobación humana, límites con CORE-9 y fuentes: [`integrations/OFFPAGE-SERVICE.md`](integrations/OFFPAGE-SERVICE.md).
+- **Investigación de solo lectura:**
+  - repositorios propios: digital-marketing-pro, seo-god, open-seo-mcp-skills, marketingskills y open-seo;
+  - externos: every-app/open-seo, seranking/seo-skills, elmo, geo-aeo-tracker y backlink-checker-php;
+  - Hugging Face/arXiv y fuentes oficiales de Google, OpenAI, Bing y Perplexity;
+  - foros, tratados como anecdóticos.
+
+  No se copió nada ni se accedió a WEB-RESTAURACI-N-PREMIUM-DIN-MICA.
+- **Código:**
+  - `src/rubik-seo-geo-offpage.js` (nuevo): perfil, snapshots y comparación, menciones, NAP, GEO, oportunidades, acciones y campañas, cierre de periodo, informe y validación de IA.
+  - `src/rubik-seo-geo-providers.js`: entrada `ai-assist` en el catálogo (release `O`, `paid`).
+  - `package.json`: export `./offpage`.
+- **Pruebas:** 29 nuevas; una aserción del catálogo de CORE-7 ampliada (`ai-assist`, release `O` siempre `paid`). La verificación por mutación de 12 guardas las mata todas. `npm run verify`: 262 (260 pasan, 2 se omiten en Windows). Golden sin cambios.
+- **Pendiente para cerrar CORE-8:** PR, CI Node 20/22 en verde y revisión. Sin merge ni deploy.
+- **CORE-9:** conectores reales, modelos, persistencia, programación, historial, envío tras aprobación y secretos.
+
+
+## Sesión 20 — auditoría CORE-8 y ejecución autónoma preparada (25/09/2026)
+
+**Estado verificado del punto de partida:** PR #12, rama `feat/core-8-offpage-authority`, HEAD `42d213da5d728bee3296a34b0266f52e82a3368a`; PR abierto, sin conflictos reportados; CI run `36129957035` verde en Node 20/22 con 262/262 por job, sin omitidas. No está fusionado ni desplegado.
+
+**Auditoría:** no aprobar merge hasta corregir y cubrir con regresiones:
+1. `measurement()`/`geoRun()` no deben permitir que campos de entrada falsificables conviertan datos manuales en `VERIFIED`.
+2. `summarizeGeo()` debe calcular cobertura/repeticiones sobre consultas del mismo locale y mercado.
+3. `compareGeo()` debe hacer no comparable la serie cuando cambia el modelo/superficie relevante; no informar `UP`/`DOWN` entre modelos distintos.
+4. `findConflicts()` debe separar cambios temporales/proveedores no comparables de contradicciones reales.
+5. `evidenceItem()` debe minimizar/validar también `id`, `subject`, `field` y `provider` antes de enviarlos a un modelo.
+6. `validateAiOutput()` no comprueba entailment semántico. Ajustar el contrato para que “aceptada” no se presente como hecho probado, preservar revisión humana y limitar estado FACT a evidencia comparable con reglas honestas; añadir pruebas para afirmaciones no respaldadas semánticamente.
+
+**Siguiente secuencia:** terminar correcciones CORE-8 y CI; luego implementar CORE-8.1 de acuerdo con D-24 y OFFPAGE-SERVICE §6; luego avanzar CORE-9 en este repo con diseño/contratos/mocks hasta el límite autorizado. Detalle paso a paso: [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS-CONTINUATION.md).
+
+**Persistencia para pausa por créditos:** antes de parar, Claude debe dejar commits coherentes y actualizar este handoff con fecha, rama/PR, HEAD, archivos, pruebas exactas, CI, hallazgos, bloqueos y el siguiente comando/tarea. Al reanudar, verificar el HEAD del remoto y el estado de CI antes de repetir trabajo. No merge/deploy y nunca acceder ni escribir en WEB-RESTAURACI-N-PREMIUM-DIN-MICA ni otro repositorio.
+
+
+## Sesión 21 — correcciones de la auditoría de CORE-8 (25/09/2026)
+
+- **Punto de partida verificado:** rama `feat/core-8-offpage-authority`, HEAD remoto `669c5ff` (documentación del propietario), PR #12 abierto y mergeable, con CI verde del HEAD anterior. Ese verde no resolvía los hallazgos.
+- **Hecho:** los seis hallazgos de AUTONOMOUS-CONTINUATION etapa 1 están corregidos (detalle en D-23, «Correcciones tras la auditoría»).
+  - `src/rubik-seo-geo-providers.js`: `isTrustedResult`; la caché no confiable vuelve como `NOT_VERIFIED`.
+  - `src/rubik-seo-geo-offpage.js`: trust, GEO por grupo exacto, rupturas de serie, conflicto frente a divergencia, minimización completa y validación estructural con candidatas.
+  - `tests/core-8-review-regressions.test.cjs`: 12 regresiones nuevas.
+  - `tests/core-8-offpage-authority.test.cjs`: actualizado a la nueva API.
+- **Pruebas locales:**
+  - Las 11 regresiones iniciales fallan contra `42d213d` en un worktree temporal (ya eliminado) y pasan ahora.
+  - Una mutación de 17 guardas mata las 17.
+  - `npm run verify`: 274 (272 pasan, 2 se omiten en Windows).
+- **CI:** run [36133453921](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36133453921) del HEAD `d65dcf1` verde en Node 20.20.2/22, 274/274 por job, 0 omitidas. PR #12 cumple los gates técnicos de CORE-8 y sigue abierto para revisión humana.
+- **Siguiente paso:** CORE-8.1 en la rama `feat/core-8-1-offpage-operations`, apilada sobre el HEAD corregido de CORE-8. El PR #12 sigue abierto para revisión humana; sin merge.

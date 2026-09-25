@@ -34,6 +34,7 @@ El Core es una **capacidad transversal**. No es un plugin, ni una segunda aplica
 │ release-e     E1 indexación · E2 presencia · E3 menciones · E4 citas IA + provenance  │
 │ providers     contratos de proveedor: provenance · estados · coste · mapeo C/E (D-21) │
 │               + puente OpenSEO/MCP con cliente inyectado (D-22, sin conexión real)   │
+│ offpage       servicio off-page: snapshots · GEO · oportunidades · acciones (D-23)   │
 │ materialize   rutas físicas · gates raw-HTML · 404 · manifiesto (Node)                │
 └──────────────────────────────────────────────────────────────────────────────────────┘
   * Contrato HTTP heredado, no compatible con el OpenSEO real (MCP): ver integrations/OPENSEO.md

@@ -498,3 +498,110 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
 - **Reglas que se mantienen:** el health solo, o un cliente mock, nunca verifican. La identidad (id, correo, nombre) no se copia al resultado, a la evidencia ni a los errores; tampoco el mensaje de una excepción del verificador.
 - **Evidencia:** 5 pruebas para el verificador y respuestas whoami no autenticadas, más 2 para `errors` no vacío/vacío en formas diversas. `tests/core-7-1-openseo-bridge.test.cjs` contiene 28 pruebas. `npm run verify` da 233 (231 pasan, 2 se omiten en Windows). CI del HEAD del PR: run `36126029028`, 233/233 por job sin omitidas; golden y paridad sin cambios.
 - **Precisión (segunda revisión del PR #11):** `errors` rechaza en cualquier forma no vacía: cadena con contenido (tras recortar espacios), array con elementos, objeto con claves o cualquier otro valor verdadero. Siempre prevalece sobre un verificador que devuelva `true`. Los valores vacíos (`null`, `false`, `0`, `''`, `'  '`, `[]`, `{}`) no rechazan. La regla de `error` y la de `authenticated`/`authorized` `false` no cambian. Pruebas: 2 nuevas (28 en `core-7-1-openseo-bridge`).
+
+## D-23 · Servicio off-page & Authority Core-only (CORE-8)
+
+**Estado (25/09/2026):** PR #12 abierto en `feat/core-8-offpage-authority`, HEAD `42d213d`; CI run `36129957035` verde en Node 20/22 (262/262 por job), pendiente de revisión y correcciones. **CORE-8 no está cerrada ni fusionada.** Hallazgos actuales y orden de resolución: [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS-CONTINUATION.md). No activa ninguna conexión, modelo ni persistencia real: eso es CORE-9 (D-20).
+
+- **Investigación previa:** en [`integrations/OFFPAGE-SERVICE.md` §5](integrations/OFFPAGE-SERVICE.md#5-fuentes-consultadas-25092026) y [`ECOSYSTEM-REFERENCES.md`](ECOSYSTEM-REFERENCES.md#core-8--investigación-off-page-25092026), consultada el 25/09/2026.
+  - Cubre: políticas oficiales de Google (spam, funciones de IA, enlaces salientes, rastreadores), OpenAI, Bing y Perplexity; datasets y artículos de Hugging Face/arXiv con sus licencias; repositorios propios y externos en solo lectura; y foros, tratados como anecdóticos.
+  - Cada fuente se clasifica como oficial, investigación, anecdótica, decisión o hipótesis.
+  - No se copió código, skills, documentación ni publicaciones.
+- **Módulo nuevo:** `src/rubik-seo-geo-offpage.js` (`./offpage`, global `RubikSEOGeoOffpage`). UMD, sin dependencias, sin red, sin `Date.now`, sin storage y sin acoplamiento vertical.
+  - Release E, CORE-7 providers, Intelligence y el Core/adapter se inyectan en cada llamada (D-13).
+  - El modelo de servicio y los contratos están en `OFFPAGE-SERVICE.md` §1–§4.
+- **Reutilización, no duplicación:**
+  - backlinks por `providers.normalizeBacklinks`;
+  - menciones sobre `releaseE.normalizeMentionRecord`;
+  - entidad, dirección y teléfono desde `core.source(config)`;
+  - vertical desde `core.adapter(config)`;
+  - locale con `core.normalizeLocale`;
+  - acceso de rastreadores con `intelligence.crawlerAudit`/`parseRobots`;
+  - sobres de CORE-7 aceptados como medición, con `verified` solo si `connection:'VERIFIED'`.
+- **IA:** el Core solo define contratos.
+  - **En el Core:** `aiRequest` (evidencia minimizada y reglas), `validateAiOutput` (salida estructurada, nunca canónica) y `runAiTask`.
+  - `runAiTask` pasa por `runProviderRequest` con una entrada nueva en el catálogo: `ai-assist.offpageAnalysis`, release `O`, `paid`, 1 unidad.
+  - Así se reutilizan la confirmación de coste, el presupuesto finito, el rechazo de secretos, la provenance y la redacción de CORE-7, sin reglas nuevas de secretos.
+  - **CORE-9:** modelos reales, prompts de producción, credenciales y gasto real.
+  - `toReleaseC`/`toReleaseE` no mapean la release `O`.
+- **Aprobación humana:**
+  - Las acciones externas (`EXTERNAL_KINDS`) necesitan una aprobación humana vigente, con alcance, para empezar.
+  - La IA nunca cambia estados.
+  - Revisar, aprobar, rechazar, cancelar y completar son acciones humanas.
+  - «Ejecutada» exige evidencia de ejecución y «completada» un resultado verificado.
+  - Revocar, rechazar, cancelar o reabrir exige motivo, y el historial se conserva.
+- **Prohibido por contrato** (`PROHIBITED_TACTICS`): esquemas de enlaces, envíos masivos, reseñas falsas o incentivadas, menciones artificiales, colocaciones de pago sin `sponsored`/`nofollow`, y cuotas de enlaces o contactos. Se basa en las políticas de spam de Google y en las directrices de Bing.
+- **Honestidad:**
+  - lo no medido es `null`, nunca `0`;
+  - «perdido» solo con el indicador del proveedor; lo que no se ve se marca «no visto»;
+  - «sin cambios relevantes» solo con dimensiones comparables (si no, `null`);
+  - GEO con conjunto de consultas versionado, repeticiones, intervalo de Wilson al 95 % y cambios solo si los intervalos no se solapan;
+  - no se admite scraping (`METHOD_NOT_ALLOWED`);
+  - el tráfico de referencia se separa de la visibilidad observada y del resultado de negocio;
+  - el resultado de negocio solo aparece con atribución y evidencia;
+  - el informe no contiene promesas.
+- **Cambio en una prueba existente:** `tests/core-7-provider-contracts.test.cjs` enumeraba el catálogo cerrado de CORE-7 y solo admitía las releases C/E.
+  - Ahora incluye `ai-assist` y la release `O`, y además exige que toda operación `O` sea `paid`.
+  - No se relaja ninguna comprobación de conexión verificada, secretos ni coste.
+  - El golden y los fixtures no cambian.
+- **Evidencia:** 29 pruebas nuevas en `tests/core-8-offpage-authority.test.cjs`, que cubren:
+  - periodos sucesivos y acciones arrastradas;
+  - datos ausentes y parciales;
+  - evidencia contradictoria y variabilidad GEO;
+  - errores y salidas no estructuradas de la IA, y afirmaciones sin soporte;
+  - decisiones humanas pendientes;
+  - tres verticales.
+
+  Una verificación por mutación de 12 guardas críticas mata las 12. `npm run verify` da 262 (260 pasan, 2 se omiten en Windows).
+- **Límites conocidos:**
+  - El intervalo de Wilson es optimista porque las repeticiones de una consulta están correlacionadas; se declara en los límites.
+  - Las cifras numéricas de la IA se validan contra el texto o valor de la evidencia citada, no semánticamente.
+  - La detección de promesas es conservadora: también marca negaciones como «no garantizamos».
+  - La consistencia NAP compara cadenas normalizadas, no geocodifica.
+
+### Correcciones tras la auditoría del PR #12 (sesión 21, 25/09/2026)
+
+Resuelve los seis hallazgos de [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS-CONTINUATION.md) etapa 1. Cada corrección tiene regresiones en `tests/core-8-review-regressions.test.cjs` que fallan contra el HEAD auditado `42d213d` (comprobado en un worktree temporal: 11 de 11 fallan) y pasan con la corrección.
+
+1. **Provenance confiable.** CORE-7 registra cada sobre que emite (`WeakSet` interno) y expone `providers.isTrustedResult(result)`.
+   - `measurement(input,{providers})` y `geoRun(input,{providers})` (con `providerResult`) solo marcan verificado un resultado emitido por ese módulo, live (`method:'api'`) y `connection:'VERIFIED'`.
+   - Los objetos con la misma forma, las copias serializadas y los campos declarados nunca verifican. Un sobre no confiable se trata como `import` (`trust:'UNTRUSTED_ENVELOPE'`).
+   - Una entrada de caché que no sea el objeto emitido vuelve como `NOT_VERIFIED`. Es un endurecimiento compatible de CORE-7: no cambia ninguna prueba previa.
+   - La confianza no sobrevive a la serialización; restablecerla en el servidor es trabajo de CORE-9.
+2. **Cobertura GEO por grupo exacto.** Los grupos son motor × superficie × locale × mercado.
+   - La cobertura y las repeticiones usan solo las consultas del mismo locale y mercado.
+   - `minUsableAnswersPerQuery` excluye `ERROR` y `NO_ANSWER`.
+   - Una ejecución con otro locale o mercado que su consulta se rechaza (`LOCALE_MARKET_MISMATCH`).
+3. **Rupturas de serie.** Un cambio de superficie, de modelo (entre ventanas o dentro de una) o de método da `NOT_COMPARABLE` con motivo. Nunca `UP`/`DOWN` entre series distintas.
+4. **Conflicto frente a evolución.**
+   - `compareEvidence` separa los conflictos (mismo `subject`+`field` y mismo contexto: periodo o día, proveedor y método) de las divergencias por periodo, proveedor o método.
+   - Un FACT exige evidencia fechada y de un único contexto comparable (`UNDATED_EVIDENCE_FOR_FACT`, `NON_COMPARABLE_EVIDENCE_FOR_FACT`). Las tendencias como INFERENCE no se bloquean y llevan `reviewFlags`.
+5. **Minimización completa.**
+   - `evidenceItem`/`prepareEvidence` revisan todos los campos (id, kind, subject, field, provider, period, value, text, url) y excluyen los ids no seguros.
+   - `minimize` añade correos codificados, secuencias de 9 a 15 dígitos y cadenas con forma de token.
+   - `runAiTask` no envía nada si sobrevive un dato personal (`PERSONAL_DATA_IN_REQUEST`).
+6. **Honestidad semántica.**
+   - `validateAiOutput` devuelve `STRUCTURALLY_VALID`/`PARTIAL`/`REJECTED`, con `candidates` (antes `accepted`) en estado `CANDIDATE`, `verification:'STRUCTURAL_ONLY'`, `semanticReview:'PENDING_HUMAN'` y `semanticVerification:'NOT_PERFORMED'`.
+   - `LOW_LEXICAL_OVERLAP` es solo una pista para el revisor.
+   - Una persona valida la correspondencia semántica antes de usar el contenido.
+
+**Cambios de API antes del merge:** `accepted` → `candidates`; `VALID` → `STRUCTURALLY_VALID`; `minRunsPerQuery` (resultado) → `minUsableAnswersPerQuery`; `modelBreak` → `NOT_COMPARABLE`/`MODEL_CHANGED`; `findConflicts` devuelve también `context`. Se actualizaron las pruebas afectadas de `core-8-offpage-authority`.
+
+**Evidencia:**
+- 12 regresiones nuevas.
+- Una mutación de 17 guardas nuevas mata las 17.
+- `npm run verify` da 274 (272 pasan, 2 se omiten en Windows).
+- CI: run [36133453921](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36133453921) del HEAD `d65dcf1` verde en Node 20.20.2/22, 274/274 por job, 0 omitidas.
+
+## D-24 · CORE-8.1 y continuidad autónoma por fases
+
+**Estado:** aprobado por producto el 25/09/2026; alcance registrado antes de iniciar la implementación. CORE-8.1 cubre la operación off-page continua apoyada por IA, con seguimiento entre periodos, campañas/acciones, mediciones GEO repetidas, producción asistida de contenidos y borradores basados en evidencia, informes periódicos y aprobación humana de toda acción externa. No obliga a crear una acción artificial en cada mes.
+
+- La IA usa solo información aprobada y fuentes identificables. Cada hecho conserva evidencia; si falta evidencia, se marca como desconocido o hipótesis. No inventa datos, casos, testimonios ni resultados.
+- Artículos, guías y adaptaciones por canal son borradores revisables. Estudios, casos de éxito e infografías requieren datos reales. Ideas de PR, respuestas a periodistas, colaboraciones y contacto se preparan de manera específica e individual, sin envíos masivos.
+- Respuestas y solicitudes de reseñas deben ser neutrales; no se permiten reseñas falsas, incentivos, filtrado de reseñas ni afirmaciones de resultados garantizados.
+- CORE-8.1 se implementa primero como contratos y capacidades Core-only; persistencia e integraciones reales pertenecen a CORE-9.
+- Trabajo autónomo en Claude Code: completar cada fase con ramas/PR separadas, pruebas y handoff persistente. No merge, deploy, gasto real, proveedores live ni cambios/lecturas de otros repositorios sin autorización expresa.
+- CORE-9 puede avanzar en este repositorio mediante diseño, arquitectura, contratos, mocks y documentación revisables. La aplicación de la plataforma en otro proyecto y cualquier conexión real se detienen hasta contar con autorización y destino explícitos.
+
+La guía operativa reanudable está en [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS-CONTINUATION.md); el estado único y autoritativo permanece en `ROADMAP.md`.
