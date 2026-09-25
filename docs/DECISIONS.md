@@ -224,3 +224,143 @@ El gate de encoding se adapta: aplica la misma regla contra mojibake, pero sobre
 - **Sin cambios:** adapters, Publisher, materializer, `products()` (D-17) y `pages()` (D-13). El golden `source-388e48a-publish.json` y los fixtures son idénticos a `main` (blob `5aa93a3`), porque `publish()`/`preview()` no usan Intelligence. Sin dependencias circulares: `core` se inyecta y el módulo no lo importa.
 - **Pruebas:** `tests/core-3-2-neutral-intelligence.test.cjs` (24). Cubren los 7 adapters, las formas genéricas `business.*` y `services|products|offerings`, la visibilidad, la calle sin ciudad, datos incompletos, Core ausente o inválido, globals contaminados, resolución única y la copia de `location`.
 - **Deuda restante:** las dos lecturas que quedan en Intelligence, `config.seo.people` y los campos de integraciones, pertenecen al namespace `seo` del Core, no a un vertical. No quedan lecturas de rutas propias de Restaurant en `src/rubik-seo-geo-intelligence.js` (lo verifica la prueba de código fuente). D-16 sigue aplazada.
+
+## D-19 · Contrato multidioma del Core (CORE-6)
+
+**Estado:** contrato definido antes de implementar. La implementación está en la rama `feat/core-6-multilingual` y CORE-6 sigue en progreso hasta su merge.
+
+### Especificación local disponible (única fuente)
+
+- `upstream/SEO-GEO-RELEASE-A-CONTRACT.md` §3 · TECH DEBT · MULTILINGUAL SEO. Exige:
+  - contenido real por locale, nunca sustitución de cadenas;
+  - metadata, Page Registry y canonical por locale;
+  - hreflang solo entre URLs equivalentes reales;
+  - `schema/inLanguage` y estado AUTO/CUSTOM por locale;
+  - un flujo de traducción revisado por personas.
+  - Prohíbe simular inglés traduciendo solo palabras sueltas.
+- `upstream/SEO-GEO-ENGINE-ARCHITECTURE.md`:
+  - §6 `seo.site` con `locale`, `defaultLanguage` y `supportedLanguages`;
+  - §10, cada página indexable puede tener «language/hreflang cuando proceda»;
+  - §17, «Hreflang sólo si existen versiones lingüísticas reales y equivalentes. No crear hreflang a páginas inexistentes», y un sitemap solo con URLs canónicas, indexables y publicadas.
+- Código actual:
+  - `core.reconcile` fuerza `defaultLanguage:'es'` y `supportedLanguages:['es']`;
+  - las fórmulas AUTO del HOME solo existen en español (`templateId … .es`);
+  - Publisher y materializer emiten `lang="es"`;
+  - los adapters devuelven `language:'es'`;
+  - no existe hreflang;
+  - las comparaciones de duplicados de title y description ignoran el idioma.
+
+La especificación **no** define: sintaxis de locales, representación de correspondencias, `x-default`, sitemap con alternates ni localización de la entidad o de los adapters. En esos puntos se elige el comportamiento conservador que preserva el contrato actual.
+
+### Decisiones
+
+1. **Identificadores y normalización (`core.normalizeLocale`).**
+   - Se acepta un subconjunto de BCP 47: idioma de 2–3 letras y región opcional de 2 letras o 3 dígitos, con `-` o `_` como separador.
+   - Se normaliza a idioma en minúsculas y región en mayúsculas: `en_gb` → `en-GB`, `ES` → `es`.
+   - Cualquier otra forma (scripts como `zh-Hant`, variantes, extensiones, cadenas vacías o no textuales) es inválida y devuelve `''`.
+   - *Límite:* los scripts y las variantes quedan para una decisión futura.
+
+2. **Idioma predeterminado y habilitados (`core.languageSettings`, aplicado en `reconcile`).**
+   - `defaultLanguage` sigue fijado en `es` en esta fase. Motivo: las fórmulas AUTO, el HOME y la etiqueta de los adapters son solo en español. Otro idioma por defecto publicaría texto español bajo otra etiqueta (fallback silencioso en el idioma equivocado).
+   - `supportedLanguages` = `es` más los locales válidos que declare el host en `seo.site.supportedLanguages`, normalizados, sin duplicados y en su orden. Los inválidos se descartan.
+   - No se añade ningún idioma obligatorio más allá del `es` ya existente.
+   - Con `['es']`, o sin declararlo, el resultado es `['es']`: idéntico al actual.
+
+3. **Representación del contenido localizado (responsabilidad del host).**
+   - Cada versión lingüística es **una página propia** del Page Registry (`seo.pages[id]`), con su `path` explícito (por ejemplo `/en/about/`), su contenido y su metadata (`title`, `description`, `h1` y `seo.*`, con AUTO/CUSTOM por página, es decir, por locale).
+   - La página declara `locale`; si falta, se usa `defaultLanguage`.
+   - La correspondencia entre traducciones se declara con **`translationKey`**: todas las páginas con la misma clave son versiones del mismo contenido. No se infiere nada de la URL, el slug ni la similitud del texto.
+   - El Core **no genera ni inventa traducciones**. La revisión humana de las traducciones es responsabilidad del flujo del host; el Core no la simula con ningún indicador.
+
+4. **Resolución de rutas y páginas sin traducción (Page Registry).**
+   - Las rutas son las declaradas por el host. No se derivan prefijos de locale.
+   - Siguen valiendo la unicidad global de `path` (`duplicate-path`) y la seguridad de rutas (D-11, D-15).
+   - Si una página no tiene traducción a un locale, **no existe** URL en ese locale. No hay fallback que sirva la versión por defecto bajo una ruta de otro idioma.
+   - Nuevos bloqueos de contrato:
+     - `invalid-locale`: el locale declarado no es válido;
+     - `unsupported-locale`: el locale no está en `supportedLanguages`;
+     - `home-requires-default-locale`: una página `pageType:'home'` solo puede estar en el idioma por defecto, porque su grafo y sus fórmulas son del HOME español.
+   - Una versión localizada de la portada es una página propia de otro tipo (por ejemplo `generic`, en `/en/`).
+
+5. **Metadata por locale.**
+   - Cada página aporta la suya. Las páginas de locales distintos del predeterminado no tienen fórmulas AUTO, así que sin title, description o H1 reales quedan bloqueadas por los contratos ya existentes (`missing-*`).
+   - Los duplicados de title y description (`duplicate-title`/`duplicate-description`) se comparan **solo entre páginas del mismo locale**, con minúsculas propias de ese locale. Una traducción que conserve la marca como título no bloquea. En un sitio monolingüe el comportamiento es idéntico.
+
+6. **Canonical AUTO/CUSTOM por locale.**
+   - AUTO: `baseUrl` + la ruta de la propia página localizada.
+   - CUSTOM: se mantiene el contrato de Release B/Hardening B. Solo es publicable si coincide con la URL propia de esa página; cualquier otro valor es `canonical-conflict`.
+   - Si el canonical CUSTOM apunta a la URL de una página de **otro locale**, se añade además `cross-locale-canonical`: una traducción no se canonicaliza hacia otro idioma.
+   - *Límite:* no se admiten canonicals de consolidación hacia otra URL, igual que hoy.
+
+7. **Equivalencia y elegibilidad para hreflang.**
+   - Una página es elegible si cumple todo esto: `canPublish` es verdadero (publicada, indexable y con contrato OK); no tiene `canonicalConflict`; su locale es válido y está soportado; declara `translationKey`; y hay URL absoluta (producción con `baseUrl` válida).
+   - Dos páginas elegibles son equivalentes si comparten `translationKey` y tienen locales distintos.
+   - Si varias páginas elegibles comparten clave **y** locale, ese locale es ambiguo: se excluye del grupo y se marca con el aviso `ambiguous-translation`.
+   - Solo hay hreflang si quedan **al menos dos locales distintos**.
+
+8. **Reciprocidad.**
+   - El grupo es un grafo completo. Cada miembro elegible emite `<link rel="alternate" hreflang="<locale>" href="<canonical>">` para **todos** los miembros, incluido él mismo, en orden determinista por locale.
+   - Como todos ven el mismo conjunto, la relación es recíproca por construcción.
+   - Una página no elegible (draft, noindex, bloqueada, con locale no soportado o sin clave) no emite hreflang y ningún miembro apunta a ella.
+   - Nunca se apunta a rutas inexistentes ni a idiomas no soportados.
+   - Una página con clave pero sin otro locale elegible recibe el aviso `no-hreflang-alternate`.
+
+9. **Dónde se emite.**
+   - Solo en el `<head>` de producción (`data-rubik-seo="hreflang"`), junto al canonical. En preview no se emite, porque no hay URLs absolutas y la página es noindex.
+   - El sitemap **no cambia de formato**: lista, como hoy, cada URL canónica publicable de cualquier locale y omite las páginas no publicables, noindex o no traducidas.
+   - No se añaden alternates `xhtml:link` al sitemap: basta un único método (el head) y así el sitemap monolingüe sigue siendo idéntico.
+
+10. **`x-default`: no se emite.** La especificación no lo menciona y el Core no tiene una página selectora de idioma ni una política de redirección por idioma que lo justifique.
+
+11. **Idioma del documento y schema.**
+    - `renderPage` usa `<html lang="<locale de la página>">`, que es `es` en las páginas por defecto (idéntico).
+    - La portada materializada conserva el `lang` de la plantilla del host (idioma por defecto) y la página 404 sigue en `es`.
+    - `inLanguage` se añade al `WebPage` del grafo **solo cuando el sitio declara más de un idioma soportado**. Así el grafo y el golden monolingües no cambian.
+    - Los artículos del blog (`derivedBlogPages`) siguen en el idioma por defecto en esta fase.
+
+12. **Responsabilidades.**
+    - **Host:** declarar `supportedLanguages`, crear las páginas localizadas con contenido y metadata reales, sus rutas y su `translationKey`, y revisar las traducciones.
+    - **Adapter:** sin cambios. Sigue siendo agnóstico de idioma y la entidad (negocio, dirección, oferta) se comparte entre locales.
+    - **Core:** normalizar, validar, bloquear, calcular la equivalencia y emitir hreflang, `lang` e `inLanguage`.
+    - *Límite:* la localización de la entidad schema.org, de los datos de adapter, de los artículos y de las fórmulas AUTO en otros idiomas no forma parte de esta fase.
+
+### Compatibilidad exigida
+
+Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `preview()`, el sitemap, los HTML materializados y el golden `source-388e48a-publish.json` deben ser idénticos byte a byte, y las barreras de rutas (D-11, D-15) no cambian. Cualquier diferencia exigiría detenerse y registrar una nueva decisión.
+
+### Implementación (rama `feat/core-6-multilingual`)
+
+- **`core`:**
+  - exporta `normalizeLocale` y `languageSettings`; `reconcile` aplica `languageSettings`;
+  - `schemaGraph` añade `WebPage.inLanguage` solo si hay más de un idioma;
+  - el check `deferred` de `preview` cambia de texto solo en sitios multidioma.
+- **`release-b` (Page Registry):**
+  - `normalizePage` añade `locale` (normalizado, o el valor declarado si es inválido, para que el contrato lo bloquee) y `translationKey`;
+  - `pageContract` añade `invalid-locale`, `unsupported-locale`, `home-requires-default-locale` y `cross-locale-canonical`, y compara los duplicados por locale;
+  - la nueva función `alternates(config,page)` devuelve los miembros de su grupo `{id,locale,path,url}`;
+  - `audit` añade los avisos `translation.ambiguous-translation` y `translation.no-hreflang-alternate`. Van en la auditoría y no en el contrato de la página, para no crear una recursión con `registry`.
+- **`publisher`:**
+  - emite `<link rel="alternate" hreflang>` solo en páginas `live` de producción;
+  - `<html lang>` por página;
+  - `inLanguage` por página en sitios multidioma.
+- **Materializer:** sin cambios. Las rutas localizadas pasan por las mismas barreras (D-11, D-15).
+- **URL de los alternates:** es exactamente la del `<link rel="canonical">` publicado; la home conserva la barra final de `baseUrl`. Se detectó que `canonicalFor`, y con él el sitemap, escribe la home **sin** barra final, a diferencia del canonical emitido. Es una incoherencia previa que se deja **sin cambiar**, porque modificarla alteraría el golden. Queda registrada como deuda.
+- **Evidencia:**
+  - `tests/core-6-multilingual.test.cjs` (19 pruebas, 15 de ellas fallan con el `src/` de `main`);
+  - comparación byte a byte con `main` de `publish`, `preview`, `audit` y los HTML materializados para tres configuraciones monolingües: 0 diferencias;
+  - golden (blob `5aa93a3`) y fixtures sin cambios.
+
+- **`apply()` (revisión del PR #9):** está limitado a la portada por diseño. Inyecta `publish().publisher.head`, que es el `<head>` del HOME, y el HOME solo existe en el idioma por defecto (`home-requires-default-locale`). `<html lang>` se toma ahora de `seo.site.defaultLanguage` reconciliado en lugar del literal `'es'`; el valor es el mismo, `es`. No acepta ni resuelve una página localizada, y un argumento extra se ignora. Las páginas localizadas obtienen su `lang` real con `renderPage` (`publish().publisher.pages` y el materializer). Las pruebas fijan ambos casos.
+
+
+## D-20 · SEO off-page como fase explícita y Platform Layer al final
+
+**Origen:** decisión aprobada por el usuario tras revisar el estado de Release E, Intelligence y la arquitectura host/Core. Esta decisión fija la secuencia futura; no declara capacidades externas ya implementadas.
+
+1. **SEO off-page se incorpora como CORE-8.** Parte de los contratos ya existentes de Release E (presencia, menciones, citas y provenance) y de Intelligence (fuentes de backlinks). CORE-8 debe definir/implementar en el Core contratos neutrales, normalización y análisis auditable de observaciones externas: backlinks, menciones/citas y presencia local. Cada observación necesita fuente, fecha y evidencia suficiente para poder revisarla; las fuentes parciales se etiquetan como tales y la ausencia de datos se mantiene como `NOT_MEASURED`/`UNKNOWN`, nunca como cero o puntuación inventada.
+2. **Límites de CORE-8:** el Core no adquiere storage, secretos ni llamadas autenticadas a proveedores; el host conserva la persistencia en su Project State. CORE-8 puede trabajar con datos explícitamente aportados o importados y fixtures deterministas. No crea, compra, intercambia ni automatiza enlaces; no promete posiciones y no produce un score opaco de autoridad. Las acciones off-site se presentan como recomendaciones/tareas revisables por una persona.
+3. **CORE-7/7.1 se preparan antes de la plataforma:** contratos, mapeos y pruebas con mocks pueden hacerse Core-only. Conexiones reales a Release E, Search Console/Bing, OpenSEO/MCP u otros proveedores quedan aplazadas hasta la fase final.
+4. **CORE-9 es la última fase: Platform Layer multi-proyecto.** Diseñar un plano de control con backend, autenticación/roles, almacenamiento seguro de secretos, trabajos programados, conectores, provenance y audit log. Activará las integraciones reales preparadas en CORE-7/7.1/8. El Project State, Studio, Media Library y Page Registry canónicos siguen perteneciendo a cada host; la plataforma no los duplica.
+5. **Límite de repositorio:** la futura aplicación de plataforma se tratará como producto/proyecto separado. Esta decisión no autoriza acceder ni cambiar otro repositorio, y no cambia el alcance actual de RUBIK-SEO-GEO-CORE.
+
+**Secuencia aprobada:** CORE-6 → CORE-7 (contratos/mocks) → CORE-8 (SEO off-page Core-only) → CORE-9 (Platform Layer final; activación de proveedores reales). CORE-2/4/5 siguen condicionadas a adopción/validación de host y no se consideran resueltas por D-20.

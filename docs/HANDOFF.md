@@ -1,6 +1,6 @@
 # Handoff — extracción de Rubik SEO/GEO Core
 
-**Última sesión:** 25/09/2026 · **Rama:** `feat/core-3-2-neutral-intelligence` (desde `main@0be4752`) · **Alcance:** solo `Juanmaes83/RUBIK-SEO-GEO-CORE` (D-12)
+**Última sesión:** 25/09/2026 · **Estado:** CORE-3.2 fusionado en `main@3ad7b13` · **Alcance:** solo `Juanmaes83/RUBIK-SEO-GEO-CORE` (D-12)
 
 > Este documento resume la última sesión. El estado con autoridad está en [`ROADMAP.md`](ROADMAP.md).
 
@@ -142,4 +142,52 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
    - `npm run verify` da 153 (151 pasan, 2 se omiten en Windows). Golden idéntico (blob `5aa93a3`).
 5. **Sin cambios** en adapters, Publisher ni materializer. D-16 intacta.
 
-**Pendiente:** CI Node 20/22 del PR de CORE-3.2 (`feat/core-3-2-neutral-intelligence`), revisión humana y merge. Sin merge ni deploy.
+**Cierre:** CORE-3.2 fusionado en `main` mediante [PR #7](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/7) (merge `3ad7b130c52538c3f48fcee1da70c9909ed292f4`). CI Node 20/22 verde, 153/153, 0 omitidos ([run 36111618492](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36111618492)).
+
+- `geoReadiness()` y `entityGraph()` derivan negocio, dirección y ofertas del adapter activo con `{core}` explícito. Sin `core`, la información de vertical queda desconocida/vacía; no se usa Restaurant como fallback.
+- El contrato de host cambió: `entityGraph().location` usa la dirección schema.org pública del adapter y `geoReadiness()` necesita `{core}`. No se ha migrado ni validado ningún host.
+- D-16 (microcopy OpenSEO) sigue aplazada e intacta.
+- Próxima fase Core-only: CORE-6, multidioma. Primero decidir contrato de locale, metadata, Page Registry, canonical y hreflang (D-19); después implementar y verificarlo dentro de este repositorio.
+- CORE-2/4/5 y las conexiones reales de CORE-7 siguen bloqueadas por depender de hosts o Platform Layer. No se accede a esos repositorios.
+
+## Sesión 12 — CORE-6 multidioma (25/09/2026)
+
+**Rama:** `feat/core-6-multilingual` desde `main@3ad7b13` (merge del PR #7). El PR #8 (cierre documental de CORE-3.2) seguía abierto y **no** se usó como base; después su rama se integró en la de CORE-6 para conservar ambos cambios (sesión 13). Estado inicial: `npm run verify` daba 153 (151 pasan, 2 se omiten en Windows).
+
+1. **Contrato primero:** D-19 se registró en un commit propio antes del código, basado en la especificación local (Release A §3, Arquitectura §6/§10/§17). Donde la especificación no llega, se eligió el comportamiento conservador: `es` sigue siendo el idioma por defecto, sin `x-default` y con el sitemap sin cambios.
+2. **Implementación:**
+   - `core`: `normalizeLocale` y `languageSettings`;
+   - Page Registry: `locale`, `translationKey`, bloqueos de locale y canonical entre locales, duplicados por locale y `alternates`;
+   - Publisher: hreflang recíproco solo en producción, `lang` e `inLanguage`;
+   - el materializer no cambia.
+3. **Pruebas:** `tests/core-6-multilingual.test.cjs` (19). `npm run verify` da 172 (170 pasan, 2 se omiten en Windows). Monolingüe idéntico a `main` byte a byte y golden sin cambios.
+4. **No se ha validado ningún host.** Adapters, entidad, artículos y fórmulas AUTO siguen sin localizar (límites de D-19). D-16 intacta.
+
+**Bloqueo de CI:** los jobs del [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9) no arrancan: *«The job was not started because an Actions budget is preventing further use»* ([run 36113779831](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36113779831), reintentado con el mismo resultado). Es un límite de facturación de la cuenta, no un fallo de pruebas. Evidencia local complementaria: Node 20.20.2 y 22.23.3 dan 172 (170 pasan, 2 se omiten); los pasos del CLI de la CI también pasan en local.
+
+**Pendiente:** CI Node 20/22 del [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9), revisión humana y merge. El solape documental con el PR #8 quedó resuelto en la sesión 13. Sin merge ni deploy.
+
+## Sesión 13 — revisión del PR #9 (25/09/2026)
+
+1. **`apply()` limitado a la portada por diseño:**
+   - inyecta el `<head>` del HOME (`publish().publisher.head`), que siempre está en el idioma por defecto (D-19);
+   - `<html lang>` se toma ahora de `seo.site.defaultLanguage` reconciliado, que sigue siendo `es`;
+   - no aplica páginas localizadas: su `lang` real viene de `renderPage`;
+   - queda documentado en el contrato de host y en D-19, y lo fijan 2 pruebas nuevas (monolingüe y multidioma).
+2. **PR #8 integrado** en la rama del PR #9 (merge `e29f622`), conservando ambos cambios:
+   - del PR #8: el cierre de CORE-3.2 y la secuencia de CORE-6, con su criterio de CORE-6 literal;
+   - del PR #9: el estado «en progreso» de CORE-6, su deuda, la sesión 12 y el bloqueo de CI.
+   - Solo se descartaron las líneas obsoletas de CORE-3.2 «en revisión».
+3. **Validación local:** `npm run verify` y los checks con Node 24, 20.20.2 y 22.23.3 dan 174 (172 pasan, 2 se omiten en Windows). Monolingüe idéntico a `main` (0 diferencias) y golden sin cambios.
+4. **CI de GitHub:** sigue sin poder arrancar por el presupuesto de Actions (ver la sesión 12). No se declara aprobada.
+
+
+## Sesión 14 — secuencia SEO off-page y plataforma (25/09/2026)
+
+**Decisión aprobada:** incorporar SEO off-page como fase explícita y aplazar la plataforma multi-proyecto hasta el final. Registrado en D-20.
+
+- Secuencia tras CORE-6: CORE-7 prepara contratos/mocks de integraciones; CORE-8 implementa capacidades Core-only de SEO off-page & Authority con datos fuente/importados y provenance; CORE-9 es la fase final de Platform Layer y activa conectores reales.
+- CORE-8 cubre análisis verificable de backlinks, menciones/citas y presencia local. No crea enlaces automáticamente, no almacena datos en el Core y no promete posiciones. Los conectores externos dependen de CORE-9.
+- CORE-9 es un plano de control multi-proyecto con backend, autenticación, secretos, trabajos programados e historial. Cada host conserva su Project State canónico, Studio, Media Library y Page Registry.
+- La plataforma se planifica como producto aparte. Esta decisión no autoriza cambios ni accesos a otros repositorios; este repositorio solo conserva los contratos y la secuencia del Core.
+- CORE-6 continúa en revisión en PR #9; su CI de Actions sigue bloqueada por presupuesto según el propio PR. Sin merge ni deploy en esta actualización documental.

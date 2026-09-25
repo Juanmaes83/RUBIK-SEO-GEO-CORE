@@ -1,6 +1,6 @@
 # Roadmap operativo — Rubik SEO/GEO Core
 
-**Única fuente de estado del Core.** Última verificación: 25/09/2026, contra `main@0be4752` de este repositorio. Todo cambio de código y documentación se hace solo en RUBIK-SEO-GEO-CORE. No se modifica ningún repositorio externo ni se accede a WEB-RESTAURACI-N-PREMIUM-DIN-MICA. Las lecturas externas requieren autorización expresa y concreta.
+**Única fuente de estado del Core.** Última verificación: 25/09/2026, contra `main@3ad7b13` de este repositorio. Todo cambio de código y documentación se hace solo en RUBIK-SEO-GEO-CORE. No se modifica ningún repositorio externo ni se accede a WEB-RESTAURACI-N-PREMIUM-DIN-MICA. Las lecturas externas requieren autorización expresa y concreta.
 
 ## 1. Estado heredado (verificado)
 
@@ -43,12 +43,17 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 | CORE-2 | Sacar el bootstrap navegador de `core.js` y llevar la carga al host | ⛔ Fuera de alcance: su criterio requiere migrar y validar un host externo. No se accede ni modifica otro repositorio. No iniciado (D-12) |
 | **CORE-3** | **Inyección explícita y validación de contratos Core-only** | ✅ Cerrada en [PR #3](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/3), merge `b38225320f4b3dde3f2820f2935603adea33c8dc`; D-12…D-15. CI Node 20/22 verde: 113/113, 0 omitidos (run 36106021399). `entityGraph().products` mantiene una dependencia residual de `config.dishes`, anotada para trabajo posterior |
 | **CORE-3.1** | **Desacoplar `entityGraph().products` de `config.dishes`** mediante el contrato de datos por adapter ya existente | ✅ Cerrada en [PR #6](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/6), merge `0be47522148e7fb33b6e0a6177cd8a219e011dc5`; D-17. CI Node 20/22 verde: 129/129, 0 omitidos ([run 36108440350](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36108440350)) |
-| **CORE-3.2** | **Neutralizar los acoplamientos verticales restantes de Intelligence:** `geoReadiness()` y `entityGraph().business/location` desde `source(config)` del adapter activo | 🔄 **Implementado, en revisión** en PR de CORE-3.2 (`feat/core-3-2-neutral-intelligence`) (D-18). Sin lecturas de `dishes`, `brand.name` ni `modules.location` en Intelligence ✅; 7 adapters, formas genéricas `business.*`/`services|products|offerings`, Core ausente o inválido, globals y datos incompletos ✅; golden idéntico ✅; `npm run verify` 153 (151 pasan, 2 se omiten en Windows). Falta: CI del PR, revisión humana y merge |
+| **CORE-3.2** | **Neutralizar acoplamientos verticales restantes de Intelligence:** `geoReadiness()` y `entityGraph().business/location` desde `source(config)` del adapter activo | ✅ Cerrada en [PR #7](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/7), merge `3ad7b130c52538c3f48fcee1da70c9909ed292f4`; D-18. CI Node 20/22 verde: 153/153, 0 omitidos (run 36111618492). Sin cambios en adapters, Publisher, materializer ni golden |
 | CORE-4 | Adopción del Core por un host externo | ⛔ Fuera de alcance mientras el trabajo se limite a este repositorio |
 | CORE-5 | Validación externa del adapter `real-estate` con Sarah Katerina | Estado real del host → golden y HTML materializado revisados. Ni datos inventados ni NAP sin confirmar |
-| CORE-6 | Deuda multidioma (TECH DEBT · MULTILINGUAL SEO) | Solo con decisión canónica: locales, hreflang y canonical por idioma |
-| CORE-7 | Conexiones server-side de Release E y Release C | Depende de la Platform Layer del host (auth, secretos, backend). Siempre con provenance real |
-| CORE-7.1 | **Integración OpenSEO (Release C · Intelligence) mediante un puente de proveedor server-side** que actúa como cliente MCP. Diseño en [`integrations/OPENSEO.md`](integrations/OPENSEO.md) | 📝 documentado · ⛔ **bloqueado** por CORE-2 (fuera de alcance) y la Platform Layer. La conectividad `/api/health` está implementada y fusionada en CORE-3 (D-14); faltan el contrato MCP validado con mocks, el puente en el backend del host y revisión humana. No es una Release nueva: completa la fuente real que le falta a Release C |
+| **CORE-6** | **SEO multidioma:** traducciones reales, metadata por locale, Page Registry localizado, hreflang y canonical AUTO/CUSTOM por idioma | Criterio (PR #8): Siguiente fase Core-only tras CORE-3.2. Formalizar primero la decisión canónica D-19; no emitir hreflang para páginas inexistentes ni inventar traducciones. Mantener idéntica la salida de proyectos configurados solo con `es`. Estado: 🔄 **En progreso** en [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9). Contrato D-19 definido antes de implementar. Implementación y pruebas en la rama: `npm run verify` 174 (172 pasan, 2 se omiten en Windows), `apply()` documentado y probado como solo portada, salida monolingüe idéntica a `main` (0 diferencias) y golden sin cambios. Falta: CI del PR (**bloqueada**: [run 36113779831](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36113779831) no arrancó por límite de presupuesto de GitHub Actions; en local, Node 20.20.2 y 22.23.3 dan 174 con 172 pasan y 2 omitidos), revisión humana y merge |
+| **CORE-7** | **Preparar contratos de integración para Release E y Release C** | Core-only: adaptar y probar contratos con mocks, fijar provenance, estados de error y límites de datos/coste. No activar servicios reales antes de CORE-9 |
+| **CORE-7.1** | **Preparación del puente OpenSEO/MCP** ([`integrations/OPENSEO.md`](integrations/OPENSEO.md)) | Core-only: contrato y pruebas con mocks MCP. La conexión autenticada y el backend quedan para CORE-9; `connectivity()` por `/api/health` ya está en D-14. `crawl()` continúa heredado hasta esa integración |
+| **CORE-8** | **SEO off-page & Authority** | Definir contratos neutrales y análisis auditable para backlinks, menciones/citas y presencia local, usando datos aportados/importados con fuente y fecha. Sin storage propio, conexiones reales, creación automatizada de enlaces ni promesas de ranking; conectores reales se activan en CORE-9 |
+| **CORE-9** | **Platform Layer multi-proyecto (fase final)** | Plano de control para proyectos Rubik, auth/roles, backend, secretos, trabajos programados, conectores e historial/audit log. Activar aquí las integraciones reales de CORE-7/7.1/8. El Project State, Studio, Media Library y Page Registry canónicos siguen en cada host; implementación de la plataforma en un proyecto separado cuando se autorice |
+
+**Secuencia aprobada:** CORE-6 → CORE-7 (contratos/mocks) → CORE-8 (SEO off-page Core-only) → CORE-9 (Platform Layer final y activación de servicios reales). CORE-2/4/5 siguen dependiendo de un host; esta secuencia no los inicia ni los valida.
+
 
 **Evaluación del ecosistema:** referencias y decisiones en [`ECOSYSTEM-REFERENCES.md`](ECOSYSTEM-REFERENCES.md). No añade dependencias ni altera el alcance del Core.
 
@@ -59,10 +64,11 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 | CORE-1 | Cerrado en `main@995207f`; sin deploy | Ninguno |
 | CORE-3 | Cerrado en `main@b382253`; D-12…D-15, CI Node 20/22 verde | Ninguno |
 | CORE-3.1 | Cerrado en `main@0be4752`; D-17, CI Node 20/22 verde | Ninguno |
-| Señales Restaurant residuales en Intelligence | Resueltas en CORE-3.2 (D-18), **pendiente de merge** en PR de CORE-3.2 (`feat/core-3-2-neutral-intelligence`) | Revisión humana y merge |
+| CORE-3.2 | Cerrado en `main@3ad7b13`; D-18, CI Node 20/22 verde (153/153) | Ninguno |
+| CORE-6 en progreso | Deuda observada: el sitemap y `canonicalFor` escriben la home sin barra final, a diferencia del canonical emitido (anterior a CORE-6; no se cambia para no alterar el golden). Límites de D-19: scripts BCP 47, entidad/adapters, artículos y fórmulas AUTO no localizados | Decisión posterior |
 | Microcopy OpenSEO | Mensaje de éxito de conectividad puede dar a entender que la autorización MCP ya está verificada | Corregir en una fase posterior según D-16; el estado devuelto sigue siendo `NOT_CONNECTED` / `NOT_VERIFIED` |
 | CORE-2/CORE-4 | Requieren migración o adopción en un host externo | Fuera de alcance: este proyecto solo trabaja en RUBIK-SEO-GEO-CORE |
-| Sin Platform Layer (backend, auth, secretos) en ningún host | CORE-7, CORE-7.1 | Fase Platform Layer del host |
+| Platform Layer todavía no construida | Integraciones reales de CORE-7/7.1 y conectores en CORE-8 | CORE-9, definida como fase final; hasta entonces solo contratos/mocks y datos manuales/importados con provenance |
 | `crawl()` de `OpenSEOAdapter` sigue con el contrato HTTP heredado (no existe la acción `crawl` en OpenSEO). La conectividad ya usa `/api/health` y nunca devuelve `CONNECTED` (D-14, mergeada en CORE-3) | CORE-7.1 | Puente MCP server-side con Platform Layer; `DECISIONS.md` D-09 |
 
 ## 5. Reglas de continuidad

@@ -55,7 +55,7 @@ El Core es una **capacidad transversal**. No es un plugin, ni una segunda aplica
 2. **Honestidad.** Nada de ratings, reviews, métricas, indexación o citas inventadas. Lo que falta aparece como `NOT_MEASURED`, `NOT_CONNECTED` o `UNKNOWN`, y GEO lleva la etiqueta `HEURISTIC`.
 3. **Publicación real.** El SEO crítico y el contenido principal van en el HTML inicial (Hardening A). Preview falla cerrado. En producción, las rutas que no pasan el contrato no se publican (Hardening B).
 4. **Privacidad NAP.** Dirección, teléfono y email solo entran en el schema con `visibility:'public'` y la firma `publicDataConfirmed` vigente. Si cambia el dato fuente, la confirmación se invalida.
-5. **España-first.** `supportedLanguages:['es']`, sin hreflang.
+5. **España-first con multidioma explícito.** `es` por defecto; otros idiomas solo con páginas traducidas reales declaradas por el host y enlazadas por `translationKey`; hreflang recíproco solo entre páginas publicables equivalentes (D-19, CORE-6 en progreso).
 6. **Sin storage en el Core ni en los adapters** (verificado por tests).
 
 ## Formato de módulos
@@ -65,3 +65,12 @@ UMD sin dependencias. En Node se exporta con `module.exports`; en navegador cuel
 ## Acoplamientos pendientes
 
 Ver [`DECISIONS.md`](DECISIONS.md) D-07: el bootstrap navegador de `core.js` sigue conociendo el Studio D de Restaurantes (CORE-2, bloqueado por alcance según D-12). La dependencia global de `intelligence.pages()` y el vertical `restaurant` por defecto de Release E se resuelven en CORE-3 mediante dependencias explícitas (D-13).
+
+
+## Secuencia aprobada: SEO off-page y Platform Layer
+
+Después de CORE-6, CORE-7 prepara contratos de proveedor y pruebas con mocks; CORE-8 añade análisis Core-only de SEO off-page & Authority a partir de señales con provenance (backlinks, menciones/citas y presencia local); CORE-9 queda como fase final de Platform Layer y activación de integraciones reales.
+
+El Core no crea ni compra enlaces, no hace outreach masivo, no mantiene storage propio ni promete rankings. Los datos externos deben incluir fuente, fecha y evidencia; se distinguen observaciones verificadas, importadas, incompletas y no medidas. Las acciones sobre sitios de terceros requieren intervención autorizada.
+
+La Platform Layer será un plano de control multi-proyecto con backend, autenticación, gestión segura de secretos, sincronizaciones/trabajos e historial. Cada producto conserva su Project State, Studio, Media Library y Page Registry canónicos. La aplicación de plataforma se implementará como producto separado en la fase final; aquí solo se documenta su contrato y dependencia.
