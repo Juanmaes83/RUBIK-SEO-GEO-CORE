@@ -498,3 +498,63 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
 - **Reglas que se mantienen:** el health solo, o un cliente mock, nunca verifican. La identidad (id, correo, nombre) no se copia al resultado, a la evidencia ni a los errores; tampoco el mensaje de una excepción del verificador.
 - **Evidencia:** 5 pruebas para el verificador y respuestas whoami no autenticadas, más 2 para `errors` no vacío/vacío en formas diversas. `tests/core-7-1-openseo-bridge.test.cjs` contiene 28 pruebas. `npm run verify` da 233 (231 pasan, 2 se omiten en Windows). CI del HEAD del PR: run `36126029028`, 233/233 por job sin omitidas; golden y paridad sin cambios.
 - **Precisión (segunda revisión del PR #11):** `errors` rechaza en cualquier forma no vacía: cadena con contenido (tras recortar espacios), array con elementos, objeto con claves o cualquier otro valor verdadero. Siempre prevalece sobre un verificador que devuelva `true`. Los valores vacíos (`null`, `false`, `0`, `''`, `'  '`, `[]`, `{}`) no rechazan. La regla de `error` y la de `authenticated`/`authorized` `false` no cambian. Pruebas: 2 nuevas (28 en `core-7-1-openseo-bridge`).
+
+## D-23 · Servicio off-page & Authority Core-only (CORE-8)
+
+**Estado:** implementada en la rama `feat/core-8-offpage-authority`, pendiente de PR, CI y revisión. **CORE-8 no se da por cerrada** hasta completar las tres cosas. No activa ninguna conexión, modelo ni persistencia real: eso es CORE-9 (D-20).
+
+- **Investigación previa:** en [`integrations/OFFPAGE-SERVICE.md` §5](integrations/OFFPAGE-SERVICE.md#5-fuentes-consultadas-25092026) y [`ECOSYSTEM-REFERENCES.md`](ECOSYSTEM-REFERENCES.md#core-8--investigación-off-page-25092026), consultada el 25/09/2026.
+  - Cubre: políticas oficiales de Google (spam, funciones de IA, enlaces salientes, rastreadores), OpenAI, Bing y Perplexity; datasets y artículos de Hugging Face/arXiv con sus licencias; repositorios propios y externos en solo lectura; y foros, tratados como anecdóticos.
+  - Cada fuente se clasifica como oficial, investigación, anecdótica, decisión o hipótesis.
+  - No se copió código, skills, documentación ni publicaciones.
+- **Módulo nuevo:** `src/rubik-seo-geo-offpage.js` (`./offpage`, global `RubikSEOGeoOffpage`). UMD, sin dependencias, sin red, sin `Date.now`, sin storage y sin acoplamiento vertical.
+  - Release E, CORE-7 providers, Intelligence y el Core/adapter se inyectan en cada llamada (D-13).
+  - El modelo de servicio y los contratos están en `OFFPAGE-SERVICE.md` §1–§4.
+- **Reutilización, no duplicación:**
+  - backlinks por `providers.normalizeBacklinks`;
+  - menciones sobre `releaseE.normalizeMentionRecord`;
+  - entidad, dirección y teléfono desde `core.source(config)`;
+  - vertical desde `core.adapter(config)`;
+  - locale con `core.normalizeLocale`;
+  - acceso de rastreadores con `intelligence.crawlerAudit`/`parseRobots`;
+  - sobres de CORE-7 aceptados como medición, con `verified` solo si `connection:'VERIFIED'`.
+- **IA:** el Core solo define contratos.
+  - **En el Core:** `aiRequest` (evidencia minimizada y reglas), `validateAiOutput` (salida estructurada, nunca canónica) y `runAiTask`.
+  - `runAiTask` pasa por `runProviderRequest` con una entrada nueva en el catálogo: `ai-assist.offpageAnalysis`, release `O`, `paid`, 1 unidad.
+  - Así se reutilizan la confirmación de coste, el presupuesto finito, el rechazo de secretos, la provenance y la redacción de CORE-7, sin reglas nuevas de secretos.
+  - **CORE-9:** modelos reales, prompts de producción, credenciales y gasto real.
+  - `toReleaseC`/`toReleaseE` no mapean la release `O`.
+- **Aprobación humana:**
+  - Las acciones externas (`EXTERNAL_KINDS`) necesitan una aprobación humana vigente, con alcance, para empezar.
+  - La IA nunca cambia estados.
+  - Revisar, aprobar, rechazar, cancelar y completar son acciones humanas.
+  - «Ejecutada» exige evidencia de ejecución y «completada» un resultado verificado.
+  - Revocar, rechazar, cancelar o reabrir exige motivo, y el historial se conserva.
+- **Prohibido por contrato** (`PROHIBITED_TACTICS`): esquemas de enlaces, envíos masivos, reseñas falsas o incentivadas, menciones artificiales, colocaciones de pago sin `sponsored`/`nofollow`, y cuotas de enlaces o contactos. Se basa en las políticas de spam de Google y en las directrices de Bing.
+- **Honestidad:**
+  - lo no medido es `null`, nunca `0`;
+  - «perdido» solo con el indicador del proveedor; lo que no se ve se marca «no visto»;
+  - «sin cambios relevantes» solo con dimensiones comparables (si no, `null`);
+  - GEO con conjunto de consultas versionado, repeticiones, intervalo de Wilson al 95 % y cambios solo si los intervalos no se solapan;
+  - no se admite scraping (`METHOD_NOT_ALLOWED`);
+  - el tráfico de referencia se separa de la visibilidad observada y del resultado de negocio;
+  - el resultado de negocio solo aparece con atribución y evidencia;
+  - el informe no contiene promesas.
+- **Cambio en una prueba existente:** `tests/core-7-provider-contracts.test.cjs` enumeraba el catálogo cerrado de CORE-7 y solo admitía las releases C/E.
+  - Ahora incluye `ai-assist` y la release `O`, y además exige que toda operación `O` sea `paid`.
+  - No se relaja ninguna comprobación de conexión verificada, secretos ni coste.
+  - El golden y los fixtures no cambian.
+- **Evidencia:** 29 pruebas nuevas en `tests/core-8-offpage-authority.test.cjs`, que cubren:
+  - periodos sucesivos y acciones arrastradas;
+  - datos ausentes y parciales;
+  - evidencia contradictoria y variabilidad GEO;
+  - errores y salidas no estructuradas de la IA, y afirmaciones sin soporte;
+  - decisiones humanas pendientes;
+  - tres verticales.
+
+  Una verificación por mutación de 12 guardas críticas mata las 12. `npm run verify` da 262 (260 pasan, 2 se omiten en Windows).
+- **Límites conocidos:**
+  - El intervalo de Wilson es optimista porque las repeticiones de una consulta están correlacionadas; se declara en los límites.
+  - Las cifras numéricas de la IA se validan contra el texto o valor de la evidencia citada, no semánticamente.
+  - La detección de promesas es conservadora: también marca negaciones como «no garantizamos».
+  - La consistencia NAP compara cadenas normalizadas, no geocodifica.

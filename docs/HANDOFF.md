@@ -280,3 +280,21 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - CI del HEAD `688e3bb`: run `36126029028`, Node 20.20.2 y 22.23.2, 233/233 por job, 0 omitidas. Tests locales: 233 (231 pasan, 2 omitidas en Windows por symlinks de fichero); golden/paridad sin cambios.
 - No hay conexión real, secretos ni deploy. Transporte MCP autenticado, backend, persistencia y validación con instancia real (incluidos estados de auditoría y forma de páginas) quedan en CORE-9; `crawl()` conserva su contrato heredado hasta esa integración.
 - Siguiente fase: CORE-8, SEO off-page & Authority Core-only. CORE-2/4/5 siguen dependiendo de validación de un host.
+
+## Sesión 19 — CORE-8, SEO off-page & Authority Core-only (25/09/2026)
+
+- **Rama:** `feat/core-8-offpage-authority` desde `main@a031224`. Decisión D-23. Modelo de servicio, IA frente a aprobación humana, límites con CORE-9 y fuentes: [`integrations/OFFPAGE-SERVICE.md`](integrations/OFFPAGE-SERVICE.md).
+- **Investigación de solo lectura:**
+  - repositorios propios: digital-marketing-pro, seo-god, open-seo-mcp-skills, marketingskills y open-seo;
+  - externos: every-app/open-seo, seranking/seo-skills, elmo, geo-aeo-tracker y backlink-checker-php;
+  - Hugging Face/arXiv y fuentes oficiales de Google, OpenAI, Bing y Perplexity;
+  - foros, tratados como anecdóticos.
+
+  No se copió nada ni se accedió a WEB-RESTAURACI-N-PREMIUM-DIN-MICA.
+- **Código:**
+  - `src/rubik-seo-geo-offpage.js` (nuevo): perfil, snapshots y comparación, menciones, NAP, GEO, oportunidades, acciones y campañas, cierre de periodo, informe y validación de IA.
+  - `src/rubik-seo-geo-providers.js`: entrada `ai-assist` en el catálogo (release `O`, `paid`).
+  - `package.json`: export `./offpage`.
+- **Pruebas:** 29 nuevas; una aserción del catálogo de CORE-7 ampliada (`ai-assist`, release `O` siempre `paid`). La verificación por mutación de 12 guardas las mata todas. `npm run verify`: 262 (260 pasan, 2 se omiten en Windows). Golden sin cambios.
+- **Pendiente para cerrar CORE-8:** PR, CI Node 20/22 en verde y revisión. Sin merge ni deploy.
+- **CORE-9:** conectores reales, modelos, persistencia, programación, historial, envío tras aprobación y secretos.

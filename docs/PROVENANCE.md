@@ -57,7 +57,9 @@ git hash-object --path=src/rubik-seo-geo-core.js src/rubik-seo-geo-core.js
 | `tests/fixtures/golden/source-388e48a-publish.json` | Salida de `publish()` y `preview()` de los **módulos fuente** para LÚMINA (Restaurant) y Casa Norte (RealEstate), en preview y production (`scripts/generate-source-golden.cjs`). |
 | `tests/core-independence.test.cjs`, `tests/core-source-parity.test.cjs` | Gates nuevos (D-08). |
 | `tests/core-materialize-path-safety.test.cjs` | Prueba de seguridad de path traversal (D-11). |
-| `src/rubik-seo-geo-providers.js` | Nuevo en CORE-7 (D-21): contratos neutrales de proveedor para Release C/E. Sin equivalente en el fuente. |
+| `src/rubik-seo-geo-providers.js` | Nuevo en CORE-7 (D-21): contratos neutrales de proveedor para Release C/E. Sin equivalente en el fuente. CORE-8 añade la entrada de catálogo `ai-assist` (D-23). |
+| `src/rubik-seo-geo-offpage.js` | Nuevo en CORE-8 (D-23): contratos del servicio off-page & Authority. Sin equivalente en el fuente. Patrones inspirados (no copiados) en los repositorios y fuentes listados en [ECOSYSTEM-REFERENCES.md](ECOSYSTEM-REFERENCES.md) y [OFFPAGE-SERVICE.md](integrations/OFFPAGE-SERVICE.md). |
+| `tests/core-8-offpage-authority.test.cjs` | CORE-8: servicio off-page con datos manuales, importados y mock; periodos, GEO, aprobación humana y validación de IA (D-23). |
 | `tests/core-7-1-openseo-bridge.test.cjs` | CORE-7.1: puente OpenSEO/MCP con cliente inyectado y mocks (D-22). |
 | `tests/core-7-provider-contracts.test.cjs` | CORE-7: sobre de resultado, provenance, errores, datos parciales, coste/presupuesto/caché y mapeo C/E con mocks (D-21). |
 | `tests/core-6-multilingual.test.cjs` | CORE-6: contrato multidioma D-19 (locales, hreflang recíproco, canonical por locale, materializer). |

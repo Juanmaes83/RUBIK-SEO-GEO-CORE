@@ -45,7 +45,7 @@ Todo eso lo aporta cada producto anfitrión ([`docs/HOST-INTEGRATION-CONTRACT.md
 | Multidioma (CORE-6) | ✅ Cerrado por D-19 en [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9), merge `304f655`. CI verde en Node 20 y 22: 174/174 pruebas en cada versión, 0 omitidas, syntax/docs y smoke CLI ([run 36115604817](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36115604817)). La salida monolingüe sigue idéntica |
 | Contratos de proveedor (CORE-7) | ✅ Cerrado en [PR #10](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/10), merge `6ef8c4e`. D-21: contratos C/E, protección de secretos, presupuesto finito obligatorio para cuota/pago y normalización de backlinks. CI Node 20/22 verde: 205/205 por versión, 0 omitidas; syntax/docs y smoke CLI (run [36121912236](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36121912236)). Solo mocks; sin proveedores reales ni deploy |
 | Puente OpenSEO/MCP (CORE-7.1) | ✅ Cerrado en [PR #11](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/11), merge `bc271fe`. Contrato Core-only con cliente MCP inyectado y mocks (D-22); autenticación comprobada por `whoamiAuthenticated`, Lighthouse desactivado y auditoría manual. CI Node 20/22 verde: 233/233 por versión, 0 omitidas (run [36126029028](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36126029028)). Conexión real y backend siguen en CORE-9 |
-| SEO off-page (CORE-8) | 📋 Aprobada para después de CORE-7.1: señales externas con provenance y análisis Core-only; sin storage ni conexiones reales hasta CORE-9 |
+| SEO off-page (CORE-8) | 🟡 Implementada en `feat/core-8-offpage-authority`, pendiente de PR/CI/revisión (D-23). Servicio mensual Core-only: snapshots y comparación, menciones, NAP, GEO observacional, oportunidades, acciones con aprobación humana e informe; IA solo con salida validada. Ver [`OFFPAGE-SERVICE.md`](docs/integrations/OFFPAGE-SERVICE.md) |
 | Plataforma (CORE-9) | 📋 Última fase: plano de control multi-proyecto y backend seguro. Los Project States permanecen en sus hosts |
 | Seguridad del materializer | ✅ path traversal, enlaces/junctions dentro de `outputDir` y nombres válidos con `..` cubiertos por regresiones (D-11/D-11b) |
 | OpenSEO | 📝 integración documentada y bloqueada ([`docs/integrations/OPENSEO.md`](docs/integrations/OPENSEO.md)). En CORE-3 `connectivity()` usa `/api/health` y nunca devuelve `CONNECTED` (D-14). `crawl()` sigue con el contrato heredado incompatible |
@@ -65,12 +65,13 @@ src/                       Core (UMD sin dependencias; materializer solo Node)
                                  (*contrato heredado, aún no compatible con OpenSEO real)
   rubik-seo-geo-release-e.js     Authority, Citations & Indexation (E1–E4)
   rubik-seo-geo-providers.js     contratos de proveedor C/E: provenance, estados, coste (D-21)
+  rubik-seo-geo-offpage.js       servicio off-page & Authority: snapshots, GEO, acciones, informe (D-23)
   rubik-seo-geo-materialize.cjs  rutas físicas + gates (CLI rubik-seo-geo-materialize)
 hosts/restaurant/          integración de referencia (pintado del HOME premium)
 tests/                     node:test · fixtures · golden del fuente
 docs/README.md             mapa de autoridad documental: empieza aquí
 docs/                      arquitectura · contrato de host · roadmap · decisiones · procedencia · handoff
-docs/integrations/         integraciones con proveedores (OpenSEO)
+docs/integrations/         integraciones con proveedores (OpenSEO) y servicio off-page
 docs/upstream/             contratos canónicos heredados (A–E, Hardening, arquitectura)
 scripts/                   runner de tests · check de sintaxis y docs · generador del golden
 ```

@@ -39,7 +39,12 @@ const CATALOG=freeze({
     siteAudit:{release:'C',costModel:'free',units:1,target:'intelligence.crawl',tool:'run_site_audit'},
     auditStatus:{release:'C',costModel:'free',units:0,target:'intelligence.crawl',tool:'get_audit_status'},
     auditIssues:{release:'C',costModel:'free',units:0,target:'intelligence.issues',tool:'get_audit_issues'},
-    auditPages:{release:'C',costModel:'free',units:0,target:'intelligence.pages',tool:'get_audit_pages'}}}
+    auditPages:{release:'C',costModel:'free',units:0,target:'intelligence.pages',tool:'get_audit_pages'}}},
+  /* CORE-8 (D-23): AI assistance for the off-page service, through an injected model
+     adapter used as transport. Treated as paid: explicit confirmation and a finite budget.
+     Release 'O' (off-page) never maps into Release C/E; output is validated by offpage. */
+  'ai-assist':{label:'Asistente IA (adaptador inyectado)',sourceType:'MANUAL',auth:'server-side',operations:{
+    offpageAnalysis:{release:'O',costModel:'paid',units:1,target:'offpage.ai'}}}
 });
 
 function describe(provider,operation){

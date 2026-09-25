@@ -24,11 +24,12 @@ const run=(extra)=>providers.runProviderRequest({clock,...('budget' in extra?{}:
 
 test('catalogue is declarative: release, cost model and source type per operation; no endpoints or secrets',()=>{
   const cat=providers.catalog();
-  assert.deepEqual(Object.keys(cat).sort(),['bing-webmaster','dataforseo','indexnow','manual-import','openseo','search-console']);
+  assert.deepEqual(Object.keys(cat).sort(),['ai-assist','bing-webmaster','dataforseo','indexnow','manual-import','openseo','search-console']);
   for(const [id,p] of Object.entries(cat)){
     assert.doesNotMatch(JSON.stringify(p),/https?:|apiKey|token|password|secret/i,id);
     for(const [op,d] of Object.entries(p.operations)){
-      assert.ok(['C','E'].includes(d.release),id+'.'+op);
+      assert.ok(['C','E','O'].includes(d.release),id+'.'+op);
+      if(d.release==='O')assert.equal(d.costModel,'paid','CORE-8 (D-23): AI assistance always needs cost confirmation and a finite budget');
       assert.ok(providers.COST_MODELS.includes(d.costModel),id+'.'+op);
       assert.ok(Number.isFinite(d.units)&&d.units>=0,id+'.'+op);
     }

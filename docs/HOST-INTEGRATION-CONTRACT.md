@@ -82,6 +82,7 @@ El Core no incluye UI. Un Studio anfitrión (el de Restaurantes sirve de referen
 | `src/rubik-seo-geo-publisher.js` (`./publisher`) | `RubikSEOGeoPublisher` | `publish(config,env)`, `renderPage`, `rawHtmlContract`, `renderPagesSitemap`, `renderRobots`, `renderRedirects`, `apply(config,env,doc)` (solo navegador y **solo portada**: inyecta el `<head>` del HOME, siempre en el idioma por defecto, y fija `<html lang>` a ese idioma; **no** aplica páginas localizadas, que se generan con `renderPage`/`materializeSite`, D-19) |
 | `src/rubik-seo-geo-intelligence.js` (`./intelligence`) | `RubikSEOGeoIntelligence` | `SearchConsoleAdapter`, `DataForSEOAdapter` (clientes inyectados), `OpenSEOAdapter` (`connectivity()` por `/api/health`, nunca `CONNECTED` sin puente; `crawl()` con el contrato HTTP heredado, **no** compatible con el OpenSEO real; ver [`integrations/OPENSEO.md`](integrations/OPENSEO.md)), `makeSnapshot`, `diff`, `triage`, `crawlerAudit`, `geoReadiness`, `entityGraph(config,{releaseB,core})`: `business`/`location`/`products` desde `source(config)` del adapter activo (`location` en claves de schema.org, solo valores públicos); sin `core`, `''`/`{}`/`[]` (D-18). `products(config,{core})` (D-17). `geoReadiness(config,{schemaGraph,publicHtml,core})`: señales HEURISTIC desde el adapter; sin `core`, `adapterSource:'NOT_PROVIDED'` y señales `null` (D-18), `pages(config,{releaseB})` (Release B **inyectado**; sin él devuelve `[]`, D-13), `insight` |
 | `src/rubik-seo-geo-providers.js` (`./providers`) | `RubikSEOGeoProviders` | `catalog`, `describe`, `runProviderRequest`, `openseoConnectivity`, `markStale`, `toReleaseC`, `toReleaseE`, `normalizeBacklinks`, `redact`, `RESULT_STATUSES`, `COST_MODELS` (D-21, §5.1) |
+| `src/rubik-seo-geo-offpage.js` (`./offpage`) | `RubikSEOGeoOffpage` | `profile`, `snapshot`, `compareSnapshots`, `mention`, `citationConsistency`, `querySet`, `geoRun`, `summarizeGeo`, `compareGeo`, `aiCrawlerAccess`, `opportunity`, `prioritize`, `action`, `transition`, `campaign`, `campaignProgress`, `closePeriod`, `monthlyReport`, `validateReport`, `aiRequest`, `validateAiOutput`, `runAiTask` (D-23, §5.2) |
 | `src/rubik-seo-geo-release-e.js` (`./authority`) | `RubikSEOGeoReleaseE` | E1–E4: `provenance`, `normalizeIndexationRecord`, `normalizePresenceRecord(input,{adapter})`, `normalizeMentionRecord`, `normalizeCitationObservation(input,{adapter})`, `indexNowResult`, `record(state,kind,value,{adapter})`, `summarize`. `adapter` = descriptor del adapter activo (`core.adapter(config)`): `vertical`/`entityType` se derivan de él y, sin él, quedan `UNKNOWN` (D-13) |
 | `src/rubik-seo-geo-materialize.cjs` (`./materialize`, bin) | — (Node) | `materializeSite({state,template,outputDir,environment,baseUrl,renderHomeBody})` |
 | `hosts/restaurant/restaurant-host.cjs` (`./hosts/restaurant`) | — (Node) | `renderHomeBody`, `materializeSite`, `loadDefaultProjectState(pathToClass4Config)` |
@@ -98,6 +99,27 @@ El Core no incluye UI. Un Studio anfitrión (el de Restaurantes sirve de referen
 - **OpenSEO (CORE-7.1, D-22):** el host aporta desde su backend un cliente `mcp:{kind:'live', callTool(name,args)}` con las credenciales de OpenSEO. Aporta también `statusVocabulary` (los valores de `status` verificados contra su instancia), `whoamiAuthenticated(structuredContent)` (el verificador que confirma la autorización según la forma real de `whoami`; sin él nunca hay `CONNECTED`), `registry` (páginas canónicas para correlacionar) y, si hay una auditoría en curso, `activeJob`. Persiste el `projectId` de OpenSEO y el job en su backend.
   - Solo lanza `siteAudit` tras una acción del usuario (`trigger:'manual'`), nunca con Lighthouse.
   - Muestra OpenSEO como conectado solo si `openseoConnectivity` devuelve `CONNECTED`.
+
+## 5.2 Servicio off-page & Authority (CORE-8, D-23)
+
+`src/rubik-seo-geo-offpage.js` (`./offpage`, global `RubikSEOGeoOffpage`) ofrece contratos puros para el servicio recurrente de off-page. Detalle en [`integrations/OFFPAGE-SERVICE.md`](integrations/OFFPAGE-SERVICE.md).
+
+- **El host aporta:**
+  - las fechas (`period`, `capturedAt`, `at`): el módulo no lee el reloj;
+  - los módulos inyectados (`providers`, `releaseE`, `intelligence`, `core`) y el `config` del Project State;
+  - los datos como resultados de CORE-7 o como importaciones y observaciones manuales, con fuente y fecha;
+  - la confirmación de competidores (`confirmedBy:'host'`).
+- **El host persiste:** perfiles, snapshots, acciones con su historial, campañas y cierres. El Core devuelve objetos congelados y no guarda nada.
+- **Aprobación humana:**
+  - El host solo transiciona acciones con un actor humano autenticado (`actor:{role:'human'}`) cuando la transición lo exige.
+  - Solo envía, publica, paga o edita perfiles externos después de una aprobación vigente, y nunca desde un borrador de IA sin revisión.
+- **IA:** el host o CORE-9 aportan el adaptador del modelo como `transport` de `ai-assist`, con `confirmCost:true` tras una confirmación explícita y un `budget` finito. La salida validada (`canonical:false`) no sustituye el estado.
+- **Qué no hacer:**
+  - mostrar una fuente como conectada sin `connection:'VERIFIED'`;
+  - presentar «no visto» como «perdido»;
+  - convertir `null` en `0`;
+  - mezclar tráfico de referencia con visibilidad observada o con resultado de negocio;
+  - mostrar la puntuación como una señal de Google.
 
 ## 6. Publicación
 
