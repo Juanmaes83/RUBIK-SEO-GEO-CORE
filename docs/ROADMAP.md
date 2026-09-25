@@ -29,7 +29,7 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 | EX-1 | Copiar los 7 módulos Core sin modificar | ✅ |
 | EX-2 | Separar el materializer en Core + hook de host Restaurant | ✅ paridad 0 diferencias |
 | EX-3 | Tests A–E + Hardening A/B ejecutables sin el repo de Restaurantes | ✅ 73/73 (Node 20 y 24) |
-| EX-4 | CI propio (`core-ci.yml`, Node 20 y 22) | ✅ escrito · ⏳ primera ejecución en GitHub al abrir el PR |
+| EX-4 | CI propio (`core-ci.yml`, Node 20 y 22) | ✅ verde en GitHub sobre `8486054`: Node 20.20.2 y 22.23.2, 73/73 tests, docs y smoke del CLI ([run 36101061645](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36101061645)) |
 | EX-5 | Contratos canónicos copiados con estados reconciliados | ✅ `docs/upstream/` |
 | EX-6 | README, arquitectura, contrato de host, decisiones, procedencia, handoff | ✅ |
 | EX-7 | Auditoría documental: índice de autoridad (`docs/README.md`), `check:docs`, OpenSEO documentado | ✅ |
@@ -38,7 +38,7 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 
 | ID | Tarea | Criterio de cierre |
 |---|---|---|
-| **CORE-1** | **Revisar y fusionar esta extracción** (PR desde `feat/seo-geo-core-extraction`) | CI verde en GitHub, revisión humana, merge a `main` |
+| **CORE-1** | **Revisar y fusionar esta extracción** ([PR #1](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/1) desde `feat/seo-geo-core-extraction`) | ✅ PR abierto · ✅ CI verde · ⏳ revisión humana · ⏳ merge a `main` (por el propietario) |
 | CORE-2 | Sacar el bootstrap navegador de `core.js` (`RestaurantDefaults`, inyección de `release-d-studio.js`) y llevarlo a un loader del host | Core sin referencias a ficheros o globales del host, y Restaurantes sigue funcionando con su loader. Requiere un PR coordinado en el repo fuente |
 | CORE-3 | Inyectar dependencias explícitas: `intelligence.pages(config,{releaseB})` y `release-e` con vertical derivado del adapter activo | Mismo golden para Restaurant; nuevos tests para los verticales no Restaurant |
 | CORE-4 | Consumo del Core por Restaurantes Premium desde este repositorio (paquete git, submódulo o vendor con hash) | El fuente deja de tener copia propia y sus tests E2E siguen verdes |
@@ -51,7 +51,7 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 
 | Bloqueo | Afecta a | Salida |
 |---|---|---|
-| La CI no se ha ejecutado en GitHub (la rama no está publicada) | CORE-1 | Push + PR con aprobación del propietario |
+| PR #1 pendiente de revisión humana y merge | CORE-1 → CORE-2… | Decisión del propietario |
 | Bootstrap navegador de `core.js` acoplado al host | CORE-2, CORE-4 | PR coordinado con Restaurantes Premium |
 | Sin Platform Layer (backend, auth, secretos) en ningún host | CORE-7, CORE-7.1 | Fase Platform Layer del host |
 | El contrato `OpenSEOAdapter` no coincide con el OpenSEO real (falso `CONNECTED` en `GET` raíz, no existe acción `crawl`) | CORE-7.1 | CORE-3 + mocks; `DECISIONS.md` D-09. No se toca el código hasta entonces |

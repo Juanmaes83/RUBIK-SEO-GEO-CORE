@@ -15,9 +15,9 @@
 4. **Independencia:** 73/73 en Node 24 y en Node 20, también desde un clon limpio.
 5. **CI** `core-ci.yml` y documentación base: README, `ARCHITECTURE`, `HOST-INTEGRATION-CONTRACT`, `ROADMAP`, `DECISIONS` D-01…D-08, `PROVENANCE` y `upstream/`.
 
-## Sesión 2 — revisión documental y OpenSEO (sin commit todavía)
+## Sesión 2 — revisión documental y OpenSEO (commit `8486054`)
 
-1. **README completado:** propósito y límites, estado real (rama sin publicar, CI no ejecutada en GitHub), instalación (paquete no publicado), validación y cómo retomar.
+1. **README completado:** propósito y límites, estado real, instalación (paquete no publicado), validación y cómo retomar.
 2. **Mapa de autoridad** en `docs/README.md`: un documento por tema y procedimiento de sincronización manual con upstream (D-10).
 3. **OpenSEO** (`docs/integrations/OPENSEO.md`), a partir del código de `Juanmaes83/open-seo@0ffff93`, idéntico al upstream `every-app/open-seo`:
    - OpenSEO expone MCP en `/mcp` (Streamable HTTP, OAuth / API key `oseo_` / Cloudflare Access) y `GET /api/health`;
@@ -28,20 +28,22 @@
 4. **Gate documental** `scripts/check-docs.cjs` (`npm run check:docs`), incluido en `verify` y en la CI. Se comprobó con una prueba negativa que detecta enlaces rotos.
 5. Referencias a OpenSEO corregidas en `ARCHITECTURE.md` y `HOST-INTEGRATION-CONTRACT.md` (ya no aparece como integración operativa).
 
+## Sesión 3 — CORE-1 publicado (25/09/2026)
+
+1. Añadidas las referencias de coste DataForSEO por herramienta en `integrations/OPENSEO.md` §6. Lighthouse verificado en el código: con `runLighthouse:true` hace hasta 20 POST facturados por audit (10 páginas × móvil/escritorio). El crawl propio no tiene coste. No se ejecutó ninguna consulta de pago.
+2. Rama publicada y [PR #1](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/1) abierto contra `main`.
+3. `core-ci` en verde sobre `8486054` ([run 36101061645](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36101061645)): Node 20.20.2 y 22.23.2, syntax 26 ficheros, docs 20 md, tests 73/73, preview fail-closed y producción sin base URL rechazada.
+
 ## Pendiente
 
-- Commit de la sesión 2, push y PR (necesitan aprobación del propietario). **La CI no se ha ejecutado nunca en GitHub.**
+- PR #1: revisión humana y merge (decisión del propietario). No se ha hecho merge ni deploy.
 - D-07: acoplamientos del host dentro del Core (CORE-2, CORE-3).
 - D-09: contrato OpenSEO incompatible (CORE-3 → CORE-7.1).
 - Restaurantes sigue usando su propia copia (CORE-4).
 
 ## Siguiente tarea concreta
 
-**CORE-1:** con aprobación del propietario:
-1. hacer commit de la sesión 2 en esta rama;
-2. publicar la rama y abrir el PR contra `main`;
-3. confirmar que `core-ci` sale en verde en Node 20 y 22;
-4. revisión humana y merge.
+**CORE-1:** revisión humana del [PR #1](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/1) y merge por el propietario.
 
 Después, **CORE-2** (bootstrap navegador fuera de `core.js`) y **CORE-3** (interfaz de proveedor inyectable + health check honesto), que desbloquean CORE-7.1.
 

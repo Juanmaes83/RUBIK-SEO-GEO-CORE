@@ -40,7 +40,7 @@ Todo eso lo aporta cada producto anfitrión ([`docs/HOST-INTEGRATION-CONTRACT.md
 | Release E | ✅ contrato base E1–E4 (#56) · ⏳ conexiones externas pendientes de backend |
 | Independencia | ✅ 73/73 tests desde este repositorio, sin el repo de Restaurantes (Node 20 y 24) |
 | Compatibilidad Restaurant | ✅ módulos Core con blob idéntico al fuente · golden de `publish()` · materialización con 0 diferencias |
-| Extracción | ⏳ en la rama `feat/seo-geo-core-extraction`: sin publicar, sin PR y **CI todavía no ejecutada en GitHub** (validada solo en local) |
+| Extracción | ⏳ en revisión: [PR #1](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/1) desde `feat/seo-geo-core-extraction`, sin fusionar. `core-ci` en verde en Node 20.20.2 y 22.23.2 sobre `8486054` ([run](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36101061645)) |
 | Acoplamientos al host pendientes | ⏳ bootstrap navegador de `core.js`, `intelligence.pages()` vía global, vertical por defecto de Release E ([`docs/DECISIONS.md`](docs/DECISIONS.md) D-07) |
 | OpenSEO | 📝 integración documentada y bloqueada: el contrato heredado **no es compatible** con el OpenSEO real ([`docs/integrations/OPENSEO.md`](docs/integrations/OPENSEO.md)) |
 
