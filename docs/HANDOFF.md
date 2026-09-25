@@ -1,6 +1,6 @@
 # Handoff — extracción de Rubik SEO/GEO Core
 
-**Última sesión:** 25/09/2026 · **Rama:** `feat/core-3-2-neutral-intelligence` (desde `main@0be4752`) · **Alcance:** solo `Juanmaes83/RUBIK-SEO-GEO-CORE` (D-12)
+**Última sesión:** 25/09/2026 · **Estado:** CORE-3.2 fusionado en `main@3ad7b13` · **Alcance:** solo `Juanmaes83/RUBIK-SEO-GEO-CORE` (D-12)
 
 > Este documento resume la última sesión. El estado con autoridad está en [`ROADMAP.md`](ROADMAP.md).
 
@@ -142,11 +142,17 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
    - `npm run verify` da 153 (151 pasan, 2 se omiten en Windows). Golden idéntico (blob `5aa93a3`).
 5. **Sin cambios** en adapters, Publisher ni materializer. D-16 intacta.
 
-**Pendiente:** CI Node 20/22 del PR de CORE-3.2 (`feat/core-3-2-neutral-intelligence`), revisión humana y merge. Sin merge ni deploy.
+**Cierre:** CORE-3.2 fusionado en `main` mediante [PR #7](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/7) (merge `3ad7b130c52538c3f48fcee1da70c9909ed292f4`). CI Node 20/22 verde, 153/153, 0 omitidos ([run 36111618492](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36111618492)).
+
+- `geoReadiness()` y `entityGraph()` derivan negocio, dirección y ofertas del adapter activo con `{core}` explícito. Sin `core`, la información de vertical queda desconocida/vacía; no se usa Restaurant como fallback.
+- El contrato de host cambió: `entityGraph().location` usa la dirección schema.org pública del adapter y `geoReadiness()` necesita `{core}`. No se ha migrado ni validado ningún host.
+- D-16 (microcopy OpenSEO) sigue aplazada e intacta.
+- Próxima fase Core-only: CORE-6, multidioma. Primero decidir contrato de locale, metadata, Page Registry, canonical y hreflang (D-19); después implementar y verificarlo dentro de este repositorio.
+- CORE-2/4/5 y las conexiones reales de CORE-7 siguen bloqueadas por depender de hosts o Platform Layer. No se accede a esos repositorios.
 
 ## Sesión 12 — CORE-6 multidioma (25/09/2026)
 
-**Rama:** `feat/core-6-multilingual` desde `main@3ad7b13` (merge del PR #7). El PR #8 (cierre documental de CORE-3.2) seguía abierto y **no** se usó como base. Estado inicial: `npm run verify` daba 153 (151 pasan, 2 se omiten en Windows).
+**Rama:** `feat/core-6-multilingual` desde `main@3ad7b13` (merge del PR #7). El PR #8 (cierre documental de CORE-3.2) seguía abierto y **no** se usó como base; después su rama se integró en la de CORE-6 para conservar ambos cambios (sesión 13). Estado inicial: `npm run verify` daba 153 (151 pasan, 2 se omiten en Windows).
 
 1. **Contrato primero:** D-19 se registró en un commit propio antes del código, basado en la especificación local (Release A §3, Arquitectura §6/§10/§17). Donde la especificación no llega, se eligió el comportamiento conservador: `es` sigue siendo el idioma por defecto, sin `x-default` y con el sitemap sin cambios.
 2. **Implementación:**
@@ -159,4 +165,4 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 
 **Bloqueo de CI:** los jobs del [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9) no arrancan: *«The job was not started because an Actions budget is preventing further use»* ([run 36113779831](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36113779831), reintentado con el mismo resultado). Es un límite de facturación de la cuenta, no un fallo de pruebas. Evidencia local complementaria: Node 20.20.2 y 22.23.3 dan 172 (170 pasan, 2 se omiten); los pasos del CLI de la CI también pasan en local.
 
-**Pendiente:** CI Node 20/22 del PR de CORE-6 (`feat/core-6-multilingual`), revisión humana y merge. Se prevén conflictos solo documentales con el PR #8 (README, ROADMAP, HANDOFF). Sin merge ni deploy.
+**Pendiente:** CI Node 20/22 del [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9), revisión humana y merge. Se prevén conflictos solo documentales con el PR #8 (README, ROADMAP, HANDOFF). Sin merge ni deploy.
