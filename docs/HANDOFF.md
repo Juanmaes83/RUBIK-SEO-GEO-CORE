@@ -180,3 +180,14 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
    - Solo se descartaron las líneas obsoletas de CORE-3.2 «en revisión».
 3. **Validación local:** `npm run verify` y los checks con Node 24, 20.20.2 y 22.23.3 dan 174 (172 pasan, 2 se omiten en Windows). Monolingüe idéntico a `main` (0 diferencias) y golden sin cambios.
 4. **CI de GitHub:** sigue sin poder arrancar por el presupuesto de Actions (ver la sesión 12). No se declara aprobada.
+
+
+## Sesión 14 — secuencia SEO off-page y plataforma (25/09/2026)
+
+**Decisión aprobada:** incorporar SEO off-page como fase explícita y aplazar la plataforma multi-proyecto hasta el final. Registrado en D-20.
+
+- Secuencia tras CORE-6: CORE-7 prepara contratos/mocks de integraciones; CORE-8 implementa capacidades Core-only de SEO off-page & Authority con datos fuente/importados y provenance; CORE-9 es la fase final de Platform Layer y activa conectores reales.
+- CORE-8 cubre análisis verificable de backlinks, menciones/citas y presencia local. No crea enlaces automáticamente, no almacena datos en el Core y no promete posiciones. Los conectores externos dependen de CORE-9.
+- CORE-9 es un plano de control multi-proyecto con backend, autenticación, secretos, trabajos programados e historial. Cada host conserva su Project State canónico, Studio, Media Library y Page Registry.
+- La plataforma se planifica como producto aparte. Esta decisión no autoriza cambios ni accesos a otros repositorios; este repositorio solo conserva los contratos y la secuencia del Core.
+- CORE-6 continúa en revisión en PR #9; su CI de Actions sigue bloqueada por presupuesto según el propio PR. Sin merge ni deploy en esta actualización documental.
