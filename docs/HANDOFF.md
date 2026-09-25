@@ -265,3 +265,8 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
    - La identidad no se copia.
    - El health solo y los mocks siguen sin verificar.
 2. **Pruebas:** 5 nuevas (26 en total en `core-7-1-openseo-bridge`); 4 fallan con el módulo anterior. `npm run verify` y Node 20.20.2/22.23.3 dan 231 (229 pasan, 2 se omiten en Windows). Golden sin cambios.
+
+### Sesión 17c — segunda revisión del PR #11 (25/09/2026)
+
+- Un `errors` no vacío (cadena, array u objeto) rechaza `whoami` aunque el verificador devuelva `true`. Los valores vacíos no rechazan. Las reglas de `error` y `authenticated`/`authorized` no cambian, y el mock y el health solo siguen sin verificar.
+- Pruebas: 2 nuevas (28 en `core-7-1-openseo-bridge`); la de rechazo falla con el módulo anterior. `npm run verify` y Node 20.20.2/22.23.3 dan 233 (231 pasan, 2 se omiten en Windows).

@@ -244,10 +244,21 @@ function classifyStatus(value,vocabulary){
 /* whoami (D-22): OPENSEO.md does not document the whoami result shape, so the Core does not
    invent a success field. Authentication requires an explicit verifier injected by the
    host/CORE-9 bridge (checked against a real instance): whoamiAuthenticated(frozen copy)
-   must return exactly true. Explicit negatives always win: authenticated/authorized false or a
-   non-empty error/errors. No verifier → UNVERIFIED. Nothing from the payload is copied. */
+   must return exactly true. Explicit negatives always win: authenticated/authorized false, a
+   present error, or a non-empty errors (array, string or object). No verifier → UNVERIFIED.
+   Nothing from the payload is copied. */
+/* `errors` rejects in any non-empty form: string (trimmed), array with items, object with
+   keys, or any other truthy value. Empty values (undefined, null, false, 0, '', '  ', [], {})
+   do not reject. */
+function hasErrors(v){
+  if(v===undefined||v===null||v===false||v===0)return false;
+  if(typeof v==='string')return v.trim()!=='';
+  if(Array.isArray(v))return v.length>0;
+  if(typeof v==='object')return Object.keys(v).length>0;
+  return true;
+}
 function whoamiAuthentication(sc,verifier){
-  const negative=sc.authenticated===false||sc.authorized===false||(sc.error!==undefined&&sc.error!==null&&sc.error!==''&&sc.error!==false)||(Array.isArray(sc.errors)&&sc.errors.length>0);
+  const negative=sc.authenticated===false||sc.authorized===false||(sc.error!==undefined&&sc.error!==null&&sc.error!==''&&sc.error!==false)||hasErrors(sc.errors);
   if(negative)return 'NOT_AUTHENTICATED';
   if(typeof verifier!=='function')return 'UNVERIFIED';
   let ok=false;

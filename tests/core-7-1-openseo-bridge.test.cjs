@@ -376,3 +376,46 @@ test('the verifier sees a frozen copy; identity never reaches the result, eviden
   const mock=mcpMock({whoami:sc(payload)});
   assert.equal((await providers.openseoConnectivity({health:HEALTH_OK,mcp:mock.mcp,clock,whoamiAuthenticated:()=>true})).reason,'MOCK_CLIENT');
 });
+
+// ── Review follow-up: non-empty `errors` in any form rejects whoami (D-22) ───
+
+test('whoami with errors as a non-empty string or object is rejected even if the verifier returns true',async()=>{
+  const always=()=>true;
+  const payloads=[
+    {user:{id:'u1'},errors:'unauthorized'},
+    {user:{id:'u1'},errors:{message:'unauthorized'}},
+    {user:{id:'u1'},errors:{code:'UNAUTHORIZED',message:'token expired'}},
+    {user:{id:'u1'},errors:['unauthorized']},
+    {user:{id:'u1'},errors:true},
+    {user:{id:'u1'},errors:1}
+  ];
+  for(const payload of payloads){
+    const {mcp}=mcpMock({whoami:sc(payload)},{kind:'live'});
+    const r=await run('whoami',{},{mcp,whoamiAuthenticated:always});
+    assert.deepEqual([r.status,r.errors[0].code,r.connection],['NOT_CONNECTED','WHOAMI_NOT_AUTHENTICATED','NOT_VERIFIED'],JSON.stringify(payload));
+    const c=await providers.openseoConnectivity({health:HEALTH_OK,mcp,clock,whoamiAuthenticated:always});
+    assert.deepEqual([c.status,c.authorization],['NOT_CONNECTED','REJECTED'],JSON.stringify(payload));
+    assert.notEqual(c.status,'CONNECTED');
+    assert.doesNotMatch(JSON.stringify([r,c]),/unauthorized|token expired|UNAUTHORIZED|u1/,'no MCP content or identity copied');
+  }
+});
+
+test('empty errors values do not reject a whoami the verifier confirms',async()=>{
+  for(const errors of [undefined,null,false,0,'','   ',[],{}]){
+    const payload={user:{id:'u1'}};
+    if(errors!==undefined)payload.errors=errors;
+    const {mcp}=mcpMock({whoami:sc(payload)},{kind:'live'});
+    const c=await providers.openseoConnectivity({health:HEALTH_OK,mcp,clock,whoamiAuthenticated:VERIFY});
+    assert.deepEqual([c.status,c.authorization],['CONNECTED','VERIFIED'],JSON.stringify(errors));
+    assert.doesNotMatch(JSON.stringify(c),/u1/);
+  }
+  // Existing rules unchanged: `error` present, authenticated/authorized false.
+  for(const payload of [{user:{id:'u1'},error:'unauthorized'},{user:{id:'u1'},authenticated:false},{user:{id:'u1'},authorized:false}]){
+    const {mcp}=mcpMock({whoami:sc(payload)},{kind:'live'});
+    assert.equal((await providers.openseoConnectivity({health:HEALTH_OK,mcp,clock,whoamiAuthenticated:()=>true})).status,'NOT_CONNECTED',JSON.stringify(payload));
+  }
+  // Mock clients and health alone still never verify, even with empty errors.
+  const mock=mcpMock({whoami:sc({user:{id:'u1'},errors:[]})});
+  assert.equal((await providers.openseoConnectivity({health:HEALTH_OK,mcp:mock.mcp,clock,whoamiAuthenticated:VERIFY})).reason,'MOCK_CLIENT');
+  assert.equal((await providers.openseoConnectivity({health:HEALTH_OK,clock,whoamiAuthenticated:VERIFY})).status,'NOT_CONNECTED');
+});

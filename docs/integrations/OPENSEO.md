@@ -181,7 +181,7 @@ Una ausencia de datos nunca es `READY` ni PASS.
 
 - **Conectividad:** `openseoConnectivity({health, mcp, whoamiAuthenticated})` devuelve `CONNECTED` solo con health `ok` y un `whoami` que confirme la autorización a través de un cliente `live`.
   - Como la forma de `whoami` no está documentada, la confirmación exige un verificador inyectado por el host o CORE-9 (`whoamiAuthenticated(structuredContent) === true`).
-  - `authenticated:false`, `authorized:false` o un `error`/`errors` presente siempre la anulan.
+  - `authenticated:false`, `authorized:false`, un `error` presente o un `errors` no vacío (cadena, array u objeto) siempre la anulan.
   - Sin verificador: `NOT_CONNECTED`/`WHOAMI_UNVERIFIED`.
   - La identidad nunca se copia.
 - **Lectura de respuestas:** solo `structuredContent`. Los errores se redactan y se limitan a 200 caracteres.
