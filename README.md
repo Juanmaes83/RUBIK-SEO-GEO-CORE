@@ -39,9 +39,9 @@ Todo eso lo aporta cada producto anfitrión ([`docs/HOST-INTEGRATION-CONTRACT.md
 | Hardening A–B | ✅ implementados en el Core (#53, #54) · Hardening C pertenece al host (#55) |
 | Release E | ✅ contrato base E1–E4 (#56) · ⏳ conexiones externas pendientes de backend |
 | Independencia | ✅ 86/86 en CI Linux con Node 20.20.2 y 22.23.2 (run 36103571133); en Windows local, 84 pasan y 2 pruebas de symlink de fichero se omiten por permisos |
-| Compatibilidad Restaurant | ✅ golden de `publish()`/`preview()` sin cambios y materialización con 0 diferencias. `core`, `adapters`, `publisher` y `media` con blob idéntico al fuente; `release-b`, `intelligence` y `release-e` derivan desde CORE-3 (D-13…D-15, en revisión) |
+| Compatibilidad Restaurant | ✅ golden de `publish()`/`preview()` sin cambios y materialización con 0 diferencias. `core`, `adapters`, `publisher` y `media` con blob idéntico al fuente; `release-b`, `intelligence` y `release-e` derivan desde CORE-3 (D-13…D-15, fusionado); `intelligence` también incorpora CORE-3.1 (D-17) |
 | Extracción CORE-1 | ✅ PR #1 mergeado en `main` (merge `995207f38080cf319d4246a531895c85bc10759e`); CI Node 20/22 verde, 86/86 (run 36103571133) |
-| Siguiente fase | 🔄 CORE-3 implementado y en revisión en [PR #3](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/3): inyección explícita de Release B, vertical de Release E desde el adapter activo, health de OpenSEO por `/api/health` y validación de rutas en el Page Registry. 113 tests en la rama (111 pasan, 2 se omiten en Windows). CORE-2 sigue bloqueado por alcance (D-12) |
+| Siguiente fase | ✅ CORE-3 fusionado ([PR #3](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/3)). 🔄 CORE-3.1 en revisión: `entityGraph().products` desde el contrato de oferta del adapter activo (D-17). CORE-2 sigue fuera de alcance (D-12) |
 | Seguridad del materializer | ✅ path traversal, enlaces/junctions dentro de `outputDir` y nombres válidos con `..` cubiertos por regresiones (D-11/D-11b) |
 | OpenSEO | 📝 integración documentada y bloqueada ([`docs/integrations/OPENSEO.md`](docs/integrations/OPENSEO.md)). En CORE-3 `connectivity()` usa `/api/health` y nunca devuelve `CONNECTED` (D-14). `crawl()` sigue con el contrato heredado incompatible |
 
