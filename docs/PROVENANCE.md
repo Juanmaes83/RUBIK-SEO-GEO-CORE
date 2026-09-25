@@ -57,6 +57,8 @@ git hash-object --path=src/rubik-seo-geo-core.js src/rubik-seo-geo-core.js
 | `tests/fixtures/golden/source-388e48a-publish.json` | Salida de `publish()` y `preview()` de los **módulos fuente** para LÚMINA (Restaurant) y Casa Norte (RealEstate), en preview y production (`scripts/generate-source-golden.cjs`). |
 | `tests/core-independence.test.cjs`, `tests/core-source-parity.test.cjs` | Gates nuevos (D-08). |
 | `tests/core-materialize-path-safety.test.cjs` | Prueba de seguridad de path traversal (D-11). |
+| `src/rubik-seo-geo-providers.js` | Nuevo en CORE-7 (D-21): contratos neutrales de proveedor para Release C/E. Sin equivalente en el fuente. |
+| `tests/core-7-provider-contracts.test.cjs` | CORE-7: sobre de resultado, provenance, errores, datos parciales, coste/presupuesto/caché y mapeo C/E con mocks (D-21). |
 | `tests/core-6-multilingual.test.cjs` | CORE-6: contrato multidioma D-19 (locales, hreflang recíproco, canonical por locale, materializer). |
 | `tests/core-3-2-neutral-intelligence.test.cjs` | CORE-3.2: `geoReadiness()` y `entityGraph()` desde `source(config)` de los 7 adapters (D-18). |
 | `tests/core-3-1-entity-products.test.cjs` | CORE-3.1: `entityGraph().products` desde el contrato de oferta de los 7 adapters (D-17). |

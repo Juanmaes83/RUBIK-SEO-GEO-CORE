@@ -81,9 +81,19 @@ El Core no incluye UI. Un Studio anfitrión (el de Restaurantes sirve de referen
 | `src/rubik-seo-geo-media.js` (`./media`) | `RubikSEOGeoMedia` | `project`, `projectVideo`, `videoObject`, `audit`, `mediaRefs`, `stablePublicUrl` |
 | `src/rubik-seo-geo-publisher.js` (`./publisher`) | `RubikSEOGeoPublisher` | `publish(config,env)`, `renderPage`, `rawHtmlContract`, `renderPagesSitemap`, `renderRobots`, `renderRedirects`, `apply(config,env,doc)` (solo navegador y **solo portada**: inyecta el `<head>` del HOME, siempre en el idioma por defecto, y fija `<html lang>` a ese idioma; **no** aplica páginas localizadas, que se generan con `renderPage`/`materializeSite`, D-19) |
 | `src/rubik-seo-geo-intelligence.js` (`./intelligence`) | `RubikSEOGeoIntelligence` | `SearchConsoleAdapter`, `DataForSEOAdapter` (clientes inyectados), `OpenSEOAdapter` (`connectivity()` por `/api/health`, nunca `CONNECTED` sin puente; `crawl()` con el contrato HTTP heredado, **no** compatible con el OpenSEO real; ver [`integrations/OPENSEO.md`](integrations/OPENSEO.md)), `makeSnapshot`, `diff`, `triage`, `crawlerAudit`, `geoReadiness`, `entityGraph(config,{releaseB,core})`: `business`/`location`/`products` desde `source(config)` del adapter activo (`location` en claves de schema.org, solo valores públicos); sin `core`, `''`/`{}`/`[]` (D-18). `products(config,{core})` (D-17). `geoReadiness(config,{schemaGraph,publicHtml,core})`: señales HEURISTIC desde el adapter; sin `core`, `adapterSource:'NOT_PROVIDED'` y señales `null` (D-18), `pages(config,{releaseB})` (Release B **inyectado**; sin él devuelve `[]`, D-13), `insight` |
+| `src/rubik-seo-geo-providers.js` (`./providers`) | `RubikSEOGeoProviders` | `catalog`, `describe`, `runProviderRequest`, `markStale`, `toReleaseC`, `toReleaseE`, `RESULT_STATUSES`, `COST_MODELS` (D-21, §5.1) |
 | `src/rubik-seo-geo-release-e.js` (`./authority`) | `RubikSEOGeoReleaseE` | E1–E4: `provenance`, `normalizeIndexationRecord`, `normalizePresenceRecord(input,{adapter})`, `normalizeMentionRecord`, `normalizeCitationObservation(input,{adapter})`, `indexNowResult`, `record(state,kind,value,{adapter})`, `summarize`. `adapter` = descriptor del adapter activo (`core.adapter(config)`): `vertical`/`entityType` se derivan de él y, sin él, quedan `UNKNOWN` (D-13) |
 | `src/rubik-seo-geo-materialize.cjs` (`./materialize`, bin) | — (Node) | `materializeSite({state,template,outputDir,environment,baseUrl,renderHomeBody})` |
 | `hosts/restaurant/restaurant-host.cjs` (`./hosts/restaurant`) | — (Node) | `renderHomeBody`, `materializeSite`, `loadDefaultProjectState(pathToClass4Config)` |
+
+## 5.1 Contratos de proveedores (CORE-7, D-21)
+
+`src/rubik-seo-geo-providers.js` (`./providers`, global `RubikSEOGeoProviders`) define cómo un host, o la futura plataforma de CORE-9, conecta proveedores **sin** que el Core llame a la red ni guarde secretos:
+
+- **El host aporta el transporte:** `{kind:'live', request(operation,input)}`, que se ejecuta en su backend con las credenciales. Aporta también el reloj, la caché (si quiere deduplicar) y el presupuesto (`maxUnits`, `maxRequests`), y persiste el `budget` devuelto en su Project State. El Core no persiste nada.
+- **Coste:** las operaciones de pago exigen `confirmCost:true`, que el host solo debe pasar tras una confirmación explícita del usuario.
+- **Resultado:** `runProviderRequest` devuelve un sobre con `status`, `provenance` (fuente, fechas y evidencia), `partial`, `errors` y `cost`. `toReleaseC(result,{intelligence})` y `toReleaseE(result,{releaseE,adapter})` lo convierten en los contratos existentes.
+- **Qué no hacer:** no poner secretos en `input` (se rechazan). No mostrar un proveedor como conectado si `connection` no es `VERIFIED`. OpenSEO sigue `BRIDGE_PENDING` hasta CORE-7.1.
 
 ## 6. Publicación
 

@@ -366,3 +366,49 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
 5. **Límite de repositorio:** la futura aplicación de plataforma se tratará como producto/proyecto separado. Esta decisión no autoriza acceder ni cambiar otro repositorio, y no cambia el alcance actual de RUBIK-SEO-GEO-CORE.
 
 **Secuencia aprobada:** CORE-6 → CORE-7 (contratos/mocks) → CORE-8 (SEO off-page Core-only) → CORE-9 (Platform Layer final; activación de proveedores reales). CORE-2/4/5 siguen condicionadas a adopción/validación de host y no se consideran resueltas por D-20.
+
+## D-21 · Contratos neutrales de integración para Release C y Release E (CORE-7)
+
+**Estado:** implementado en la rama `feat/core-7-provider-contracts`. En progreso hasta su merge. No activa ningún proveedor real; eso corresponde a CORE-9, según D-20.
+
+- **Problema:** las integraciones heredadas (`SearchConsoleAdapter`, `DataForSEOAdapter`, `OpenSEOAdapter` y las funciones de Release E) ya tienen estados honestos, pero cada una resuelve a su manera la procedencia, los errores, los datos parciales y el coste. Ninguna fija un sobre común ni límites de uso verificables. Para CORE-9 hace falta un contrato estable al que conectar transportes reales sin cambiar el Core.
+- **Decisión:** nuevo módulo `src/rubik-seo-geo-providers.js` (export `./providers`), sin dependencias, que no importa `core`, `intelligence` ni `release-e`. Los contratos existentes **no cambian** y el golden queda intacto.
+  1. **Catálogo declarativo** (`catalog`/`describe`): proveedor → operaciones, con `release` (C/E), `costModel` (`free`/`quota`/`paid`), `units` por petición, `sourceType` (vocabulario de Release E), `target` y `auth` descriptivo (siempre server-side).
+     - Sin endpoints, claves ni tarifas.
+     - Proveedores: `search-console` (`searchAnalytics` C, `urlInspection` E1), `bing-webmaster` (`urlInfo` E1), `indexnow` (`submit` E1), `dataforseo` (`keywords`/`serp`/`backlinks` C, de pago), `manual-import` (`presence`/`citation` E2/E4) y `openseo` (`siteAudit`, **diferido a CORE-7.1**).
+  2. **Dependencias explícitas.** `runProviderRequest({provider,operation,input,transport,clock,budget,cache,confirmCost,maxRows})`:
+     - `transport` es `{kind:'mock'|'live', request(op,input)}` y lo inyecta el host o la futura plataforma;
+     - `clock` hace que las fechas sean deterministas; `cache` es un Map-like en memoria que aporta quien llama; `budget` es un valor, se devuelve actualizado y no se muta;
+     - no usa `fetch`, `process.env` ni storage.
+  3. **Sobre de resultado** (inmutable), con `status` ∈ `OK`, `PARTIAL`, `EMPTY`, `NOT_CONFIGURED`, `NOT_CONNECTED`, `NOT_MEASURED`, `COST_CONFIRMATION_REQUIRED`, `BUDGET_EXCEEDED`, `RATE_LIMITED`, `ERROR` o `STALE`. Además lleva `data`, `partial`, `errors[]`, `cost`, `budget`, `cached`, `connection` y `provenance`.
+  4. **Provenance: fuente, fecha y evidencia.** Incluye `provider`, `sourceType`, `operation`, `requestedAt`, `capturedAt` y `method` (`api` solo con un transporte `live`; si no, `mock`).
+     - La `evidence` está en lista blanca: `rowCount`, `httpStatus`, `requestId`, `externalId`, `sourceUrl` redactada, `providerVersion`, `expected` y `truncated`.
+     - Nunca se copian cabeceras ni cuerpos crudos.
+  5. **Estados honestos.**
+     - Sin transporte → `NOT_CONNECTED`, sin llamar a nada.
+     - `rows` ausente → `NOT_MEASURED`; `rows:[]` → `EMPTY`.
+     - `connection:'VERIFIED'` solo con un transporte `live` que ha respondido. **Un mock nunca verifica una conexión.**
+     - OpenSEO devuelve `NOT_CONFIGURED`/`BRIDGE_PENDING`.
+  6. **Errores:**
+     - `401` → `NOT_CONNECTED`/`AUTH`; `403` → `ERROR`/`FORBIDDEN`; `5xx` → `ERROR` reintentable; `429` → `RATE_LIMITED` con `retryAfterSeconds`;
+     - una excepción → `TRANSPORT_ERROR`, o `TIMEOUT` si es un `AbortError`;
+     - los mensajes se limitan a 200 caracteres y se redactan (credenciales en URL, parámetros `key`/`token`/`sig`, `Bearer`/`Basic`);
+     - no hay reintentos automáticos.
+  7. **Datos parciales:** `truncated`, filas esperadas que faltan, filas inválidas (o con campos secretos), errores por elemento o el recorte `maxRows` → `PARTIAL`, con `partial.{received,expected,rejected,capped,reason}`. Nunca se rellena con ceros: las métricas ausentes siguen siendo `null` al mapear.
+  8. **Límites de uso y coste:**
+     - una operación `paid` exige `confirmCost:true` (si falta → `COST_CONFIRMATION_REQUIRED`, sin llamada);
+     - `budget.{maxUnits,maxRequests}` se comprueba **antes** de llamar (`BUDGET_EXCEEDED`);
+     - `cost.estimatedUsd` es siempre `null`, porque el Core no conoce tarifas;
+     - la caché inyectada deduplica peticiones idénticas (clave estable, independiente del orden) con coste 0 y no guarda errores;
+     - `markStale` marca como `STALE` un resultado antiguo y conserva datos y provenance.
+  9. **Secretos:** cualquier campo tipo `apiKey`, `token`, `password` o `authorization` en el input se rechaza (`SECRET_IN_INPUT`) antes de llamar. Los secretos viven en el transporte server-side.
+  10. **Mapeo a los contratos existentes, con módulos inyectados:**
+      - `toReleaseC(result,{intelligence})` reutiliza `SearchConsoleAdapter.normalize` y `DataForSEOAdapter.normalizeKeywords`/`normalizeSerps`, con `measuredAt` igual a la fecha de captura;
+      - `toReleaseE(result,{releaseE,adapter})` reutiliza `normalizeIndexationRecord`, `indexNowResult` (un envío nunca es `INDEXED`) y `normalizePresenceRecord`/`normalizeCitationObservation` con el descriptor del adapter (D-13, vertical neutral);
+      - la provenance de Release E es `MEASURED` solo si `method:'api'`; con un mock queda `UNKNOWN`;
+      - los resultados de C no se mapean a E ni al revés.
+- **Fuera de alcance:** transportes reales, backend, OAuth, secretos, trabajos programados e historial persistente (CORE-9); el puente OpenSEO/MCP (CORE-7.1). `crawl()` y `connectivity()` heredados siguen como estaban (D-09, D-14). D-16 sigue aplazada.
+- **Evidencia:**
+  - `tests/core-7-provider-contracts.test.cjs` (18 pruebas);
+  - verificación por mutación: marcar un mock como verificado, quitar la confirmación de coste o convertir `NOT_MEASURED` en `OK` rompe al menos una prueba;
+  - golden y fixtures sin cambios.
