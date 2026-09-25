@@ -224,3 +224,106 @@ El gate de encoding se adapta: aplica la misma regla contra mojibake, pero sobre
 - **Sin cambios:** adapters, Publisher, materializer, `products()` (D-17) y `pages()` (D-13). El golden `source-388e48a-publish.json` y los fixtures son idénticos a `main` (blob `5aa93a3`), porque `publish()`/`preview()` no usan Intelligence. Sin dependencias circulares: `core` se inyecta y el módulo no lo importa.
 - **Pruebas:** `tests/core-3-2-neutral-intelligence.test.cjs` (24). Cubren los 7 adapters, las formas genéricas `business.*` y `services|products|offerings`, la visibilidad, la calle sin ciudad, datos incompletos, Core ausente o inválido, globals contaminados, resolución única y la copia de `location`.
 - **Deuda restante:** las dos lecturas que quedan en Intelligence, `config.seo.people` y los campos de integraciones, pertenecen al namespace `seo` del Core, no a un vertical. No quedan lecturas de rutas propias de Restaurant en `src/rubik-seo-geo-intelligence.js` (lo verifica la prueba de código fuente). D-16 sigue aplazada.
+
+## D-19 · Contrato multidioma del Core (CORE-6)
+
+**Estado:** contrato definido antes de implementar. La implementación está en la rama `feat/core-6-multilingual` y CORE-6 sigue en progreso hasta su merge.
+
+### Especificación local disponible (única fuente)
+
+- `upstream/SEO-GEO-RELEASE-A-CONTRACT.md` §3 · TECH DEBT · MULTILINGUAL SEO. Exige:
+  - contenido real por locale, nunca sustitución de cadenas;
+  - metadata, Page Registry y canonical por locale;
+  - hreflang solo entre URLs equivalentes reales;
+  - `schema/inLanguage` y estado AUTO/CUSTOM por locale;
+  - un flujo de traducción revisado por personas.
+  - Prohíbe simular inglés traduciendo solo palabras sueltas.
+- `upstream/SEO-GEO-ENGINE-ARCHITECTURE.md`:
+  - §6 `seo.site` con `locale`, `defaultLanguage` y `supportedLanguages`;
+  - §10, cada página indexable puede tener «language/hreflang cuando proceda»;
+  - §17, «Hreflang sólo si existen versiones lingüísticas reales y equivalentes. No crear hreflang a páginas inexistentes», y un sitemap solo con URLs canónicas, indexables y publicadas.
+- Código actual:
+  - `core.reconcile` fuerza `defaultLanguage:'es'` y `supportedLanguages:['es']`;
+  - las fórmulas AUTO del HOME solo existen en español (`templateId … .es`);
+  - Publisher y materializer emiten `lang="es"`;
+  - los adapters devuelven `language:'es'`;
+  - no existe hreflang;
+  - las comparaciones de duplicados de title y description ignoran el idioma.
+
+La especificación **no** define: sintaxis de locales, representación de correspondencias, `x-default`, sitemap con alternates ni localización de la entidad o de los adapters. En esos puntos se elige el comportamiento conservador que preserva el contrato actual.
+
+### Decisiones
+
+1. **Identificadores y normalización (`core.normalizeLocale`).**
+   - Se acepta un subconjunto de BCP 47: idioma de 2–3 letras y región opcional de 2 letras o 3 dígitos, con `-` o `_` como separador.
+   - Se normaliza a idioma en minúsculas y región en mayúsculas: `en_gb` → `en-GB`, `ES` → `es`.
+   - Cualquier otra forma (scripts como `zh-Hant`, variantes, extensiones, cadenas vacías o no textuales) es inválida y devuelve `''`.
+   - *Límite:* los scripts y las variantes quedan para una decisión futura.
+
+2. **Idioma predeterminado y habilitados (`core.languageSettings`, aplicado en `reconcile`).**
+   - `defaultLanguage` sigue fijado en `es` en esta fase. Motivo: las fórmulas AUTO, el HOME y la etiqueta de los adapters son solo en español. Otro idioma por defecto publicaría texto español bajo otra etiqueta (fallback silencioso en el idioma equivocado).
+   - `supportedLanguages` = `es` más los locales válidos que declare el host en `seo.site.supportedLanguages`, normalizados, sin duplicados y en su orden. Los inválidos se descartan.
+   - No se añade ningún idioma obligatorio más allá del `es` ya existente.
+   - Con `['es']`, o sin declararlo, el resultado es `['es']`: idéntico al actual.
+
+3. **Representación del contenido localizado (responsabilidad del host).**
+   - Cada versión lingüística es **una página propia** del Page Registry (`seo.pages[id]`), con su `path` explícito (por ejemplo `/en/about/`), su contenido y su metadata (`title`, `description`, `h1` y `seo.*`, con AUTO/CUSTOM por página, es decir, por locale).
+   - La página declara `locale`; si falta, se usa `defaultLanguage`.
+   - La correspondencia entre traducciones se declara con **`translationKey`**: todas las páginas con la misma clave son versiones del mismo contenido. No se infiere nada de la URL, el slug ni la similitud del texto.
+   - El Core **no genera ni inventa traducciones**. La revisión humana de las traducciones es responsabilidad del flujo del host; el Core no la simula con ningún indicador.
+
+4. **Resolución de rutas y páginas sin traducción (Page Registry).**
+   - Las rutas son las declaradas por el host. No se derivan prefijos de locale.
+   - Siguen valiendo la unicidad global de `path` (`duplicate-path`) y la seguridad de rutas (D-11, D-15).
+   - Si una página no tiene traducción a un locale, **no existe** URL en ese locale. No hay fallback que sirva la versión por defecto bajo una ruta de otro idioma.
+   - Nuevos bloqueos de contrato:
+     - `invalid-locale`: el locale declarado no es válido;
+     - `unsupported-locale`: el locale no está en `supportedLanguages`;
+     - `home-requires-default-locale`: una página `pageType:'home'` solo puede estar en el idioma por defecto, porque su grafo y sus fórmulas son del HOME español.
+   - Una versión localizada de la portada es una página propia de otro tipo (por ejemplo `generic`, en `/en/`).
+
+5. **Metadata por locale.**
+   - Cada página aporta la suya. Las páginas de locales distintos del predeterminado no tienen fórmulas AUTO, así que sin title, description o H1 reales quedan bloqueadas por los contratos ya existentes (`missing-*`).
+   - Los duplicados de title y description (`duplicate-title`/`duplicate-description`) se comparan **solo entre páginas del mismo locale**, con minúsculas propias de ese locale. Una traducción que conserve la marca como título no bloquea. En un sitio monolingüe el comportamiento es idéntico.
+
+6. **Canonical AUTO/CUSTOM por locale.**
+   - AUTO: `baseUrl` + la ruta de la propia página localizada.
+   - CUSTOM: se mantiene el contrato de Release B/Hardening B. Solo es publicable si coincide con la URL propia de esa página; cualquier otro valor es `canonical-conflict`.
+   - Si el canonical CUSTOM apunta a la URL de una página de **otro locale**, se añade además `cross-locale-canonical`: una traducción no se canonicaliza hacia otro idioma.
+   - *Límite:* no se admiten canonicals de consolidación hacia otra URL, igual que hoy.
+
+7. **Equivalencia y elegibilidad para hreflang.**
+   - Una página es elegible si cumple todo esto: `canPublish` es verdadero (publicada, indexable y con contrato OK); no tiene `canonicalConflict`; su locale es válido y está soportado; declara `translationKey`; y hay URL absoluta (producción con `baseUrl` válida).
+   - Dos páginas elegibles son equivalentes si comparten `translationKey` y tienen locales distintos.
+   - Si varias páginas elegibles comparten clave **y** locale, ese locale es ambiguo: se excluye del grupo y se marca con el aviso `ambiguous-translation`.
+   - Solo hay hreflang si quedan **al menos dos locales distintos**.
+
+8. **Reciprocidad.**
+   - El grupo es un grafo completo. Cada miembro elegible emite `<link rel="alternate" hreflang="<locale>" href="<canonical>">` para **todos** los miembros, incluido él mismo, en orden determinista por locale.
+   - Como todos ven el mismo conjunto, la relación es recíproca por construcción.
+   - Una página no elegible (draft, noindex, bloqueada, con locale no soportado o sin clave) no emite hreflang y ningún miembro apunta a ella.
+   - Nunca se apunta a rutas inexistentes ni a idiomas no soportados.
+   - Una página con clave pero sin otro locale elegible recibe el aviso `no-hreflang-alternate`.
+
+9. **Dónde se emite.**
+   - Solo en el `<head>` de producción (`data-rubik-seo="hreflang"`), junto al canonical. En preview no se emite, porque no hay URLs absolutas y la página es noindex.
+   - El sitemap **no cambia de formato**: lista, como hoy, cada URL canónica publicable de cualquier locale y omite las páginas no publicables, noindex o no traducidas.
+   - No se añaden alternates `xhtml:link` al sitemap: basta un único método (el head) y así el sitemap monolingüe sigue siendo idéntico.
+
+10. **`x-default`: no se emite.** La especificación no lo menciona y el Core no tiene una página selectora de idioma ni una política de redirección por idioma que lo justifique.
+
+11. **Idioma del documento y schema.**
+    - `renderPage` usa `<html lang="<locale de la página>">`, que es `es` en las páginas por defecto (idéntico).
+    - La portada materializada conserva el `lang` de la plantilla del host (idioma por defecto) y la página 404 sigue en `es`.
+    - `inLanguage` se añade al `WebPage` del grafo **solo cuando el sitio declara más de un idioma soportado**. Así el grafo y el golden monolingües no cambian.
+    - Los artículos del blog (`derivedBlogPages`) siguen en el idioma por defecto en esta fase.
+
+12. **Responsabilidades.**
+    - **Host:** declarar `supportedLanguages`, crear las páginas localizadas con contenido y metadata reales, sus rutas y su `translationKey`, y revisar las traducciones.
+    - **Adapter:** sin cambios. Sigue siendo agnóstico de idioma y la entidad (negocio, dirección, oferta) se comparte entre locales.
+    - **Core:** normalizar, validar, bloquear, calcular la equivalencia y emitir hreflang, `lang` e `inLanguage`.
+    - *Límite:* la localización de la entidad schema.org, de los datos de adapter, de los artículos y de las fórmulas AUTO en otros idiomas no forma parte de esta fase.
+
+### Compatibilidad exigida
+
+Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `preview()`, el sitemap, los HTML materializados y el golden `source-388e48a-publish.json` deben ser idénticos byte a byte, y las barreras de rutas (D-11, D-15) no cambian. Cualquier diferencia exigiría detenerse y registrar una nueva decisión.
