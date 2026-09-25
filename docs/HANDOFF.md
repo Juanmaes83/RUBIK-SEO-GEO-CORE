@@ -1,6 +1,6 @@
 # Handoff — extracción de Rubik SEO/GEO Core
 
-**Última sesión:** 25/09/2026 · **Estado:** CORE-6 cerrado en `main@304f655` (PR #9) · **Alcance:** solo `Juanmaes83/RUBIK-SEO-GEO-CORE` (D-12)
+**Última sesión:** 25/09/2026 · **Estado:** CORE-7.1 cerrado en `main@bc271fe` (PR #11) · **Siguiente:** CORE-8 (SEO off-page Core-only) · **Alcance:** solo `Juanmaes83/RUBIK-SEO-GEO-CORE` (D-12)
 
 > Este documento resume la última sesión. El estado con autoridad está en [`ROADMAP.md`](ROADMAP.md).
 
@@ -238,7 +238,7 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - **CORE-7/D-21 cerrado:** PR #10 fusionado en `main` con merge `6ef8c4e56da1ea9e28649c8160f815ef6c9895c2`.
 - **CI del HEAD final `e394035`:** Node 20.20.2 y 22.23.2, 205/205 en cada job, 0 omitidas; sintaxis, documentación y smoke CLI verdes (run [36121912236](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36121912236)).
 - **Contrato final:** redacción/rechazo de pares genéricos `token`/`key`, presupuesto finito obligatorio para operaciones quota/paid (`BUDGET_REQUIRED`) y normalización neutral de backlinks. 31 pruebas en el módulo de providers. No hubo llamadas a proveedores reales ni deploy.
-- **Siguiente:** CORE-7.1, contrato y pruebas con mocks MCP en este repositorio. No implementar todavía la conexión autenticada/backend; queda para CORE-9. CORE-2/4/5 siguen fuera del alcance actual por depender de validación en host.
+- **Siguiente:** CORE-8, contratos neutrales y análisis auditable de SEO off-page usando señales aportadas o importadas con provenance. Conexiones reales siguen reservadas a CORE-9; CORE-2/4/5 dependen de un host y no se inician en este repositorio.
 
 ## Sesión 17 — CORE-7.1 puente OpenSEO/MCP (25/09/2026)
 
@@ -255,7 +255,7 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 3. **Pruebas:** `tests/core-7-1-openseo-bridge.test.cjs` (21) y verificación por mutación. `npm run verify` da 226 (224 pasan, 2 se omiten en Windows), igual con Node 20.20.2 y 22.23.3.
 4. **Deuda:** validación contra una instancia real, transporte MCP autenticado, secretos y persistencia del `projectId`/job en CORE-9; valores reales de `status` para el vocabulario; `crawl()` heredado.
 
-**Pendiente:** CI Node 20/22 del PR de CORE-7.1 (`feat/core-7-1-openseo-bridge`), revisión humana y merge. Sin merge ni deploy.
+**Cierre:** PR #11 fusionado en `main@bc271fe5632cdf34b98ad0e218341cdcc8e5c81e`. CI del HEAD `688e3bb` verde en Node 20.20.2/22.23.2, 233/233 por job, 0 omitidas (run `36126029028`). Sin conexión real ni deploy.
 
 ### Sesión 17b — revisión del PR #11 (25/09/2026)
 
@@ -270,3 +270,13 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 
 - Un `errors` no vacío (cadena, array u objeto) rechaza `whoami` aunque el verificador devuelva `true`. Los valores vacíos no rechazan. Las reglas de `error` y `authenticated`/`authorized` no cambian, y el mock y el health solo siguen sin verificar.
 - Pruebas: 2 nuevas (28 en `core-7-1-openseo-bridge`); la de rechazo falla con el módulo anterior. `npm run verify` y Node 20.20.2/22.23.3 dan 233 (231 pasan, 2 se omiten en Windows).
+
+
+## Sesión 18 — cierre de CORE-7.1 (25/09/2026)
+
+- PR #11 fusionado en `main@bc271fe5632cdf34b98ad0e218341cdcc8e5c81e`.
+- D-22 queda cerrado: contrato OpenSEO/MCP Core-only para las cinco herramientas documentadas; cliente inyectado; solo `structuredContent`; auditoría manual y Lighthouse desactivado.
+- `whoami` requiere `whoamiAuthenticated(...) === true`; las negativas explícitas y cualquier `errors` no vacío prevalecen. Identidad y contenido MCP no se copian.
+- CI del HEAD `688e3bb`: run `36126029028`, Node 20.20.2 y 22.23.2, 233/233 por job, 0 omitidas. Tests locales: 233 (231 pasan, 2 omitidas en Windows por symlinks de fichero); golden/paridad sin cambios.
+- No hay conexión real, secretos ni deploy. Transporte MCP autenticado, backend, persistencia y validación con instancia real (incluidos estados de auditoría y forma de páginas) quedan en CORE-9; `crawl()` conserva su contrato heredado hasta esa integración.
+- Siguiente fase: CORE-8, SEO off-page & Authority Core-only. CORE-2/4/5 siguen dependiendo de validación de un host.

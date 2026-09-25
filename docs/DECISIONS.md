@@ -445,7 +445,7 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
 
 ## D-22 · Contrato Core-only del puente OpenSEO/MCP (CORE-7.1)
 
-**Estado:** implementado en la rama `feat/core-7-1-openseo-bridge`. En progreso hasta su merge. **No activa ninguna conexión real:** el transporte MCP, la autenticación, el backend, los secretos y la persistencia siguen en CORE-9 (D-20).
+**Estado:** cerrada en PR #11, merge `bc271fe5632cdf34b98ad0e218341cdcc8e5c81e`. CI del HEAD `688e3bb` verde en Node 20.20.2/22.23.2: 233/233 por job, 0 omitidas (run `36126029028`). **No activa ninguna conexión real:** el transporte MCP autenticado, el backend, los secretos y la persistencia siguen en CORE-9 (D-20).
 
 - **Fuente única:** `docs/integrations/OPENSEO.md`. Solo se mapean las herramientas documentadas: `whoami`, `run_site_audit`, `get_audit_status`, `get_audit_issues` y `get_audit_pages`. Se toman sus argumentos, los códigos `AUDIT_CAPACITY_REACHED`, `AUDIT_ALREADY_RUNNING`, `RATE_LIMITED` y `USAGE_EXCEEDED`, las severidades `critical`/`warning`/`info` y los tipos `blocked-page`/`rate-limited-page`.
 - **Dependencia inyectada:** en `src/rubik-seo-geo-providers.js`, el catálogo `openseo` pasa a `requires:'mcp'` con las operaciones `whoami`, `siteAudit`, `auditStatus`, `auditIssues` y `auditPages`, todas `free`.
@@ -472,7 +472,7 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
   - **Correlación:** `pageId` se asigna por **URL canónica** exacta (sin fragmento) contra el `registry` inyectado, por ejemplo `intelligence.pages(config,{releaseB})`. El crawl puede cubrir URLs fuera del Page Registry (`inRegistry:false`).
 - **Conectividad:** `openseoConnectivity({health, mcp, clock})`.
   - `health` es el resultado, o una función, de `intelligence.OpenSEOAdapter.connectivity()` (D-14, sin cambios).
-  - `CONNECTED`/`VERIFIED` **solo** si el health es `ok` **y** `whoami` responde con un `structuredContent` no vacío a través de un cliente `live`.
+  - `CONNECTED`/`VERIFIED` **solo** si el health es `ok`, el cliente es `live` y el `structuredContent` no vacío de `whoami` es aceptado por el verificador inyectado `whoamiAuthenticated` (debe devolver exactamente `true`). Las negativas explícitas prevalecen.
   - Health solo → `NOT_CONNECTED`/`NOT_VERIFIED`; cliente mock → `NOT_CONNECTED` (`reason:'MOCK_CLIENT'`); 401 → `authorization:'REJECTED'`.
   - La identidad devuelta por `whoami` no se copia.
   - D-16 y sus mensajes no cambian.
@@ -493,8 +493,8 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
 - **Señal mínima y explícita:** la autenticación exige un verificador inyectado `whoamiAuthenticated(structuredContent)` que aportan el host o el puente de CORE-9 tras comprobar la forma real contra su instancia. Es el mismo patrón que `statusVocabulary`.
   - El verificador recibe una copia congelada y solo cuenta si devuelve **exactamente** `true`. Cualquier otro valor, o una excepción, significa «no autenticado».
   - Sin verificador: `NOT_CONNECTED`/`WHOAMI_UNVERIFIED`, y `openseoConnectivity` devuelve `authorization:'NOT_VERIFIED'` con `reason:'WHOAMI_UNVERIFIED'`.
-  - **Negativas explícitas, siempre por encima del verificador:** `authenticated:false`, `authorized:false`, `error` no vacío o `errors` con elementos → `NOT_CONNECTED`/`WHOAMI_NOT_AUTHENTICATED` (`authorization:'REJECTED'`).
+  - **Negativas explícitas, siempre por encima del verificador:** `authenticated:false`, `authorized:false`, `error` no vacío o `errors` no vacío en cualquier forma → `NOT_CONNECTED`/`WHOAMI_NOT_AUTHENTICATED` (`authorization:'REJECTED'`). Para `errors`, cadena blanca, array vacío u objeto vacío son vacíos; cualquier otro valor no vacío rechaza.
   - Un `structuredContent` vacío o ausente sigue siendo `ERROR` y nunca `CONNECTED`.
 - **Reglas que se mantienen:** el health solo, o un cliente mock, nunca verifican. La identidad (id, correo, nombre) no se copia al resultado, a la evidencia ni a los errores; tampoco el mensaje de una excepción del verificador.
-- **Evidencia:** 5 pruebas nuevas en `tests/core-7-1-openseo-bridge.test.cjs` (26 en total). Con el módulo anterior (`e78e66a`) fallan 4; la quinta, sobre contenido vacío o ausente, ya estaba cubierta. `npm run verify` da 231 (229 pasan, 2 se omiten en Windows).
+- **Evidencia:** 5 pruebas para el verificador y respuestas whoami no autenticadas, más 2 para `errors` no vacío/vacío en formas diversas. `tests/core-7-1-openseo-bridge.test.cjs` contiene 28 pruebas. `npm run verify` da 233 (231 pasan, 2 se omiten en Windows). CI del HEAD del PR: run `36126029028`, 233/233 por job sin omitidas; golden y paridad sin cambios.
 - **Precisión (segunda revisión del PR #11):** `errors` rechaza en cualquier forma no vacía: cadena con contenido (tras recortar espacios), array con elementos, objeto con claves o cualquier otro valor verdadero. Siempre prevalece sobre un verificador que devuelva `true`. Los valores vacíos (`null`, `false`, `0`, `''`, `'  '`, `[]`, `{}`) no rechazan. La regla de `error` y la de `authenticated`/`authorized` `false` no cambian. Pruebas: 2 nuevas (28 en `core-7-1-openseo-bridge`).

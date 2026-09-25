@@ -1,6 +1,6 @@
 # Integración prevista: OpenSEO
 
-**Estado:** 📝 DOCUMENTADA · 🔄 **CONTRATO DEL PUENTE PREPARADO (CORE-7.1, D-22)**, en revisión en PR de CORE-7.1 (`feat/core-7-1-openseo-bridge`). Se valida solo con mocks, sin conexión real. El transporte MCP autenticado, el backend y los secretos corresponden a CORE-9. La conectividad por `/api/health` está en D-14.
+**Estado:** 📝 DOCUMENTADA · ✅ **CORE-7.1 CERRADA** en [PR #11](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/11), merge `bc271fe` (D-22). El contrato del puente se validó solo con mocks; no activa conexión real. El transporte MCP autenticado, el backend y los secretos corresponden a CORE-9. La conectividad por `/api/health` está en D-14.
 **Verificado el:** 24/09/2026, contra el código de `Juanmaes83/open-seo@0ffff93101043aad7600a3b6a499a0cd2887ef49`. Es un fork idéntico a `every-app/open-seo` en esa fecha (`compare`: ahead 0 / behind 0).
 **Método:** lectura del código fuente en un clon de solo lectura. **No** se ha llamado a ninguna instancia de OpenSEO ni a DataForSEO, ni se ha desplegado nada.
 
