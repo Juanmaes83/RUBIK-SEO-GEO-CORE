@@ -55,7 +55,7 @@ El Core es una **capacidad transversal**. No es un plugin, ni una segunda aplica
 2. **Honestidad.** Nada de ratings, reviews, métricas, indexación o citas inventadas. Lo que falta aparece como `NOT_MEASURED`, `NOT_CONNECTED` o `UNKNOWN`, y GEO lleva la etiqueta `HEURISTIC`.
 3. **Publicación real.** El SEO crítico y el contenido principal van en el HTML inicial (Hardening A). Preview falla cerrado. En producción, las rutas que no pasan el contrato no se publican (Hardening B).
 4. **Privacidad NAP.** Dirección, teléfono y email solo entran en el schema con `visibility:'public'` y la firma `publicDataConfirmed` vigente. Si cambia el dato fuente, la confirmación se invalida.
-5. **España-first.** `supportedLanguages:['es']`, sin hreflang.
+5. **España-first con multidioma explícito.** `es` por defecto; otros idiomas solo con páginas traducidas reales declaradas por el host y enlazadas por `translationKey`; hreflang recíproco solo entre páginas publicables equivalentes (D-19, CORE-6 en progreso).
 6. **Sin storage en el Core ni en los adapters** (verificado por tests).
 
 ## Formato de módulos

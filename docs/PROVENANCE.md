@@ -11,10 +11,10 @@ Los blob ids de git son independientes de los finales de línea. «idéntico» s
 
 | Destino | Fuente @388e48a | Blob fuente | Blob destino | Relación |
 |---|---|---|---|---|
-| `src/rubik-seo-geo-core.js` | `rubik-seo-geo-core.js` | `dd7c1d415059` | `dd7c1d415059` | idéntico |
+| `src/rubik-seo-geo-core.js` | `rubik-seo-geo-core.js` | `dd7c1d415059` | `6c053577d2e4` | derivado en CORE-6 (D-19: `normalizeLocale`, `languageSettings`, `inLanguage` multidioma). Idéntico hasta `main@3ad7b13` |
 | `src/rubik-seo-geo-adapters.js` | `rubik-seo-geo-adapters.js` | `142d41303c38` | `142d41303c38` | idéntico |
-| `src/rubik-seo-geo-publisher.js` | `rubik-seo-geo-publisher.js` | `0d791f828366` | `0d791f828366` | idéntico |
-| `src/rubik-seo-geo-release-b.js` | `rubik-seo-geo-release-b.js` | `f7432eb72699` | `9d6930adce19` | derivado en CORE-3 (D-15: validación de rutas). Idéntico hasta `main@995207f` |
+| `src/rubik-seo-geo-publisher.js` | `rubik-seo-geo-publisher.js` | `0d791f828366` | `e9dd33a61efd` | derivado en CORE-6 (D-19: hreflang, `lang` e `inLanguage` por página). Idéntico hasta `main@3ad7b13` |
+| `src/rubik-seo-geo-release-b.js` | `rubik-seo-geo-release-b.js` | `f7432eb72699` | `5ca6d711ede8` | derivado en CORE-3 (D-15: validación de rutas) y CORE-6 (D-19: locale, `translationKey`, `alternates`). Idéntico hasta `main@995207f` |
 | `src/rubik-seo-geo-media.js` | `rubik-seo-geo-media.js` | `07422b3b6b05` | `07422b3b6b05` | idéntico |
 | `src/rubik-seo-geo-intelligence.js` | `rubik-seo-geo-intelligence.js` | `a72162b4ba48` | `65e16b388b9a` | derivado en CORE-3 (D-13: `pages` inyectado; D-14: health), CORE-3.1 (D-17: `products` desde el adapter) y CORE-3.2 (D-18: `geoReadiness`/`entityGraph` desde el adapter). Idéntico hasta `main@995207f` |
 | `src/rubik-seo-geo-release-e.js` | `rubik-seo-geo-release-e.js` | `0cc98079cfb7` | `49ed42cac6af` | derivado en CORE-3 (D-13: vertical desde el adapter). Idéntico hasta `main@995207f` |
@@ -57,6 +57,7 @@ git hash-object --path=src/rubik-seo-geo-core.js src/rubik-seo-geo-core.js
 | `tests/fixtures/golden/source-388e48a-publish.json` | Salida de `publish()` y `preview()` de los **módulos fuente** para LÚMINA (Restaurant) y Casa Norte (RealEstate), en preview y production (`scripts/generate-source-golden.cjs`). |
 | `tests/core-independence.test.cjs`, `tests/core-source-parity.test.cjs` | Gates nuevos (D-08). |
 | `tests/core-materialize-path-safety.test.cjs` | Prueba de seguridad de path traversal (D-11). |
+| `tests/core-6-multilingual.test.cjs` | CORE-6: contrato multidioma D-19 (locales, hreflang recíproco, canonical por locale, materializer). |
 | `tests/core-3-2-neutral-intelligence.test.cjs` | CORE-3.2: `geoReadiness()` y `entityGraph()` desde `source(config)` de los 7 adapters (D-18). |
 | `tests/core-3-1-entity-products.test.cjs` | CORE-3.1: `entityGraph().products` desde el contrato de oferta de los 7 adapters (D-17). |
 | `tests/core-3-explicit-injection.test.cjs` | CORE-3: inyección explícita, vertical por adapter, health OpenSEO con mocks locales y validación de rutas en el Page Registry (D-13…D-15). |

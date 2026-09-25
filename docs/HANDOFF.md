@@ -143,3 +143,18 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 5. **Sin cambios** en adapters, Publisher ni materializer. D-16 intacta.
 
 **Pendiente:** CI Node 20/22 del PR de CORE-3.2 (`feat/core-3-2-neutral-intelligence`), revisión humana y merge. Sin merge ni deploy.
+
+## Sesión 12 — CORE-6 multidioma (25/09/2026)
+
+**Rama:** `feat/core-6-multilingual` desde `main@3ad7b13` (merge del PR #7). El PR #8 (cierre documental de CORE-3.2) seguía abierto y **no** se usó como base. Estado inicial: `npm run verify` daba 153 (151 pasan, 2 se omiten en Windows).
+
+1. **Contrato primero:** D-19 se registró en un commit propio antes del código, basado en la especificación local (Release A §3, Arquitectura §6/§10/§17). Donde la especificación no llega, se eligió el comportamiento conservador: `es` sigue siendo el idioma por defecto, sin `x-default` y con el sitemap sin cambios.
+2. **Implementación:**
+   - `core`: `normalizeLocale` y `languageSettings`;
+   - Page Registry: `locale`, `translationKey`, bloqueos de locale y canonical entre locales, duplicados por locale y `alternates`;
+   - Publisher: hreflang recíproco solo en producción, `lang` e `inLanguage`;
+   - el materializer no cambia.
+3. **Pruebas:** `tests/core-6-multilingual.test.cjs` (19). `npm run verify` da 172 (170 pasan, 2 se omiten en Windows). Monolingüe idéntico a `main` byte a byte y golden sin cambios.
+4. **No se ha validado ningún host.** Adapters, entidad, artículos y fórmulas AUTO siguen sin localizar (límites de D-19). D-16 intacta.
+
+**Pendiente:** CI Node 20/22 del PR de CORE-6 (`feat/core-6-multilingual`), revisión humana y merge. Se prevén conflictos solo documentales con el PR #8 (README, ROADMAP, HANDOFF). Sin merge ni deploy.

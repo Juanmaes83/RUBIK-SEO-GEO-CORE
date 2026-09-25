@@ -39,9 +39,10 @@ Todo eso lo aporta cada producto anfitrión ([`docs/HOST-INTEGRATION-CONTRACT.md
 | Hardening A–B | ✅ implementados en el Core (#53, #54) · Hardening C pertenece al host (#55) |
 | Release E | ✅ contrato base E1–E4 (#56) · ⏳ conexiones externas pendientes de backend |
 | Independencia | ✅ 129/129 en CI Linux con Node 20.20.2 y 22.23.2 ([run 36108440350](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36108440350), CORE-3.1, fusionado en `main@0be4752`); en Windows local, 2 pruebas de symlink de fichero se omiten por permisos |
-| Compatibilidad Restaurant | ✅ golden de `publish()`/`preview()` sin cambios y materialización con 0 diferencias. `core`, `adapters`, `publisher` y `media` con blob idéntico al fuente; `release-b`, `intelligence` y `release-e` derivan desde CORE-3 (D-13…D-15, fusionado); `intelligence` también incorpora CORE-3.1 (D-17) |
+| Compatibilidad Restaurant | ✅ golden de `publish()`/`preview()` sin cambios y materialización con 0 diferencias (blob `5aa93a3`). `adapters` y `media` siguen con blob idéntico al fuente; `release-b`, `intelligence`, `release-e` (CORE-3…3.2) y, en la rama de CORE-6, `core`, `release-b` y `publisher` derivan con decisión documentada |
 | Extracción CORE-1 | ✅ PR #1 mergeado en `main` (merge `995207f38080cf319d4246a531895c85bc10759e`); CI Node 20/22 verde, 86/86 (run 36103571133) |
 | Siguiente fase | ✅ CORE-3 ([PR #3](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/3)) y CORE-3.1 ([PR #6](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/6), merge `0be4752`) fusionados. 🔄 CORE-3.2 en revisión: `geoReadiness()` y `entityGraph().business/location` desde el `source(config)` del adapter activo (D-18). CORE-2 sigue fuera de alcance (D-12) |
+| Multidioma (CORE-6) | 🔄 en progreso en PR de CORE-6 (`feat/core-6-multilingual`): contrato D-19 (locales, una página por idioma con `translationKey`, hreflang recíproco solo entre páginas publicables equivalentes, sin `x-default`). La salida con solo `es` sigue idéntica |
 | Seguridad del materializer | ✅ path traversal, enlaces/junctions dentro de `outputDir` y nombres válidos con `..` cubiertos por regresiones (D-11/D-11b) |
 | OpenSEO | 📝 integración documentada y bloqueada ([`docs/integrations/OPENSEO.md`](docs/integrations/OPENSEO.md)). En CORE-3 `connectivity()` usa `/api/health` y nunca devuelve `CONNECTED` (D-14). `crawl()` sigue con el contrato heredado incompatible |
 
@@ -133,4 +134,4 @@ La CI está en `.github/workflows/core-ci.yml` (Node 20 y 22): verify + smoke de
 - Honestidad: no se inventan métricas, reseñas, indexación ni citas. `NOT_MEASURED`, `NOT_CONNECTED` y `UNKNOWN` son estados válidos.
 - Cualquier cambio de salida cubierto por fixtures/golden exige actualizar el golden **y** registrar una decisión en [`docs/DECISIONS.md`](docs/DECISIONS.md).
 - Todo cambio de código y documentación se realiza en este repositorio; no se accede ni se escribe en otros repositorios.
-- España-first (`es`). El multidioma es deuda explícita.
+- España-first (`es` por defecto). Otros idiomas solo con páginas traducidas reales declaradas por el host, según D-19 (CORE-6, en progreso). El Core no genera traducciones.

@@ -327,3 +327,25 @@ La especificación **no** define: sintaxis de locales, representación de corres
 ### Compatibilidad exigida
 
 Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `preview()`, el sitemap, los HTML materializados y el golden `source-388e48a-publish.json` deben ser idénticos byte a byte, y las barreras de rutas (D-11, D-15) no cambian. Cualquier diferencia exigiría detenerse y registrar una nueva decisión.
+
+### Implementación (rama `feat/core-6-multilingual`)
+
+- **`core`:**
+  - exporta `normalizeLocale` y `languageSettings`; `reconcile` aplica `languageSettings`;
+  - `schemaGraph` añade `WebPage.inLanguage` solo si hay más de un idioma;
+  - el check `deferred` de `preview` cambia de texto solo en sitios multidioma.
+- **`release-b` (Page Registry):**
+  - `normalizePage` añade `locale` (normalizado, o el valor declarado si es inválido, para que el contrato lo bloquee) y `translationKey`;
+  - `pageContract` añade `invalid-locale`, `unsupported-locale`, `home-requires-default-locale` y `cross-locale-canonical`, y compara los duplicados por locale;
+  - la nueva función `alternates(config,page)` devuelve los miembros de su grupo `{id,locale,path,url}`;
+  - `audit` añade los avisos `translation.ambiguous-translation` y `translation.no-hreflang-alternate`. Van en la auditoría y no en el contrato de la página, para no crear una recursión con `registry`.
+- **`publisher`:**
+  - emite `<link rel="alternate" hreflang>` solo en páginas `live` de producción;
+  - `<html lang>` por página;
+  - `inLanguage` por página en sitios multidioma.
+- **Materializer:** sin cambios. Las rutas localizadas pasan por las mismas barreras (D-11, D-15).
+- **URL de los alternates:** es exactamente la del `<link rel="canonical">` publicado; la home conserva la barra final de `baseUrl`. Se detectó que `canonicalFor`, y con él el sitemap, escribe la home **sin** barra final, a diferencia del canonical emitido. Es una incoherencia previa que se deja **sin cambiar**, porque modificarla alteraría el golden. Queda registrada como deuda.
+- **Evidencia:**
+  - `tests/core-6-multilingual.test.cjs` (19 pruebas, 15 de ellas fallan con el `src/` de `main`);
+  - comparación byte a byte con `main` de `publish`, `preview`, `audit` y los HTML materializados para tres configuraciones monolingües: 0 diferencias;
+  - golden (blob `5aa93a3`) y fixtures sin cambios.
