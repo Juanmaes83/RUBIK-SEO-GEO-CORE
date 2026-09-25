@@ -329,4 +329,5 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
   - Las 11 regresiones iniciales fallan contra `42d213d` en un worktree temporal (ya eliminado) y pasan ahora.
   - Una mutación de 17 guardas mata las 17.
   - `npm run verify`: 274 (272 pasan, 2 se omiten en Windows).
-- **Siguiente paso:** CI Node 20/22 del push; después, CORE-8.1 en la rama `feat/core-8-1-offpage-operations`, apilada sobre el HEAD corregido de CORE-8. El PR #12 sigue abierto para revisión humana; sin merge.
+- **CI:** run [36133453921](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36133453921) del HEAD `d65dcf1` verde en Node 20.20.2/22, 274/274 por job, 0 omitidas. PR #12 cumple los gates técnicos de CORE-8 y sigue abierto para revisión humana.
+- **Siguiente paso:** CORE-8.1 en la rama `feat/core-8-1-offpage-operations`, apilada sobre el HEAD corregido de CORE-8. El PR #12 sigue abierto para revisión humana; sin merge.
