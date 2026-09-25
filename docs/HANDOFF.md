@@ -157,4 +157,6 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 3. **Pruebas:** `tests/core-6-multilingual.test.cjs` (19). `npm run verify` da 172 (170 pasan, 2 se omiten en Windows). Monolingüe idéntico a `main` byte a byte y golden sin cambios.
 4. **No se ha validado ningún host.** Adapters, entidad, artículos y fórmulas AUTO siguen sin localizar (límites de D-19). D-16 intacta.
 
+**Bloqueo de CI:** los jobs del [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9) no arrancan: *«The job was not started because an Actions budget is preventing further use»* ([run 36113779831](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36113779831), reintentado con el mismo resultado). Es un límite de facturación de la cuenta, no un fallo de pruebas. Evidencia local complementaria: Node 20.20.2 y 22.23.3 dan 172 (170 pasan, 2 se omiten); los pasos del CLI de la CI también pasan en local.
+
 **Pendiente:** CI Node 20/22 del PR de CORE-6 (`feat/core-6-multilingual`), revisión humana y merge. Se prevén conflictos solo documentales con el PR #8 (README, ROADMAP, HANDOFF). Sin merge ni deploy.
