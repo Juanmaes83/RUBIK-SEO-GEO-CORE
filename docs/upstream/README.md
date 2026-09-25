@@ -14,3 +14,9 @@ Contratos SEO/GEO copiados de `Juanmaes83/WEB-RESTAURACI-N-PREMIUM-DIN-MICA@388e
 | `SEO-GEO-PRODUCTION-HARDENING-CONTRACT.md` | Hardening A/B/C |
 | `SEO-GEO-RELEASE-E-AUTHORITY-CITATIONS-INDEXATION.md` | Release E (E1–E4) |
 | `SEO-GEO-INTEGRATIONS.md` | OpenSEO, Search Console, DataForSEO |
+
+## Contratos heredados con autoridad superada
+
+| Documento heredado | Superado por | Motivo |
+|---|---|---|
+| `SEO-GEO-INTEGRATIONS.md` § OpenSEO (`OPENSEO_ENDPOINT`, refresh HTTP) | [`../integrations/OPENSEO.md`](../integrations/OPENSEO.md) | OpenSEO real expone MCP en `/mcp` y `/api/health`, no un endpoint `crawl` (`../DECISIONS.md` D-09) |

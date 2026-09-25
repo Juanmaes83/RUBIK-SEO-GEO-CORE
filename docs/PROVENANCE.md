@@ -56,7 +56,9 @@ git hash-object --path=src/rubik-seo-geo-core.js src/rubik-seo-geo-core.js
 | `tests/fixtures/restaurant-home-template.html` | Estructura mínima de slots de `index.html@388e48a` (sha256 `e2a51f0c…c3c47`): solo los elementos que pinta `premiumHomeBody`. |
 | `tests/fixtures/golden/source-388e48a-publish.json` | Salida de `publish()` y `preview()` de los **módulos fuente** para LÚMINA (Restaurant) y Casa Norte (RealEstate), en preview y production (`scripts/generate-source-golden.cjs`). |
 | `tests/core-independence.test.cjs`, `tests/core-source-parity.test.cjs` | Gates nuevos (D-08). |
-| `scripts/run-tests.cjs`, `scripts/check-syntax.cjs`, `scripts/generate-source-golden.cjs` | Herramientas del repositorio. |
+| `scripts/run-tests.cjs`, `scripts/check-syntax.cjs`, `scripts/check-docs.cjs`, `scripts/generate-source-golden.cjs` | Herramientas del repositorio. |
+| `docs/integrations/OPENSEO.md` | Documento propio, basado en la lectura del código de `Juanmaes83/open-seo@0ffff93101043aad7600a3b6a499a0cd2887ef49` (idéntico a `every-app/open-seo`). No se copió código de OpenSEO. |
+| `docs/README.md` | Mapa de autoridad documental propio (D-10). |
 | `.github/workflows/core-ci.yml` | Consolidación de los workflows Node del fuente (D-08). |
 
 ## No trasladado (se queda en el host)

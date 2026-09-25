@@ -29,7 +29,8 @@
   },
   "scripts": {
     "check": "node scripts/check-syntax.cjs",
+    "check:docs": "node scripts/check-docs.cjs",
     "test": "node scripts/run-tests.cjs",
-    "verify": "npm run check && npm test"
+    "verify": "npm run check && npm run check:docs && npm test"
   }
 }

@@ -1,29 +1,49 @@
 # Handoff — extracción de Rubik SEO/GEO Core
 
-**Fecha:** 24/09/2026 · **Rama:** `feat/seo-geo-core-extraction` (desde `main@c384767`) · **Fuente:** `WEB-RESTAURACI-N-PREMIUM-DIN-MICA@388e48a` (solo lectura)
+**Última sesión:** 24/09/2026 · **Rama:** `feat/seo-geo-core-extraction` (desde `main@c384767`) · **Fuente:** `WEB-RESTAURACI-N-PREMIUM-DIN-MICA@388e48a` (solo lectura)
 
-## Hecho
+> Este documento resume la última sesión. El estado con autoridad está en [`ROADMAP.md`](ROADMAP.md).
 
-1. **Verificación del fuente.** PRs #44–#57 en estado MERGED en GitHub. `origin/main@388e48a` es el estado vigente. El checkout local del fuente está en `feat/seo-geo-hardening-c-mobile-performance` y no se tocó: todo se leyó con `git show` y `git archive`.
-2. **Extracción.** Los 7 módulos Core se copiaron sin cambios (blob idéntico). El materializer se dividió en `src/` (Core) y `hosts/restaurant/` (pintado del HOME premium). Los tests A–E y Hardening A/B se adaptaron a fixtures.
-3. **Paridad con Restaurant:**
-   - blob ids idénticos en los módulos;
-   - materializar con el `index.html` real y el estado LÚMINA da 0 diferencias (6 ficheros × preview/production) entre el script fuente y Core + host;
-   - el test `core-source-parity` compara `publish()` y `preview()` con el golden generado por los módulos fuente.
-4. **Independencia:** `npm run verify` da 73/73 tests en Node 24.14.1 y en Node 20.20.2 (`npx node@20`). El test `core-independence` comprueba que no hay imports fuera de `src/` ni storage, que los 7 adapters están registrados y que funciona un host genérico no-Restaurant.
-5. **CI:** `.github/workflows/core-ci.yml`, con matriz Node 20 y 22, syntax, tests y smoke del CLI.
-6. **Documentación:** README, `ARCHITECTURE`, `HOST-INTEGRATION-CONTRACT`, `ROADMAP`, `DECISIONS` (D-01…D-08), `PROVENANCE` y los contratos heredados en `docs/upstream/`, con los estados reconciliados.
+## Sesión 1 — extracción (commits `b19e3a7`, `d331a2c`, `839f26f`)
+
+1. **Fuente verificado:** PRs #44–#57 en estado MERGED. `origin/main@388e48a` es el estado vigente. Se leyó con `git show`/`git archive`, sin tocar el checkout del fuente.
+2. **Extracción:**
+   - 7 módulos Core copiados sin cambios (blob idéntico);
+   - materializer dividido en `src/` (Core) y `hosts/restaurant/` (HOME premium);
+   - tests A–E y Hardening A/B adaptados a fixtures.
+3. **Paridad Restaurant:** blob ids idénticos, materialización con 0 diferencias y test `core-source-parity` contra el golden de los módulos fuente.
+4. **Independencia:** 73/73 en Node 24 y en Node 20, también desde un clon limpio.
+5. **CI** `core-ci.yml` y documentación base: README, `ARCHITECTURE`, `HOST-INTEGRATION-CONTRACT`, `ROADMAP`, `DECISIONS` D-01…D-08, `PROVENANCE` y `upstream/`.
+
+## Sesión 2 — revisión documental y OpenSEO (sin commit todavía)
+
+1. **README completado:** propósito y límites, estado real (rama sin publicar, CI no ejecutada en GitHub), instalación (paquete no publicado), validación y cómo retomar.
+2. **Mapa de autoridad** en `docs/README.md`: un documento por tema y procedimiento de sincronización manual con upstream (D-10).
+3. **OpenSEO** (`docs/integrations/OPENSEO.md`), a partir del código de `Juanmaes83/open-seo@0ffff93`, idéntico al upstream `every-app/open-seo`:
+   - OpenSEO expone MCP en `/mcp` (Streamable HTTP, OAuth / API key `oseo_` / Cloudflare Access) y `GET /api/health`;
+   - **no existe ninguna acción HTTP `crawl`**, y la conectividad actual del Core (`GET` a la raíz) daría un falso `CONNECTED`;
+   - se registra como D-09, sin tocar el código;
+   - diseño recomendado: puente server-side que actúa como cliente MCP;
+   - ROADMAP **CORE-7.1**, bloqueado por CORE-2, CORE-3 y la Platform Layer.
+4. **Gate documental** `scripts/check-docs.cjs` (`npm run check:docs`), incluido en `verify` y en la CI. Se comprobó con una prueba negativa que detecta enlaces rotos.
+5. Referencias a OpenSEO corregidas en `ARCHITECTURE.md` y `HOST-INTEGRATION-CONTRACT.md` (ya no aparece como integración operativa).
 
 ## Pendiente
 
-- **La CI no se ha ejecutado en GitHub.** Solo se ha validado en local. La rama no está publicada; hace falta push y PR.
-- Acoplamientos del host que siguen dentro del Core (D-07): el bootstrap navegador de `core.js`, `intelligence.pages()` vía global y el vertical por defecto de Release E.
-- Restaurantes Premium aún usa su propia copia de los módulos (CORE-4).
-- Las conexiones externas de Release C/E dependen de la Platform Layer (backend, auth y secretos).
+- Commit de la sesión 2, push y PR (necesitan aprobación del propietario). **La CI no se ha ejecutado nunca en GitHub.**
+- D-07: acoplamientos del host dentro del Core (CORE-2, CORE-3).
+- D-09: contrato OpenSEO incompatible (CORE-3 → CORE-7.1).
+- Restaurantes sigue usando su propia copia (CORE-4).
 
 ## Siguiente tarea concreta
 
-**CORE-1:** publicar `feat/seo-geo-core-extraction`, abrir el PR contra `main`, comprobar que `core-ci` sale en verde en Node 20 y 22, hacer la revisión humana y fusionar. Después, **CORE-2**: mover el bootstrap navegador de `core.js` a un loader del host, con un PR coordinado en el repo de Restaurantes.
+**CORE-1:** con aprobación del propietario:
+1. hacer commit de la sesión 2 en esta rama;
+2. publicar la rama y abrir el PR contra `main`;
+3. confirmar que `core-ci` sale en verde en Node 20 y 22;
+4. revisión humana y merge.
+
+Después, **CORE-2** (bootstrap navegador fuera de `core.js`) y **CORE-3** (interfaz de proveedor inyectable + health check honesto), que desbloquean CORE-7.1.
 
 ## Cómo retomar
 
@@ -32,4 +52,4 @@ git switch feat/seo-geo-core-extraction
 npm run verify
 ```
 
-Para volver a comprobar la paridad con el fuente, ver la cabecera de `scripts/generate-source-golden.cjs` y `docs/PROVENANCE.md`.
+Leer `docs/README.md` → `ROADMAP.md` §3–§4 → `DECISIONS.md`.

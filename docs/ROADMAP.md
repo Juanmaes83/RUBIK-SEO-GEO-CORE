@@ -32,6 +32,7 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 | EX-4 | CI propio (`core-ci.yml`, Node 20 y 22) | ✅ escrito · ⏳ primera ejecución en GitHub al abrir el PR |
 | EX-5 | Contratos canónicos copiados con estados reconciliados | ✅ `docs/upstream/` |
 | EX-6 | README, arquitectura, contrato de host, decisiones, procedencia, handoff | ✅ |
+| EX-7 | Auditoría documental: índice de autoridad (`docs/README.md`), `check:docs`, OpenSEO documentado | ✅ |
 
 ## 3. Siguiente trabajo del Core (en orden)
 
@@ -44,8 +45,18 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 | CORE-5 | Validación externa del adapter `real-estate` con Sarah Katerina | Estado real del host → golden y HTML materializado revisados. Ni datos inventados ni NAP sin confirmar |
 | CORE-6 | Deuda multidioma (TECH DEBT · MULTILINGUAL SEO) | Solo con decisión canónica: locales, hreflang y canonical por idioma |
 | CORE-7 | Conexiones server-side de Release E y Release C | Depende de la Platform Layer del host (auth, secretos, backend). Siempre con provenance real |
+| CORE-7.1 | **Integración OpenSEO (Release C · Intelligence) mediante un puente de proveedor server-side** que actúa como cliente MCP. Diseño en [`integrations/OPENSEO.md`](integrations/OPENSEO.md) | 📝 documentado · ⛔ **bloqueado** por CORE-2 y CORE-3 (interfaz de proveedor inyectable) y por la Platform Layer. Orden de cierre: (a) interfaz de proveedor definida, (b) contrato validado con mocks de respuestas MCP reales (sin red ni consultas de pago), (c) health `/api/health` en lugar de `GET` raíz, (d) puente en el backend del host, (e) revisión humana. No es una Release nueva: completa la fuente real que le falta a Release C |
 
-## 4. Reglas de continuidad
+## 4. Bloqueos y riesgos abiertos
+
+| Bloqueo | Afecta a | Salida |
+|---|---|---|
+| La CI no se ha ejecutado en GitHub (la rama no está publicada) | CORE-1 | Push + PR con aprobación del propietario |
+| Bootstrap navegador de `core.js` acoplado al host | CORE-2, CORE-4 | PR coordinado con Restaurantes Premium |
+| Sin Platform Layer (backend, auth, secretos) en ningún host | CORE-7, CORE-7.1 | Fase Platform Layer del host |
+| El contrato `OpenSEOAdapter` no coincide con el OpenSEO real (falso `CONNECTED` en `GET` raíz, no existe acción `crawl`) | CORE-7.1 | CORE-3 + mocks; `DECISIONS.md` D-09. No se toca el código hasta entonces |
+
+## 5. Reglas de continuidad
 
 - No crear un segundo Core, Studio, Project State, Media Library ni Page Registry.
 - Cualquier cambio de salida para Restaurant debe actualizar el golden (`scripts/generate-source-golden.cjs`) **con** una decisión en `DECISIONS.md`.

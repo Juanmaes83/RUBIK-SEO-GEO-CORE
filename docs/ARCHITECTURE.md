@@ -30,10 +30,11 @@ El Core es una **capacidad transversal**. No es un plugin, ni una segunda aplica
 │ release-b     Page Registry · page contract · blog · internal links · redirects      │
 │ media         Media SEO (imagen/vídeo, VideoObject, auditoría, URLs públicas)         │
 │ publisher     head/meta/OG/Twitter/JSON-LD · páginas · sitemap · robots · raw gate    │
-│ intelligence  OpenSEO · Search Console · DataForSEO (clientes inyectados) · GEO       │
+│ intelligence  Search Console · DataForSEO (clientes inyectados) · OpenSEO* · GEO      │
 │ release-e     E1 indexación · E2 presencia · E3 menciones · E4 citas IA + provenance  │
 │ materialize   rutas físicas · gates raw-HTML · 404 · manifiesto (Node)                │
 └──────────────────────────────────────────────────────────────────────────────────────┘
+  * Contrato HTTP heredado, no compatible con el OpenSEO real (MCP): ver integrations/OPENSEO.md
 ```
 
 | Responsabilidad | Core | Adapter | Host |

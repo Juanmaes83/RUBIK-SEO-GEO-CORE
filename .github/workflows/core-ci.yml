@@ -26,6 +26,8 @@ jobs:
           node-version: ${{ matrix.node }}
       - name: Syntax
         run: npm run check
+      - name: Documentation gate
+        run: npm run check:docs
       - name: Releases A-E + Hardening A/B + independence + source parity
         run: npm test
       - name: Preview materialization is fail-closed

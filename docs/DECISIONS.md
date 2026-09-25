@@ -65,3 +65,20 @@ El gate de encoding se adapta: aplica la misma regla contra mojibake, pero sobre
 - `package.json` sin dependencias. `npm run check` hace `node --check` de todo, `npm test` usa un runner portable con lista explícita de ficheros (Node 20 no expande globs y npm usa cmd.exe en Windows), y `engines: node >=20`.
 - `.github/workflows/core-ci.yml` agrupa los gates Node de los workflows fuente `seo-geo-foundation`, `-intelligence`, `-release-d`, `-release-e` y `-hardening-a/b`, más el smoke del CLI (preview fail-closed y producción sin baseUrl rechazada). Matriz Node 20 y 22.
 - Se añaden tres gates nuevos: `core-independence` (imports solo dentro de `src/` o `node:`, sin storage, los 7 adapters registrados, host genérico no-Restaurant), `core-source-parity` (golden de `publish()` y `preview()` generado con los módulos fuente `388e48a` para Restaurant y RealEstate, en preview y production) y el gate de encoding adaptado.
+
+## D-09 · El contrato `OpenSEOAdapter` heredado no coincide con OpenSEO real
+
+- **Evidencia:** en `Juanmaes83/open-seo@0ffff93` (idéntico a `every-app/open-seo`), OpenSEO expone MCP en `/mcp` (`src/server/mcp/context.ts`) y health en `GET /api/health` (`src/routes/api/health.ts`). No existe ruta HTTP de crawl: `src/routes/api/*` = `health`, `auth`, `autumn` y callbacks OAuth.
+- El Core (`src/rubik-seo-geo-intelligence.js`) espera otra cosa: `POST <OPENSEO_ENDPOINT>` con `{action:'crawl'}`, polling en `/crawl/<jobId>` y conectividad por `GET` a la raíz. Esa conectividad da un **falso `CONNECTED`** contra cualquier web que responda 200.
+- **Decisión:**
+  - no se modifica el código ahora: el módulo sigue idéntico al fuente y su golden no cambia;
+  - la integración se rediseña como puente server-side MCP en `docs/integrations/OPENSEO.md` y se planifica como ROADMAP CORE-7.1, bloqueada por CORE-3 (interfaz de proveedor inyectable) y por la Platform Layer;
+  - la corrección de conectividad (`/api/health`) se hará en CORE-3, con tests y una decisión que actualice el golden si hace falta;
+  - hasta entonces, **ningún host debe mostrar OpenSEO como conectado** basándose en `connectivity()`.
+
+## D-10 · Autoridad documental y sincronización
+
+- El mapa de autoridad por tema está en `docs/README.md`. El estado solo vive en `ROADMAP.md`.
+- `docs/upstream/` es una copia congelada, sin sincronización automática; el procedimiento manual está en `docs/README.md`.
+- `upstream/SEO-GEO-INTEGRATIONS.md` se conserva sin cambios porque es contrato heredado. Para OpenSEO manda `integrations/OPENSEO.md` (señalado en `upstream/README.md`).
+- Se añade `scripts/check-docs.cjs` (`npm run check:docs`, incluido en `verify`), que comprueba enlaces relativos, documentos obligatorios y encoding UTF-8 sin mojibake.
