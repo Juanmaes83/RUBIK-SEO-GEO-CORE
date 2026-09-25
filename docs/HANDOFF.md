@@ -100,3 +100,12 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 1. Leer `docs/README.md`, `ROADMAP.md` §3–§4, `HANDOFF.md` y las decisiones pertinentes.
 2. Ejecutar `npm run verify` antes de cambiar nada.
 3. Crear una rama nueva desde `main` en este repositorio; no acceder ni modificar otros repositorios.
+
+
+## Sesión 9 — cierre CORE-3 y seguimiento documental (25/09/2026)
+
+1. PR #3 se fusionó en `main` mediante `b38225320f4b3dde3f2820f2935603adea33c8dc`. CORE-3 queda cerrado; CI Node 20/22 verde, 113/113 y 0 omitidos (run 36106021399).
+2. La evaluación SEO/GEO autorizada se registra en [`ECOSYSTEM-REFERENCES.md`](ECOSYSTEM-REFERENCES.md); no añade dependencias al Core ni altera el límite de repositorio.
+3. **Microcopy OpenSEO aplazada (D-16):** un mensaje positivo de conectividad puede sugerir que la autorización MCP está verificada. El código devuelve `NOT_CONNECTED` y `authorization: NOT_VERIFIED`; no cambiar comportamiento ahora. Corregir el texto en una fase posterior para reflejar que la autorización está pendiente de verificación.
+4. La dependencia residual `entityGraph().products` → `config.dishes` sigue anotada para una fase Core-only posterior.
+
