@@ -220,3 +220,14 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
    - los adapters heredados de Intelligence todavía no usan el sobre común; se migrarán cuando se conecten los transportes reales.
 
 **Pendiente:** CI Node 20/22 del PR de CORE-7 (`feat/core-7-provider-contracts`), revisión humana y merge. Sin merge ni deploy.
+
+### Sesión 16b — revisión del PR #10 (25/09/2026)
+
+1. **Secretos:**
+   - búsqueda completa de claves sensibles, sin límite de profundidad y segura ante ciclos;
+   - el input con valores tipo credencial también se rechaza;
+   - redacción ampliada (`client_secret`, `refresh_token`, `x-api-key`, `password`, Bearer/Basic/Token, credenciales en URL y pares clave-valor) en errores, evidencia y datos;
+   - el input con ciclos devuelve `INVALID_INPUT`.
+2. **Presupuesto:** las operaciones quota/paid sin presupuesto finito devuelven `BUDGET_REQUIRED` antes de llamar. La confirmación de pago se mantiene. `estimatedUsd` sigue en `null`.
+3. **Backlinks:** `normalizeBacklinks` neutral para `dataforseo.backlinks`, con esquema documentado en D-21 y en el contrato de host. Los valores ausentes son `null` y las filas inválidas dejan el mapeo en `PARTIAL`.
+4. **Pruebas:** 27 en `core-7-provider-contracts`; con el módulo anterior fallan 7 de las nuevas. Las mutaciones se detectan. `npm run verify` y Node 20.20.2/22.23.3 dan 201 (199 pasan, 2 se omiten en Windows). Smoke del CLI correcto; golden y paridad sin cambios.

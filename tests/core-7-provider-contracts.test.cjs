@@ -16,7 +16,9 @@ function mock(response,{kind='mock'}={}){
   const calls=[];
   return {calls,transport:{kind,request:async(operation,input)=>{calls.push({operation,input});if(response instanceof Error)throw response;return typeof response==='function'?response(operation,input):response;}}};
 }
-const run=(extra)=>providers.runProviderRequest({clock,...extra});
+/* Costed operations need a finite budget (D-21); tests pass one unless a case omits it on purpose. */
+const BUDGET=Object.freeze({maxUnits:100,maxRequests:100});
+const run=(extra)=>providers.runProviderRequest({clock,...('budget' in extra?{}:{budget:BUDGET}),...extra});
 
 // ── Catalogue ─────────────────────────────────────────────────────────────────
 
@@ -148,7 +150,7 @@ test('paid operations need explicit confirmation and respect the injected budget
   const unconfirmed=await run({provider:'dataforseo',operation:'keywords',transport});
   assert.equal(unconfirmed.status,'COST_CONFIRMATION_REQUIRED');
   assert.equal(calls.length,0);
-  const budget=Object.freeze({maxUnits:1,usedUnits:1});
+  const budget=Object.freeze({maxUnits:1,usedUnits:1,maxRequests:10});
   const over=await run({provider:'dataforseo',operation:'keywords',confirmCost:true,budget,transport});
   assert.equal(over.status,'BUDGET_EXCEEDED');
   assert.equal(calls.length,0);
@@ -156,7 +158,7 @@ test('paid operations need explicit confirmation and respect the injected budget
   assert.equal(ok.status,'OK');
   assert.deepEqual(ok.cost,{units:1,estimatedUsd:null,charged:true},'no invented price');
   assert.deepEqual(ok.budget,{maxUnits:5,usedUnits:2,maxRequests:10,requests:3});
-  const reqCap=await run({provider:'search-console',operation:'searchAnalytics',budget:{maxRequests:0},transport});
+  const reqCap=await run({provider:'search-console',operation:'searchAnalytics',budget:{maxUnits:10,maxRequests:0},transport});
   assert.equal(reqCap.status,'BUDGET_EXCEEDED');
 });
 
@@ -245,4 +247,140 @@ test('Release C results do not map into Release E and vice versa',async()=>{
   assert.deepEqual(providers.toReleaseE(c,{releaseE}).records,[]);
   const e=await run({provider:'bing-webmaster',operation:'urlInfo',transport:mock({rows:[{url:'https://x/'}]}).transport});
   assert.deepEqual(toC(e).rows,[]);
+});
+
+
+// ── Review follow-up (D-21 hardening) ─────────────────────────────────────────
+
+const SECRET_VALUES=['pa55word','CS-client-secret-1','RT-refresh-1','XK-api-key-1','hunter2','abc.def.ghi','dXNlcjpwYXNz','AT-access-1','deep-secret-9'];
+const noSecrets=(value,label)=>{const json=JSON.stringify(value);for(const s of SECRET_VALUES)assert.ok(!json.includes(s),`${label}: leaked ${s}`);};
+function nest(depth,leaf){let v=leaf;for(let i=0;i<depth;i++)v={level:v};return v;}
+
+test('secret keys are found at any depth (beyond six levels), in arrays and with common spellings',async()=>{
+  const cases=[nest(10,{password:'deep-secret-9'}),nest(7,[{ok:1},{client_secret:'CS-client-secret-1'}]),{a:[[[[[[[[{refresh_token:'RT-refresh-1'}]]]]]]]]},{headers:{'x-api-key':'XK-api-key-1'}},{Passwd:'hunter2'},{auth:{accessToken:'AT-access-1'}}];
+  for(const input of cases){
+    const {transport,calls}=mock({rows:[]});
+    const r=await run({provider:'search-console',operation:'searchAnalytics',input,transport});
+    assert.equal(r.errors[0].code,'SECRET_IN_INPUT',JSON.stringify(input).slice(0,60));
+    assert.equal(calls.length,0);
+    noSecrets(r,'secret input');
+  }
+});
+
+test('credential-like values in the input are refused without echoing them; cycles are safe',async()=>{
+  for(const input of [{url:'https://x.example/?access_token=AT-access-1'},{note:'Bearer abc.def.ghi'},{target:'https://user:pa55word@x.example/'}]){
+    const {transport,calls}=mock({rows:[]});
+    const r=await run({provider:'search-console',operation:'searchAnalytics',input,transport});
+    assert.equal(r.errors[0].code,'SECRET_IN_INPUT');
+    assert.match(r.errors[0].message,/credential-like value/);
+    assert.equal(calls.length,0);
+    noSecrets(r,'secret value');
+  }
+  const cyclic={q:'ok'};cyclic.self=cyclic;
+  const {transport,calls}=mock({httpStatus:202});
+  const cyc=await run({provider:'indexnow',operation:'submit',input:{urls:['https://x/'],meta:cyclic},transport});
+  assert.deepEqual([cyc.status,cyc.errors[0].code],['ERROR','INVALID_INPUT'],'the secret scan terminates on cycles; the non-serializable payload is refused');
+  assert.equal(calls.length,0);
+  const secretInCycle={a:{}};secretInCycle.a.back=secretInCycle;secretInCycle.a.password='hunter2';
+  assert.equal((await run({provider:'indexnow',operation:'submit',input:secretInCycle,transport})).errors[0].code,'SECRET_IN_INPUT');
+});
+
+test('redaction covers URLs, params, schemes and key/value pairs, and stays within 200 chars',()=>{
+  const cases={
+    'https://user:pa55word@api.example/x':/https:\/\/\[redacted\]@api\.example/,
+    'GET /v1?client_secret=CS-client-secret-1&refresh_token=RT-refresh-1&page=2':/client_secret=\[redacted\]&refresh_token=\[redacted\]&page=2/,
+    'x-api-key: XK-api-key-1':/x-api-key: \[redacted\]/,
+    '{"password":"hunter2","q":"ok"}':/"password":"\[redacted\]","q":"ok"/,
+    'Authorization: Bearer abc.def.ghi':/\[redacted\]/,
+    'Basic dXNlcjpwYXNz':/Basic \[redacted\]/,
+    'retry ?access_token=AT-access-1':/access_token=\[redacted\]/
+  };
+  for(const [input,expected] of Object.entries(cases)){const out=providers.redact(input);assert.match(out,expected,input);noSecrets(out,input);}
+  assert.equal(providers.redact('password=hunter2 '+'x'.repeat(500)).length,200);
+  assert.equal(providers.redact('plain message about tokens and keys'),'plain message about tokens and keys');
+});
+
+test('provider errors, evidence and data never carry secrets',async()=>{
+  const thrown=await run({provider:'bing-webmaster',operation:'urlInfo',transport:mock(new Error('POST https://user:pa55word@api.example/?client_secret=CS-client-secret-1 x-api-key: XK-api-key-1 Bearer abc.def.ghi')).transport});
+  noSecrets(thrown,'thrown');
+  const http=await run({provider:'bing-webmaster',operation:'urlInfo',transport:mock({httpStatus:400,message:'bad refresh_token=RT-refresh-1'}).transport});
+  noSecrets(http,'4xx');
+  const r=await run({provider:'search-console',operation:'searchAnalytics',transport:mock({
+    httpStatus:200,requestId:'req?token=AT-access-1',sourceUrl:'https://api.example/q?api_key=XK-api-key-1',
+    errors:[{code:'ROW',message:'row failed password=hunter2'}],
+    rows:[{query:'q',page:'https://x.example/p?access_token=AT-access-1'},nest(9,{client_secret:'CS-client-secret-1'}),{query:'deep',meta:nest(8,{note:'Basic dXNlcjpwYXNz'})}]
+  }).transport});
+  assert.equal(r.status,'PARTIAL');
+  assert.equal(r.partial.rejected,1,'the row with a deep secret key is rejected');
+  assert.equal(r.data[0].page,'https://x.example/p?access_token=[redacted]');
+  noSecrets(r,'data/evidence/errors');
+  noSecrets(toC(r),'mapped');
+});
+
+test('costed operations without a finite budget return BUDGET_REQUIRED before any call',async()=>{
+  const invalid=[undefined,null,{},{maxUnits:5},{maxRequests:5},{maxUnits:-1,maxRequests:5},{maxUnits:'abc',maxRequests:5},{maxUnits:true,maxRequests:5},{maxUnits:null,maxRequests:5}];
+  for(const budget of invalid){
+    for(const [provider,operation,extra] of [['search-console','searchAnalytics',{}],['bing-webmaster','urlInfo',{}],['dataforseo','backlinks',{confirmCost:true}]]){
+      const {transport,calls}=mock({httpStatus:200,rows:[{query:'q'}]});
+      const r=await run({provider,operation,budget,transport,...extra});
+      assert.equal(r.status,'BUDGET_REQUIRED',`${provider} ${JSON.stringify(budget)}`);
+      assert.equal(calls.length,0);
+      assert.equal(r.cost.estimatedUsd,null);
+    }
+  }
+  const unconfirmed=await run({provider:'dataforseo',operation:'serp',budget:undefined,transport:mock({rows:[]}).transport});
+  assert.equal(unconfirmed.status,'COST_CONFIRMATION_REQUIRED','paid confirmation is still checked first');
+});
+
+test('finite budgets: enough runs once and counts; exceeded units or requests block the call',async()=>{
+  const {transport,calls}=mock({httpStatus:200,rows:[{query:'q'}]});
+  const ok=await run({provider:'search-console',operation:'searchAnalytics',budget:{maxUnits:2,maxRequests:2,usedUnits:1,requests:1},transport});
+  assert.deepEqual([ok.status,ok.budget],['OK',{maxUnits:2,usedUnits:2,maxRequests:2,requests:2}]);
+  assert.deepEqual(ok.cost,{units:1,estimatedUsd:null,charged:false});
+  for(const budget of [{maxUnits:2,usedUnits:2,maxRequests:9},{maxUnits:9,maxRequests:2,requests:2}]){
+    const r=await run({provider:'dataforseo',operation:'keywords',confirmCost:true,budget,transport});
+    assert.equal(r.status,'BUDGET_EXCEEDED');
+  }
+  assert.equal(calls.length,1,'blocked cases never reach the transport');
+});
+
+test('free operations do not require a budget',async()=>{
+  const submit=await run({provider:'indexnow',operation:'submit',budget:undefined,input:{urls:['https://x/']},transport:mock({httpStatus:202}).transport});
+  assert.equal(submit.status,'NOT_MEASURED');
+  const presence=await run({provider:'manual-import',operation:'presence',budget:undefined,transport:mock({rows:[{id:'p'}]}).transport});
+  assert.equal(presence.status,'OK');
+});
+
+test('backlinks: explicit neutral normalization with aliases, rel, dates and provenance',async()=>{
+  const r=await run({provider:'dataforseo',operation:'backlinks',confirmCost:true,transport:mock({httpStatus:200,requestId:'bl-1',rows:[
+    {url_from:'https://blog.example/post?utm=1',url_to:'https://site.example/',anchor:'Casa Norte',dofollow:true,first_seen:'2026-01-02T10:00:00Z',last_seen:'2026-09-01T00:00:00Z',is_lost:false,domain_from_rank:412},
+    {sourceUrl:'https://dir.example/listing',targetUrl:'https://site.example/servicios/',rel:'nofollow ugc'}
+  ]}).transport});
+  const c=toC(r);
+  assert.equal(c.status,'OK');
+  assert.deepEqual(c.rows.map(({provenance,...row})=>row),[
+    {sourceUrl:'https://blog.example/post?utm=1',targetUrl:'https://site.example/',sourceDomain:'blog.example',anchor:'Casa Norte',rel:'follow',firstSeen:'2026-01-02T10:00:00.000Z',lastSeen:'2026-09-01T00:00:00.000Z',lost:false,sourceRank:412,measuredAt:'2026-09-25T10:00:00.000Z',provider:'dataforseo'},
+    {sourceUrl:'https://dir.example/listing',targetUrl:'https://site.example/servicios/',sourceDomain:'dir.example',anchor:null,rel:'ugc',firstSeen:null,lastSeen:null,lost:null,sourceRank:null,measuredAt:'2026-09-25T10:00:00.000Z',provider:'dataforseo'}
+  ]);
+  assert.equal(c.rows[0].provenance.evidence.requestId,'bl-1');
+  assert.equal(c.rows[0].provenance.sourceType,'MANUAL');
+});
+
+test('backlinks: missing or invalid data is never zero-filled; invalid rows make the mapping PARTIAL',async()=>{
+  const r=await run({provider:'dataforseo',operation:'backlinks',confirmCost:true,transport:mock({httpStatus:200,rows:[
+    {url_from:'https://ok.example/a',url_to:'https://site.example/',domain_from_rank:'',first_seen:'not a date',dofollow:'yes',rank:true},
+    {url_from:'javascript:alert(1)',url_to:'https://site.example/'},
+    {url_from:'https://ok.example/b'},
+    {sourceUrl:'https://ok.example/c?token=AT-access-1',targetUrl:'https://site.example/?x-api-key=XK-api-key-1'}
+  ]}).transport});
+  const c=toC(r);
+  assert.equal(c.status,'PARTIAL');
+  assert.deepEqual([c.partial.received,c.partial.rejectedByNormalizer,c.partial.reason],[2,2,'invalid-rows']);
+  const first=c.rows[0];
+  assert.deepEqual([first.sourceRank,first.firstSeen,first.rel,first.lost,first.anchor],[null,null,null,null,null]);
+  assert.equal(c.rows[1].sourceUrl,'https://ok.example/c?token=[redacted]');
+  noSecrets(c,'backlinks');
+  const empty=toC(await run({provider:'dataforseo',operation:'backlinks',confirmCost:true,transport:mock({httpStatus:200,rows:[]}).transport}));
+  assert.deepEqual([empty.status,empty.rows],['EMPTY',[]]);
+  assert.deepEqual(providers.normalizeBacklinks(undefined),{rows:[],rejected:0});
 });

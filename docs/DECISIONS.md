@@ -412,3 +412,29 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
   - `tests/core-7-provider-contracts.test.cjs` (18 pruebas);
   - verificación por mutación: marcar un mock como verificado, quitar la confirmación de coste o convertir `NOT_MEASURED` en `OK` rompe al menos una prueba;
   - golden y fixtures sin cambios.
+
+### Correcciones tras la revisión del PR #10
+
+1. **Secretos.**
+   - **Búsqueda de claves:** el recorrido del input es completo, sin límite de profundidad, cubre arrays y es seguro ante ciclos. Las claves se comparan sin separadores ni mayúsculas, así que `x-api-key`, `client_secret`, `refresh_token`, `accessToken`, `Passwd`, `password`, `authorization`, `cookie`, `private_key` o `key` se detectan a cualquier profundidad.
+   - **Valores con credenciales en el input:** URL con usuario y contraseña, parámetros sensibles, esquemas `Bearer`/`Basic`/`Token` o pares `clave=valor`. También se rechazan (`SECRET_IN_INPUT`); el mensaje dice «credential-like value» sin repetir el valor.
+   - **Input no serializable:** un input con ciclos devuelve `ERROR`/`INVALID_INPUT` sin llamar al transporte.
+   - **Redacción:** cubre usuario y contraseña en URL; parámetros `key`, `api_key`, `x-api-key`, `token`, `access_token`, `refresh_token`, `id_token`, `client_secret`, `secret`, `password`, `sig`, `auth` y `code`; esquemas `Bearer`/`Basic`/`Token`; y pares `clave: valor`, `clave=valor` y `"clave":"valor"`. Se aplica a mensajes de error (200 caracteres como máximo), a todos los campos de `evidence` y, sin truncar, a todos los textos de las filas aceptadas.
+   - **Filas del proveedor:** una fila con una clave secreta, a cualquier profundidad, se rechaza y el resultado queda `PARTIAL`.
+2. **Presupuesto.**
+   - Las operaciones `quota` y `paid` exigen un presupuesto con `maxUnits` **y** `maxRequests` finitos y no negativos. Si falta o es inválido → `BUDGET_REQUIRED` (nuevo estado), **antes** de llamar al transporte.
+   - Orden de comprobación: la confirmación de coste de `paid` sigue primero (`COST_CONFIRMATION_REQUIRED`), después `BUDGET_REQUIRED` y después `BUDGET_EXCEEDED`.
+   - Las operaciones `free` (IndexNow, importación manual) no lo exigen.
+   - `estimatedUsd` sigue siendo `null`.
+   - Un resultado ya en la caché inyectada no llama ni cuesta, así que no necesita presupuesto.
+3. **Backlinks (Release C → `intelligence.backlinks`, entrada de CORE-8).** Nuevo `normalizeBacklinks(rows,{measuredAt,provider})`, pequeño y neutral, porque el Core no tenía normalizador de backlinks. `toReleaseC` lo usa para `dataforseo.backlinks` en lugar de copiar las filas.
+   - **Esquema de salida:** `{sourceUrl, targetUrl, sourceDomain, anchor|null, rel ('follow'|'nofollow'|'ugc'|'sponsored'|null), firstSeen|null, lastSeen|null, lost|null, sourceRank|null, measuredAt, provider}` más `provenance`.
+   - **Alias de entrada aceptados:** `url_from`/`url_to`, `anchor_text`, `dofollow`, `first_seen`/`last_seen`, `is_lost` y `domain_from_rank`/`rank`.
+   - **Valores ausentes o inválidos:** quedan en `null`, nunca en `0`.
+   - **Filas sin URL http(s) de origen y destino:** se rechazan y el mapeo pasa a `PARTIAL` con `partial.rejectedByNormalizer`.
+   - Las URLs y los anchors pasan por la redacción.
+- **Límite conocido (conservador):** la detección por nombre de clave rechaza también claves no secretas con esos sufijos (por ejemplo `nextPageToken` o `key`). Si un proveedor necesitara paginación por token, el transporte debe gestionarla server-side, o se hará una excepción explícita cuando se active en CORE-9.
+- **Evidencia adicional:**
+  - 9 pruebas más en `tests/core-7-provider-contracts.test.cjs` (27 en total). Con el módulo anterior (`dcdbf61`) fallan 7 de ellas;
+  - mutaciones: reintroducir un límite de profundidad, quitar `BUDGET_REQUIRED` o volver a copiar los backlinks sin normalizar rompe pruebas;
+  - golden, fixtures y paridad sin cambios.
