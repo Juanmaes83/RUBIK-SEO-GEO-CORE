@@ -58,9 +58,8 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 |---|---|---|
 | CORE-1 | Cerrado en `main@995207f`; sin deploy | Ninguno |
 | CORE-3 | Cerrado en `main@b382253`; D-12…D-15, CI Node 20/22 verde | Ninguno |
-| CORE-3.2 | Cerrado en `main@3ad7b13`; D-18, CI Node 20/22 verde | Ninguno |
 | CORE-3.1 | Cerrado en `main@0be4752`; D-17, CI Node 20/22 verde | Ninguno |
-| CORE-3.2 | Cerrada en `main@3ad7b13`; D-18 y CI Node 20/22 verde (153/153) | Ninguno |
+| CORE-3.2 | Cerrado en `main@3ad7b13`; D-18, CI Node 20/22 verde (153/153) | Ninguno |
 | Microcopy OpenSEO | Mensaje de éxito de conectividad puede dar a entender que la autorización MCP ya está verificada | Corregir en una fase posterior según D-16; el estado devuelto sigue siendo `NOT_CONNECTED` / `NOT_VERIFIED` |
 | CORE-2/CORE-4 | Requieren migración o adopción en un host externo | Fuera de alcance: este proyecto solo trabaja en RUBIK-SEO-GEO-CORE |
 | Sin Platform Layer (backend, auth, secretos) en ningún host | CORE-7, CORE-7.1 | Fase Platform Layer del host |
