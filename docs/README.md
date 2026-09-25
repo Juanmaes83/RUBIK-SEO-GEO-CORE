@@ -4,7 +4,7 @@ Cada tema tiene **un solo documento con autoridad**. Si dos documentos chocan, m
 
 | Tema | Autoridad | Complementos |
 |---|---|---|
-| Estado, bloqueos y siguiente tarea | [`ROADMAP.md`](ROADMAP.md) | [`HANDOFF.md`](HANDOFF.md) (resumen de la última sesión) |
+| Estado, bloqueos y siguiente tarea | [`ROADMAP.md`](ROADMAP.md) | [`HANDOFF.md`](HANDOFF.md) (resumen de la última sesión); [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS-CONTINUATION.md) (instrucciones reanudables para CORE-8 → 8.1 → preparación de CORE-9) |
 | Propósito, instalación y validación | [`../README.md`](../README.md) | — |
 | Fronteras Core / adapters / host | [`ARCHITECTURE.md`](ARCHITECTURE.md) | — |
 | Qué debe aportar un producto anfitrión | [`HOST-INTEGRATION-CONTRACT.md`](HOST-INTEGRATION-CONTRACT.md) | — |
