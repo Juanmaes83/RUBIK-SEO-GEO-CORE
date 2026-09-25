@@ -28,24 +28,27 @@ function listFiles(dir){
 }
 
 for(const environment of ['production','preview']){
-  test(`${environment}: a Page Registry route with .. segments fails safely without writing outside outputDir`,t=>{
+  test(`${environment}: a stored Page Registry route with .. segments is blocked and never written outside outputDir`,t=>{
     const sandbox=fs.mkdtempSync(path.join(os.tmpdir(),'rubik-path-safety-'));
     t.after(()=>fs.rmSync(sandbox,{recursive:true,force:true}));
     const outputDir=path.join(sandbox,'a','b','out');
     fs.mkdirSync(outputDir,{recursive:true});
     const state=stateWithPage('/../../escape/');
 
-    // Precondition: the page is otherwise publishable, so only the path guard stops it.
+    // CORE-3 (D-15): the Page Registry itself now blocks the stored route (first barrier).
     const reconciled={...state,seo:core.reconcile({...state,seo:{...state.seo,site:{...state.seo.site,baseUrl:'https://casa-norte.example.test/'}}})};
     const page=releaseB.page(reconciled,'evil');
-    assert.equal(page.path,'/../../escape/','release-b keeps the .. segments');
-    assert.equal(releaseB.canPublish(reconciled,page),true);
+    assert.equal(page.path,'/../../escape/','the stored path is reported as-is, never silently rewritten');
+    assert.ok(page.contract.blockers.includes('unsafe-path'),page.contract.blockers.join(','));
+    assert.equal(releaseB.canPublish(reconciled,page),false);
 
-    assert.throws(()=>materializer.materializeSite({state,template:TEMPLATE,outputDir,environment,baseUrl:environment==='production'?'https://casa-norte.example.test/':''}),/Unsafe route path rejected/);
-
+    // The build omits the blocked route like any contract-blocked page and writes only inside outputDir.
+    const result=materializer.materializeSite({state,template:TEMPLATE,outputDir,environment,baseUrl:environment==='production'?'https://casa-norte.example.test/':''});
+    assert.ok(!result.manifest.routes.includes('/../../escape/'));
     assert.equal(fs.existsSync(path.join(sandbox,'a','escape')),false,'nothing written two levels above outputDir');
-    assert.deepEqual(listFiles(outputDir),[],'no partial output inside outputDir');
-    assert.deepEqual(listFiles(sandbox),[],'no file anywhere in the sandbox');
+    assert.deepEqual(listFiles(sandbox).filter(f=>!f.startsWith(path.join('a','b','out'))),[],'no file outside outputDir');
+    // Second barrier (materializer, D-11) stays in place for any path that reaches it.
+    assert.throws(()=>materializer.routeFile(outputDir,page.path),/Unsafe route path rejected/);
   });
 }
 

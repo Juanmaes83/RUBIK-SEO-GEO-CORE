@@ -39,7 +39,8 @@ test('mergeState fills defaults without overwriting persisted Release C state',(
 
 test('OpenSEO uses provider POST contract, polling result and normalization',async()=>{
   const a=new c.OpenSEOAdapter({endpoint:'https://openseo.test',fetchImpl:providerFetch,pollInterval:0});
-  assert.equal((await a.connectivity()).status,'CONNECTED');
+  // D-09/D-14: a 200 JSON body that is not OpenSEO's /api/health payload is never CONNECTED.
+  assert.equal((await a.connectivity()).status,'ERROR');
   const r=await a.crawl({baseUrl:'https://lumina.example/',pages:[{id:'home',canonical:'https://lumina.example/'}]});
   assert.equal(r.status,'READY');
   const n=a.normalize(r.result,config,'s1');

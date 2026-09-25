@@ -1,6 +1,6 @@
 # Handoff — extracción de Rubik SEO/GEO Core
 
-**Última sesión:** 25/09/2026 · **Rama:** `feat/seo-geo-core-extraction` (desde `main@c384767`) · **Fuente:** `WEB-RESTAURACI-N-PREMIUM-DIN-MICA@388e48a` (solo lectura)
+**Última sesión:** 25/09/2026 · **Rama:** `feat/core-3-explicit-injection` (desde `main@f2f333c`) · **Alcance:** solo `Juanmaes83/RUBIK-SEO-GEO-CORE` (D-12)
 
 > Este documento resume la última sesión. El estado con autoridad está en [`ROADMAP.md`](ROADMAP.md).
 
@@ -59,11 +59,41 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 4. El único repositorio de trabajo es RUBIK-SEO-GEO-CORE. No se accede ni modifica ningún otro repositorio.
 5. CORE-2 requiere cambios de host y queda fuera de alcance. CORE-3 pasa a ser la siguiente fase Core-only, según ROADMAP.
 
+## Sesión 7 — CORE-3 (25/09/2026)
+
+**Punto de partida:** `main@995207f` verificado; `npm run verify` daba 86 (84 pasan, 2 se omiten en Windows). Durante la sesión se fusionó el PR #2 del propietario (`main@f2f333c`) y la rama se rebaseó sobre él, conservando su redacción.
+
+1. **Secuencia (D-12):** CORE-2 bloqueado por alcance (no iniciado); CORE-3 como fase Core-only.
+2. **Release C (D-13):**
+   - `intelligence.pages(config,{releaseB})` y `entityGraph(config,{releaseB})`, sin leer `globalThis`;
+   - sin dependencia inyectada devuelve una lista vacía nueva; si la dependencia inyectada no tiene `registry()`, lanza `TypeError`.
+3. **Release E (D-13):**
+   - `{adapter}` (el descriptor de `core.adapter(config)`) en los registros de presencia y cita;
+   - `vertical` y `entityType` se derivan del adapter; sin él quedan en `UNKNOWN`, nunca `restaurant`;
+   - un vertical que contradice el adapter lanza error;
+   - Release E sigue sin dependencias de módulo.
+4. **OpenSEO (D-14):**
+   - `connectivity()` solo consulta `GET <endpoint>/api/health`;
+   - `ok` ⇒ `NOT_CONNECTED` (autorización MCP no verificada); `issues` ⇒ `ERROR` con los nombres de los checks; cualquier otra respuesta ⇒ `ERROR`;
+   - nunca devuelve `CONNECTED`;
+   - mocks locales, sin red ni credenciales.
+5. **Page Registry (D-15):**
+   - `unsafePathReason`, con las mismas reglas que el materializer;
+   - `createPage` y `migratePath` rechazan rutas inseguras sin mutar el estado;
+   - una ruta insegura ya guardada genera el bloqueo `unsafe-path`;
+   - `/..foo/`, `/.../` y `/a..b/` siguen siendo válidas; el materializer (D-11) se mantiene como defensa en profundidad.
+6. **Pruebas:**
+   - `tests/core-3-explicit-injection.test.cjs`: 27 tests, 25 de los cuales fallan con el `src/` de `main`;
+   - se adaptan 2 e2e de materialización y 1 test de Release C;
+   - `npm run verify` da 113 (111 pasan, 2 se omiten en Windows); golden y fixtures sin cambios.
+
 ## Pendiente
 
-- CORE-3: inyección explícita de dependencias, vertical activo en Release E, health honesto de OpenSEO según el contrato ya documentado y validación temprana de rutas del Page Registry.
-- CORE-2 y CORE-4 quedan fuera de alcance porque exigen cambios o validación en un host/repo externo.
-- Release E externo sigue pendiente de Platform Layer; no se simulan conexiones, citas ni métricas.
+- [PR #3](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/3): CI Node 20/22, revisión humana y merge (decisión del propietario). Sin merge ni deploy.
+- CORE-2 y CORE-4 fuera de alcance. Cuando un host adopte el Core, deberá pasar `{releaseB}` y `{adapter}` (D-13) y tener en cuenta que `connectivity()` ya no devuelve `CONNECTED` (D-14).
+- CORE-7.1: puente MCP server-side. `crawl()` sigue con el contrato heredado (D-09).
+- `entityGraph().products` sigue leyendo `config.dishes`, forma de Restaurant. No estaba en el alcance de CORE-3: queda como observación.
+- Release E externo sigue pendiente de Platform Layer. No se simulan conexiones, citas ni métricas.
 
 ## Cómo retomar
 

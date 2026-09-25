@@ -1,6 +1,6 @@
 # Integración prevista: OpenSEO
 
-**Estado:** 📝 DOCUMENTADA · ⛔ NO IMPLEMENTADA · bloqueada por CORE-2/CORE-3 y por la validación con mocks (ROADMAP CORE-7.1)
+**Estado:** 📝 DOCUMENTADA · ⛔ PUENTE NO IMPLEMENTADO · bloqueada por CORE-2 (bloqueado por alcance), por la validación con mocks MCP y por la Platform Layer (ROADMAP CORE-7.1). La conectividad honesta por `/api/health` está implementada en CORE-3 (D-14), pendiente de merge.
 **Verificado el:** 24/09/2026, contra el código de `Juanmaes83/open-seo@0ffff93101043aad7600a3b6a499a0cd2887ef49`. Es un fork idéntico a `every-app/open-seo` en esa fecha (`compare`: ahead 0 / behind 0).
 **Método:** lectura del código fuente en un clon de solo lectura. **No** se ha llamado a ninguna instancia de OpenSEO ni a DataForSEO, ni se ha desplegado nada.
 
@@ -56,7 +56,7 @@ El contrato heredado (`src/rubik-seo-geo-intelligence.js` `OpenSEOAdapter` + `up
 | Aspecto | Lo que espera el Core | Lo que ofrece OpenSEO | Consecuencia |
 |---|---|---|---|
 | Configuración | `OPENSEO_ENDPOINT`: una URL HTTPS base | Una URL de app, con MCP en `/mcp` y health en `/api/health` | `OPENSEO_ENDPOINT` no existe en OpenSEO: es un nombre del Core |
-| Conectividad | `GET <endpoint>` y `r.ok` → `CONNECTED` | La raíz devuelve la app web (HTML) | ⚠️ **Falso positivo:** cualquier web HTTPS que responda 200 da `CONNECTED`. Debe usarse `GET /api/health` y validar el JSON |
+| Conectividad | Heredado: `GET <endpoint>` y `r.ok` → `CONNECTED`. **CORE-3 (D-14):** `GET <endpoint>/api/health` | La raíz devuelve la app web (HTML) | El heredado daba un falso positivo (cualquier web HTTPS con 200 daba `CONNECTED`). **Corregido en CORE-3:** solo cuenta `/api/health`, validando el JSON, y nunca devuelve `CONNECTED` sin autorización MCP verificada |
 | Lanzar crawl | `POST <endpoint>` con JSON `{action:'crawl', baseUrl, urls:[{pageId,url}]}` | MCP `tools/call run_site_audit {projectId,url,maxPages,runLighthouse}` | No hay endpoint HTTP `crawl`. Hace falta un `projectId` de OpenSEO. No acepta una lista de URLs: parte de una URL inicial y rastrea el mismo origen |
 | Job y polling | `{jobId, resultUrl?}` → `GET <endpoint>/crawl/<jobId>` con `status` pending/running/completed/failed | `auditId` → `get_audit_status` (status + phase + pagesCrawled/Total) | Otro protocolo y otros nombres de estado |
 | Resultado | `{issues:[{pageId,url,category,severity,message,evidence}], pagesScanned}` | `get_audit_issues` → `{summary[], issues[]}` con `issueType` (p. ej. `blocked-page`, `rate-limited-page`) y `severity` critical/warning/info; `get_audit_pages` | Hace falta un mapeo explícito. `pageId` del Core ↔ URL canónica |
@@ -84,7 +84,7 @@ Pasos (todos pendientes; ver ROADMAP CORE-7.1):
 
 1. **Definir la interfaz de proveedor del Core** (CORE-3): `connectivity()`, `startCrawl({baseUrl})`, `crawlStatus(jobId)` y `crawlResult(jobId)`, inyectada como en `SearchConsoleAdapter` y `DataForSEOAdapter` (cliente inyectado). El `OpenSEOAdapter` HTTP actual queda como una implementación del puente, no como conexión directa del navegador.
 2. **Validar con mocks** que reproduzcan las respuestas MCP reales: `run_site_audit` con y sin `auditId` (rechazos de capacidad), estados de `get_audit_status`, `get_audit_issues` con `blocked-page` y `rate-limited-page`, 401/429 con `Retry-After`. Sin red.
-3. **Conectividad honesta:** `GET /api/health` → `status:"ok"` ⇒ `CONNECTED`; `"issues"` ⇒ `ERROR` con el check que falla; si no llega JSON ⇒ `ERROR`. La raíz de la app nunca cuenta.
+3. **Conectividad honesta** (implementada en CORE-3, D-14): `GET /api/health`. `status:"ok"` ⇒ `NOT_CONNECTED` (instancia sana, `authorization:"NOT_VERIFIED"`); `CONNECTED` solo cuando el puente verifique la autenticación MCP (§7). `"issues"` ⇒ `ERROR` con los nombres de los checks que fallan. Sin JSON, HTTP de error o red caída ⇒ `ERROR`. La raíz de la app nunca cuenta.
 4. **Mapeo propuesto, a validar:** `auditId`→`jobId`; `critical`→`ERROR`, `warning`→`WARNING`, `info`→`OPPORTUNITY`; `issueType`→`category`; `source:'openseo'`; `evidence` con `auditId`, `issueType` y URL.
 5. **Proyecto OpenSEO ↔ Project State:** el puente guarda el `projectId` de OpenSEO por proyecto del host en su backend, no en el Project State público. Si hace falta, se referencia en `seo.integrations.openseo` como un id opaco sin valor de credencial.
 

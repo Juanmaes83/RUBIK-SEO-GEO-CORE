@@ -64,4 +64,4 @@ UMD sin dependencias. En Node se exporta con `module.exports`; en navegador cuel
 
 ## Acoplamientos pendientes
 
-Ver [`DECISIONS.md`](DECISIONS.md) D-07: el bootstrap navegador de `core.js` sigue conociendo el Studio D de Restaurantes, `intelligence.pages()` depende de un global y Release E usa `vertical:'restaurant'` por defecto. Se resuelven en ROADMAP CORE-2 y CORE-3 sin romper al host de referencia.
+Ver [`DECISIONS.md`](DECISIONS.md) D-07: el bootstrap navegador de `core.js` sigue conociendo el Studio D de Restaurantes (CORE-2, bloqueado por alcance según D-12). La dependencia global de `intelligence.pages()` y el vertical `restaurant` por defecto de Release E se resuelven en CORE-3 mediante dependencias explícitas (D-13).
