@@ -202,7 +202,10 @@ function toC(result){return providers.toReleaseC(result,{intelligence});}
 test('toReleaseC reuses the existing Intelligence normalizers and keeps provenance',async()=>{
   const sc=toC(await run({provider:'search-console',operation:'searchAnalytics',transport:mock({rows:[{query:'q',page:'/',clicks:'3',impressions:'40'}]}).transport}));
   assert.equal(sc.status,'OK');
-  assert.deepEqual(new intelligence.SearchConsoleAdapter({}).normalize([{query:'q',page:'/',clicks:'3',impressions:'40'}]).map(r=>({...r,provenance:sc.provenance})),sc.rows);
+  // SearchConsoleAdapter.normalize() stamps fetchedAt with now(); compare without it to stay deterministic.
+  const withoutFetchedAt=rows=>rows.map(({fetchedAt,...r})=>r);
+  assert.deepEqual(withoutFetchedAt(new intelligence.SearchConsoleAdapter({}).normalize([{query:'q',page:'/',clicks:'3',impressions:'40'}]).map(r=>({...r,provenance:sc.provenance}))),withoutFetchedAt(sc.rows));
+  assert.ok(sc.rows.every(r=>typeof r.fetchedAt==='string'));
   const serp=toC(await run({provider:'dataforseo',operation:'serp',confirmCost:true,transport:mock({rows:[{query:'q',position:2,domain:'x.example'}]}).transport}));
   assert.equal(serp.rows[0].measuredAt,'2026-09-25T10:00:00.000Z','measuredAt is the capture date, not now()');
   assert.equal(serp.rows[0].provenance.sourceType,'MANUAL');
@@ -383,4 +386,64 @@ test('backlinks: missing or invalid data is never zero-filled; invalid rows make
   const empty=toC(await run({provider:'dataforseo',operation:'backlinks',confirmCost:true,transport:mock({httpStatus:200,rows:[]}).transport}));
   assert.deepEqual([empty.status,empty.rows],['EMPTY',[]]);
   assert.deepEqual(providers.normalizeBacklinks(undefined),{rows:[],rejected:0});
+});
+
+// ── Review follow-up: generic `token` / `key` pairs ──────────────────────────
+
+const GENERIC_PAIRS=['{"token":"valor-secreto-1"}','"key":"valor-secreto-2"','token=valor-secreto-3','TOKEN=valor-secreto-4','Key: valor-secreto-5',"{'KEY' : 'valor-secreto-6'}",'ToKeN = valor-secreto-7','"Token":"valor-secreto-8"'];
+const GENERIC_VALUES=GENERIC_PAIRS.map(s=>/valor-secreto-\d/.exec(s)[0]);
+const noGeneric=(value,label)=>{const json=JSON.stringify(value);for(const s of GENERIC_VALUES)assert.ok(!json.includes(s),`${label}: leaked ${s}`);};
+
+test('generic token/key pairs are redacted in JSON, key=value and any letter case',()=>{
+  for(const input of GENERIC_PAIRS){
+    const out=providers.redact(input);
+    assert.match(out,/\[redacted\]/,input);
+    noGeneric(out,input);
+  }
+  assert.equal(providers.redact('{"token":"valor-secreto-1","q":"ok"}'),'{"token":"[redacted]","q":"ok"}');
+  assert.equal(providers.redact('token=valor-secreto-3&page=2'),'token=[redacted]&page=2');
+  assert.equal(providers.redact('key=abc '+'x'.repeat(500)).length,200,'200-char cap kept');
+});
+
+test('prose that only mentions "token" or "key" is not redacted, nor are similar keys',()=>{
+  for(const prose of ['the token expired, refresh the key','keyword=seo alicante','tokens=5','monkey=banana','sort_key=title','basic plan for SEO','bearer of good news']){
+    assert.equal(providers.redact(prose),prose,prose);
+  }
+  // Earlier redactions still hold.
+  assert.equal(providers.redact('Bearer abc.def.ghi'),'Bearer [redacted]');
+  assert.equal(providers.redact('Basic dXNlcjpwYXNz'),'Basic [redacted]');
+  assert.equal(providers.redact('Token tok_1234567'),'Token [redacted]');
+  assert.equal(providers.redact('api_key=AK1&x=1'),'api_key=[redacted]&x=1');
+});
+
+test('generic token/key values in the input are refused before calling the transport',async()=>{
+  for(const pair of GENERIC_PAIRS){
+    const {transport,calls}=mock({rows:[]});
+    const r=await run({provider:'search-console',operation:'searchAnalytics',input:{note:pair},transport});
+    assert.equal(r.errors[0].code,'SECRET_IN_INPUT',pair);
+    assert.equal(calls.length,0,pair);
+    noGeneric(r,pair);
+  }
+  const {transport,calls}=mock({rows:[]});
+  const prose=await run({provider:'search-console',operation:'searchAnalytics',input:{note:'the token expired, refresh the key',query:'keyword research'},transport});
+  assert.equal(prose.status,'EMPTY','plain prose is accepted');
+  assert.equal(calls.length,1);
+});
+
+test('generic token/key values never appear in errors, evidence or output data',async()=>{
+  const thrown=await run({provider:'bing-webmaster',operation:'urlInfo',transport:mock(new Error('failed {"token":"valor-secreto-1"} key=valor-secreto-2')).transport});
+  noGeneric(thrown,'thrown');
+  const http=await run({provider:'bing-webmaster',operation:'urlInfo',transport:mock({httpStatus:400,message:'TOKEN=valor-secreto-4'}).transport});
+  noGeneric(http,'4xx');
+  const r=await run({provider:'search-console',operation:'searchAnalytics',transport:mock({
+    httpStatus:200,requestId:'Key: valor-secreto-5',providerVersion:'token=valor-secreto-3',
+    errors:[{code:'ROW',message:'"key":"valor-secreto-2"'}],
+    rows:[{query:'q',note:'ToKeN = valor-secreto-7',nested:{deep:"{'KEY' : 'valor-secreto-6'}"}}]
+  }).transport});
+  assert.equal(r.status,'PARTIAL');
+  assert.equal(r.data[0].query,'q');
+  noGeneric(r,'data/evidence/errors');
+  noGeneric(toC(r),'mapped');
+  const bl=toC(await run({provider:'dataforseo',operation:'backlinks',confirmCost:true,transport:mock({rows:[{url_from:'https://a.example/',url_to:'https://b.example/',anchor:'"Token":"valor-secreto-8"'}]}).transport}));
+  noGeneric(bl,'backlinks');
 });

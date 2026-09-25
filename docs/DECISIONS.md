@@ -433,6 +433,7 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
    - **Valores ausentes o inválidos:** quedan en `null`, nunca en `0`.
    - **Filas sin URL http(s) de origen y destino:** se rechazan y el mapeo pasa a `PARTIAL` con `partial.rejectedByNormalizer`.
    - Las URLs y los anchors pasan por la redacción.
+- **Pares genéricos `token` / `key` (segunda revisión del PR #10):** la redacción de pares y el rechazo de valores en el input cubren también `token` y `key` como palabra completa seguida de `:` o `=` (JSON, `clave=valor`, cualquier combinación de mayúsculas). Los esquemas `Bearer`/`Basic`/`Token` solo se redactan si el valor parece una credencial (contiene un dígito, mezcla mayúsculas y minúsculas o incluye alguno de `._~+/=-`), así que la prosa que solo menciona «token», «key», «basic» o «bearer» no se toca.
 - **Límite conocido (conservador):** la detección por nombre de clave rechaza también claves no secretas con esos sufijos (por ejemplo `nextPageToken` o `key`). Si un proveedor necesitara paginación por token, el transporte debe gestionarla server-side, o se hará una excepción explícita cuando se active en CORE-9.
 - **Evidencia adicional:**
   - 9 pruebas más en `tests/core-7-provider-contracts.test.cjs` (27 en total). Con el módulo anterior (`dcdbf61`) fallan 7 de ellas;

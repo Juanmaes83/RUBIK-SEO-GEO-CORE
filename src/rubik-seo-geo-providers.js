@@ -53,10 +53,15 @@ const isSecretKey=k=>{const n=normalizeKey(k);return SECRET_KEY_NAMES.includes(n
 const SECRET_PARAM='(?:key|api[-_]?key|x[-_]?api[-_]?key|token|access[-_]?token|refresh[-_]?token|id[-_]?token|client[-_]?secret|secret|password|passwd|pwd|sig|signature|auth|authorization|code)';
 const RE_USERINFO=/(\b[a-z][a-z0-9+.-]*:\/\/)[^\s/?#@]+@/gi;
 const RE_PARAM=new RegExp('([?&#;]'+SECRET_PARAM+'=)[^&#\\s"\']+','gi');
-const RE_SCHEME=/\b(bearer|basic|token)(\s+)[A-Za-z0-9._~+/=-]{4,}/gi;
-const RE_PAIR=/\b(client[-_]?secret|refresh[-_]?token|access[-_]?token|id[-_]?token|x-api-key|api[-_]?key|password|passwd|secret|authorization|cookie)(["']?\s*[:=]\s*["']?)(?!\[redacted\])[^\s"',&;}]+/gi;
+const RE_SCHEME=/\b(bearer|basic|token)(\s+)([A-Za-z0-9._~+/=-]{4,})/gi;
+/* Generic `token` / `key` are included, but only as a whole word followed by `:` or `=`
+   (optionally quoted), so prose that merely mentions "token" or "key" is left alone. */
+const RE_PAIR=/\b(client[-_]?secret|refresh[-_]?token|access[-_]?token|id[-_]?token|x-api-key|api[-_]?key|password|passwd|secret|authorization|cookie|token|key)(["']?\s*[:=]\s*["']?)(?!\[redacted\])[^\s"',&;}]+/gi;
+/* A scheme value is redacted only when it looks like a credential (digit, mixed case or
+   one of ._~+/=-), so prose such as "the token expired" or "basic plan" is left alone. */
+const credentialLike=v=>/\d|[._~+/=-]/.test(v)||(/[a-z]/.test(v)&&/[A-Z]/.test(v));
 function redactText(value){
-  return String(value??'').replace(RE_USERINFO,'$1[redacted]@').replace(RE_PARAM,'$1[redacted]').replace(RE_SCHEME,'$1$2[redacted]').replace(RE_PAIR,'$1$2[redacted]');
+  return String(value??'').replace(RE_USERINFO,'$1[redacted]@').replace(RE_PARAM,'$1[redacted]').replace(RE_SCHEME,(m,scheme,space,v)=>credentialLike(v)?scheme+space+'[redacted]':m).replace(RE_PAIR,'$1$2[redacted]');
 }
 const redact=message=>redactText(message).slice(0,200);
 const hasSecretValue=v=>typeof v==='string'&&redactText(v)!==v;
