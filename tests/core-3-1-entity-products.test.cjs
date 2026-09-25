@@ -28,7 +28,7 @@ test('products() and entityGraph() no longer read config.dishes',()=>{
     const body=code.slice(start,code.indexOf('\n',start));
     assert.doesNotMatch(body,/dishes/,name);
   }
-  // geoReadiness() still reads config.dishes: out of CORE-3.1 scope, recorded in D-17.
+  // geoReadiness() is covered by tests/core-3-2-neutral-intelligence.test.cjs (D-18).
 });
 
 test('Restaurant: products from the LÚMINA fixture match the previous dishes projection',()=>{

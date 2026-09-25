@@ -1,6 +1,6 @@
 # Handoff — extracción de Rubik SEO/GEO Core
 
-**Última sesión:** 25/09/2026 · **Rama:** `feat/core-3-explicit-injection` (desde `main@f2f333c`) · **Alcance:** solo `Juanmaes83/RUBIK-SEO-GEO-CORE` (D-12)
+**Última sesión:** 25/09/2026 · **Rama:** `feat/core-3-2-neutral-intelligence` (desde `main@0be4752`) · **Alcance:** solo `Juanmaes83/RUBIK-SEO-GEO-CORE` (D-12)
 
 > Este documento resume la última sesión. El estado con autoridad está en [`ROADMAP.md`](ROADMAP.md).
 
@@ -120,4 +120,26 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 4. **Pruebas:** `tests/core-3-1-entity-products.test.cjs` (16). Contra el `intelligence` de `main` fallan 15; la que pasa (entradas `null` ⇒ `TypeError`) lo hace porque en `main` `products()` no existe. `npm run verify` da 129 (127 pasan, 2 se omiten en Windows). Golden idéntico (blob `5aa93a3`).
 5. **Deuda restante:** `geoReadiness()` sigue leyendo `config.dishes`; `entityGraph().business/location` no usan las alternativas genéricas. D-16 (microcopy OpenSEO) sigue aplazada, sin cambios.
 
-**Pendiente:** revisión humana y merge del PR de CORE-3.1 (`feat/core-3-1-entity-products`). CI Node 20/22 verde, 129/129, 0 omitidos (run 36108440350). Sin merge ni deploy.
+**Cierre:** CORE-3.1 fusionado en `main` mediante [PR #6](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/6) (merge `0be47522148e7fb33b6e0a6177cd8a219e011dc5`). CI Node 20/22 verde, 129/129, 0 omitidos ([run 36108440350](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36108440350)).
+
+## Sesión 11 — CORE-3.2 (25/09/2026)
+
+**Rama:** `feat/core-3-2-neutral-intelligence` desde `main@0be4752` (contiene el merge del PR #6). Estado inicial: `npm run verify` daba 129 (127 pasan, 2 se omiten en Windows).
+
+1. **Contrato observado:** `source(config)` de los 7 adapters expone:
+   - `name`: `restaurant` usa `brand.name`; los genéricos, `brand.name` o `business.name`;
+   - `address`: claves de schema.org. `restaurant` toma `modules.location.address`; los genéricos, `modules.location.address` o `business.address`. En ambos casos `visit.address` sirve como calle heredada;
+   - `city` y `offerings`;
+   - todo con valores visibles vía `pub()`.
+2. **Cambio (D-18):**
+   - `entityGraph(config,{releaseB,core})`: `business` = `source.name`, `location` = copia de `source.address`, `products` = `source.offerings`, `pages` sin cambios. Resuelve `source` una sola vez.
+   - `geoReadiness(config,{schemaGraph,publicHtml,core})`: señales de negocio, ubicación y producto desde `source`, siempre HEURISTIC.
+   - Sin `core`: `entityGraph` devuelve `''`, `{}` y `[]`; `geoReadiness` devuelve `adapterSource:'NOT_PROVIDED'`, señales `null`, sin gaps ni fortalezas o debilidades, y `factualSignals:null`.
+   - Un `core` inválido lanza `TypeError`.
+3. **Contratos cerrados intactos:** `products()` (D-17) y `pages()` (D-13). Las pruebas de CORE-3.1 y CORE-3 pasan sin cambios; solo se actualiza un comentario de CORE-3.1 que ya estaba obsoleto.
+4. **Pruebas:** `tests/core-3-2-neutral-intelligence.test.cjs` (24).
+   - Contra el `intelligence` de `main` fallan 23; la que pasa (globals ignorados) pasa también en `main`, porque `main` tampoco leía globals.
+   - `npm run verify` da 153 (151 pasan, 2 se omiten en Windows). Golden idéntico (blob `5aa93a3`).
+5. **Sin cambios** en adapters, Publisher ni materializer. D-16 intacta.
+
+**Pendiente:** CI Node 20/22 del PR de CORE-3.2 (`feat/core-3-2-neutral-intelligence`), revisión humana y merge. Sin merge ni deploy.
