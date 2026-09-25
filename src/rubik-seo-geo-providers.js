@@ -31,14 +31,21 @@ const CATALOG=freeze({
   'manual-import':{label:'Importación manual',sourceType:'MANUAL',auth:'none',operations:{
     presence:{release:'E',costModel:'free',units:0,target:'authority.presence'},
     citation:{release:'E',costModel:'free',units:0,target:'authority.citation'}}},
-  'openseo':{label:'OpenSEO',sourceType:'CRAWLER',auth:'mcp-server-side',deferred:'CORE-7.1',operations:{
-    siteAudit:{release:'C',costModel:'free',units:1,target:'intelligence.crawl'}}}
+  /* CORE-7.1 (D-22): documented OpenSEO MCP tools only (docs/integrations/OPENSEO.md).
+     Runs only through an injected MCP client (`mcp`); without it: NOT_CONFIGURED/BRIDGE_PENDING.
+     free: the audit crawl does not use DataForSEO and Lighthouse is always disabled. */
+  'openseo':{label:'OpenSEO',sourceType:'CRAWLER',auth:'mcp-server-side',requires:'mcp',operations:{
+    whoami:{release:'C',costModel:'free',units:0,target:'intelligence.connectivity',tool:'whoami'},
+    siteAudit:{release:'C',costModel:'free',units:1,target:'intelligence.crawl',tool:'run_site_audit'},
+    auditStatus:{release:'C',costModel:'free',units:0,target:'intelligence.crawl',tool:'get_audit_status'},
+    auditIssues:{release:'C',costModel:'free',units:0,target:'intelligence.issues',tool:'get_audit_issues'},
+    auditPages:{release:'C',costModel:'free',units:0,target:'intelligence.pages',tool:'get_audit_pages'}}}
 });
 
 function describe(provider,operation){
   const p=CATALOG[provider],op=p?.operations?.[operation];
   if(!op)return null;
-  return {provider,operation,label:p.label,sourceType:p.sourceType,auth:p.auth,deferred:p.deferred||null,...op};
+  return {provider,operation,label:p.label,sourceType:p.sourceType,auth:p.auth,requires:p.requires||null,...op};
 }
 function catalog(){return clone(CATALOG);}
 
@@ -140,10 +147,10 @@ async function runProviderRequest(request={}){
   const d=describe(provider,operation),budget=normalizeBudget(request.budget);
   const base={provider:text(provider),operation:text(operation),release:d?.release,target:d?.target,budget};
   if(!d)return envelope(base,{status:'ERROR',errors:[{code:'UNKNOWN_OPERATION',message:'Unknown provider/operation',retryable:false}]});
-  if(d.deferred)return envelope(base,{status:'NOT_CONFIGURED',errors:[{code:'BRIDGE_PENDING',message:`Provider requires the ${d.deferred} bridge`,retryable:false}]});
   const secret=findSecret(input);
   if(secret)return envelope(base,{status:'ERROR',errors:[{code:'SECRET_IN_INPUT',message:redact(`Secrets must stay in the server-side transport (${secret==='(value)'?'credential-like value':'field "'+secret+'"'})`),retryable:false}]});
   try{JSON.stringify(input);}catch{return envelope(base,{status:'ERROR',errors:[{code:'INVALID_INPUT',message:'Input must be JSON-serializable (no cycles)',retryable:false}]});}
+  if(d.requires==='mcp')return runOpenSEO(d,request,base,budget);
   if(transport==null)return envelope(base,{status:'NOT_CONNECTED',errors:[{code:'NO_TRANSPORT',message:'No transport injected; provider is not connected',retryable:false}]});
   if(typeof transport.request!=='function')throw new TypeError('transport.request must be a function');
   if(cache!=null&&(typeof cache.get!=='function'||typeof cache.set!=='function'))throw new TypeError('cache must provide get() and set()');
@@ -176,6 +183,157 @@ async function runProviderRequest(request={}){
   const result=envelope({...base,budget:spent},{status,data:redactDeep(valid),partial,errors:itemErrors,cost,provenance:freeze(provenance),connection:kind==='live'&&(status==='OK'||status==='PARTIAL'||status==='EMPTY')?'VERIFIED':'NOT_VERIFIED'});
   if(cache&&(status==='OK'||status==='PARTIAL'||status==='EMPTY'))cache.set(key,result);
   return result;
+}
+
+/* ── OpenSEO MCP bridge (CORE-7.1, D-22) ────────────────────────────────────
+   Core-only contract over an injected MCP client {kind:'mock'|'live', callTool(name,args)}
+   that the host/platform runs server-side (CORE-9 owns auth, secrets and the real MCP
+   transport). Only `structuredContent` is read; text content is never copied. Tool names,
+   arguments and codes come from docs/integrations/OPENSEO.md. Status values of
+   get_audit_status are NOT documented there, so the caller injects `statusVocabulary`
+   ({completed,failed,pending}); an unclassified status never becomes READY. */
+const OPENSEO_SEVERITY=Object.freeze({critical:'ERROR',warning:'WARNING',info:'OPPORTUNITY'});
+const OPENSEO_DOCUMENTED_CODES=Object.freeze(['AUDIT_CAPACITY_REACHED','AUDIT_ALREADY_RUNNING','RATE_LIMITED','USAGE_EXCEEDED']);
+const OPENSEO_CRAWL_ACCESS=Object.freeze({'blocked-page':'BLOCKED','rate-limited-page':'RATE_LIMITED'});
+const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
+const bounded=(v,n)=>redactText(text(v)).slice(0,n);
+const httpsTarget=v=>{try{const u=new URL(text(v));return u.protocol==='https:'&&!u.username&&!u.password?redactText(u.href):'';}catch{return '';}};
+const canonicalKey=v=>{try{const u=new URL(text(v));u.hash='';return u.href;}catch{return '';}};
+function registryIndex(registry){const index=new Map();for(const p of arr(registry)){const k=canonicalKey(p?.canonical||p?.url);if(k&&text(p?.id))index.set(k,text(p.id));}return index;}
+const openseoError=(code,message)=>({error:{code,message}});
+function openseoArgs(operation,input){
+  const projectId=bounded(input.projectId,200),auditId=bounded(input.auditId,200);
+  if(operation==='whoami')return {args:{}};
+  if(operation==='siteAudit'){
+    if(input.trigger!=='manual')return openseoError('MANUAL_TRIGGER_REQUIRED','Site audits start only from an explicit user action (trigger:"manual")');
+    if(input.runLighthouse!==undefined&&input.runLighthouse!==false)return openseoError('LIGHTHOUSE_NOT_ALLOWED','runLighthouse must be false: Lighthouse is billed through DataForSEO');
+    const url=httpsTarget(input.url),maxPages=input.maxPages===undefined?50:input.maxPages;
+    if(!projectId||!url||!Number.isInteger(maxPages)||maxPages<10||maxPages>10000)return openseoError('INVALID_INPUT','siteAudit needs projectId, an https url and an integer maxPages between 10 and 10000');
+    return {args:{projectId,url,maxPages,runLighthouse:false}};
+  }
+  if(!projectId||!auditId)return openseoError('INVALID_INPUT',`${operation} needs projectId and auditId`);
+  if(operation!=='auditIssues')return {args:{projectId,auditId}};
+  const args={projectId,auditId};
+  if(input.severity!==undefined){if(typeof input.severity!=='string'||!own(OPENSEO_SEVERITY,input.severity))return openseoError('INVALID_INPUT','severity must be critical, warning or info');args.severity=input.severity;}
+  if(input.issueType!==undefined){const t=text(input.issueType);if(!/^[a-z0-9-]{1,80}$/.test(t))return openseoError('INVALID_INPUT','issueType must be a kebab-case identifier');args.issueType=t;}
+  const limit=input.limit===undefined?200:input.limit;
+  if(!Number.isInteger(limit)||limit<1||limit>1000)return openseoError('INVALID_INPUT','limit must be an integer between 1 and 1000');
+  args.limit=limit;
+  return {args};
+}
+/* Transport/MCP failures: HTTP status from the injected client (401/403/429), documented
+   OpenSEO codes, JSON-RPC (numeric) errors and timeouts. Messages are redacted and bounded. */
+function openseoFailure(error){
+  const status=Number(error?.status??error?.httpStatus),code=typeof error?.code==='string'?error.code:'',retry=Number(error?.retryAfter);
+  const retryAfterSeconds=Number.isFinite(retry)&&retry>=0?retry:null,message=redact(error?.message||'OpenSEO request failed');
+  if(error?.name==='AbortError'||code==='ETIMEDOUT')return {status:'ERROR',code:'TIMEOUT',message,retryable:true};
+  if(status===401)return {status:'NOT_CONNECTED',code:'AUTH',message:'Authorization rejected by OpenSEO',retryable:false};
+  if(status===403)return {status:'ERROR',code:'FORBIDDEN',message:'Access forbidden by OpenSEO',retryable:false};
+  if(status===429||code==='RATE_LIMITED')return {status:'RATE_LIMITED',code:'RATE_LIMITED',message:'OpenSEO rate limit reached',retryable:true,retryAfterSeconds};
+  if(code==='USAGE_EXCEEDED')return {status:'ERROR',code:'USAGE_EXCEEDED',message:'OpenSEO usage limit exceeded',retryable:false,retryAfterSeconds};
+  if(Number.isInteger(error?.code))return {status:'ERROR',code:'MCP_ERROR',message,retryable:false};
+  return {status:'ERROR',code:'TRANSPORT_ERROR',message,retryable:!Number.isFinite(status)||status>=500};
+}
+function classifyStatus(value,vocabulary){
+  const v=value.toLowerCase(),has=list=>arr(list).some(x=>text(x).toLowerCase()===v);
+  if(has(vocabulary?.failed))return 'FAILED';
+  if(has(vocabulary?.completed))return 'COMPLETED';
+  if(has(vocabulary?.pending))return 'SYNCING';
+  return 'UNCLASSIFIED';
+}
+function normalizeOpenSEOIssues(items,{auditId,capturedAt,index}){
+  const out=[];let rejected=0;
+  for(const item of arr(items)){
+    const issueType=text(item?.issueType),severity=typeof item?.severity==='string'?item.severity:'';
+    const rawUrl=item?.url,url=rawUrl===undefined||rawUrl===null||rawUrl===''?'':httpsTarget(rawUrl)||(()=>{try{const u=new URL(text(rawUrl));return /^https?:$/.test(u.protocol)?redactText(u.href):null;}catch{return null;}})();
+    if(!/^[a-z0-9-]{1,80}$/.test(issueType)||!own(OPENSEO_SEVERITY,severity)||url===null){rejected++;continue;}
+    const pageId=url?index.get(canonicalKey(url))||'':'',evidence={auditId,issueType,providerSeverity:severity,url};
+    if(own(OPENSEO_CRAWL_ACCESS,issueType))evidence.crawlAccess=OPENSEO_CRAWL_ACCESS[issueType];
+    out.push({id:`openseo:${auditId}:${issueType}:${url}`,source:'openseo',pageId,inRegistry:!!pageId,url,category:issueType,severity:OPENSEO_SEVERITY[severity],message:issueType,evidence,detectedAt:capturedAt,status:'OPEN'});
+  }
+  return {rows:out,rejected};
+}
+function normalizeOpenSEOPages(items,{index}){
+  const out=[];let rejected=0;
+  for(const item of arr(items)){
+    let url='';try{const u=new URL(text(item?.url));if(/^https?:$/.test(u.protocol))url=redactText(u.href);}catch{}
+    if(!url){rejected++;continue;}
+    const pageId=index.get(canonicalKey(url))||'';
+    out.push({url,pageId,inRegistry:!!pageId});
+  }
+  return {rows:out,rejected};
+}
+async function runOpenSEO(d,request,base,budget){
+  const {input={},mcp,clock}=request,maxRows=Number.isInteger(request.maxRows)&&request.maxRows>=0?request.maxRows:Infinity;
+  if(mcp==null)return envelope(base,{status:'NOT_CONFIGURED',errors:[{code:'BRIDGE_PENDING',message:'OpenSEO needs an injected server-side MCP client; none was provided',retryable:false}]});
+  if(typeof mcp.callTool!=='function')throw new TypeError('mcp.callTool must be a function');
+  const job=request.activeJob;
+  if(d.operation==='siteAudit'&&job&&text(job.jobId)&&job.state==='SYNCING')return envelope(base,{status:'OK',data:[{...clone(job),reused:true}],errors:[]});
+  const built=openseoArgs(d.operation,input);
+  if(built.error)return envelope(base,{status:'ERROR',errors:[{...built.error,retryable:false}]});
+  if(budget.requests+1>budget.maxRequests||budget.usedUnits+d.units>budget.maxUnits)return envelope(base,{status:'BUDGET_EXCEEDED',errors:[{code:'BUDGET_EXCEEDED',message:'Request would exceed the injected budget',retryable:false}]});
+  const spent={...budget,requests:budget.requests+1,usedUnits:budget.usedUnits+d.units},cost={units:d.units,estimatedUsd:null,charged:false};
+  const kind=mcp.kind==='live'?'live':'mock',requestedAt=iso(clock),auditId=built.args.auditId||'';
+  const provenanceOf=(capturedAt,extra={})=>freeze({provider:'openseo',sourceType:d.sourceType,operation:d.operation,requestedAt,capturedAt,method:kind==='live'?'api':'mock',evidence:{tool:d.tool,...(auditId?{auditId}:{}),...extra}});
+  const fail=(capturedAt,status,err,extra={})=>envelope({...base,budget:spent},{status,cost,provenance:provenanceOf(capturedAt,extra),errors:[err]});
+  let res;
+  try{res=await mcp.callTool(d.tool,clone(built.args));}
+  catch(error){const f=openseoFailure(error);const err={code:f.code,message:f.message,retryable:f.retryable};if(f.retryAfterSeconds!==undefined)err.retryAfterSeconds=f.retryAfterSeconds;return fail(iso(clock),f.status,err);}
+  const capturedAt=iso(clock),sc=res?.structuredContent;
+  const scCode=sc&&typeof sc==='object'&&OPENSEO_DOCUMENTED_CODES.includes(sc.code)?sc.code:'';
+  if(res?.isError===true){
+    if(scCode==='RATE_LIMITED')return fail(capturedAt,'RATE_LIMITED',{code:'RATE_LIMITED',message:'OpenSEO rate limit reached',retryable:true,retryAfterSeconds:null});
+    return fail(capturedAt,'ERROR',{code:scCode||'TOOL_ERROR',message:'OpenSEO tool returned an error',retryable:scCode==='AUDIT_ALREADY_RUNNING'});
+  }
+  if(!sc||typeof sc!=='object'||Array.isArray(sc))return fail(capturedAt,'ERROR',{code:'NO_STRUCTURED_CONTENT',message:'OpenSEO response has no structuredContent',retryable:false});
+  const live=status=>kind==='live'&&['OK','PARTIAL','EMPTY'].includes(status)?'VERIFIED':'NOT_VERIFIED';
+  const done=(status,data,{partial=null,errors=[],extra={}}={})=>envelope({...base,budget:spent},{status,data,partial,errors,cost,provenance:provenanceOf(capturedAt,{rowCount:data.length,...extra}),connection:live(status)});
+  const index=registryIndex(request.registry);
+  if(d.operation==='whoami'){
+    if(!Object.keys(sc).length)return fail(capturedAt,'ERROR',{code:'INVALID_RESPONSE',message:'whoami returned an empty structuredContent',retryable:false});
+    return done('OK',[]);
+  }
+  if(d.operation==='siteAudit'){
+    const id=bounded(sc.auditId,200);
+    if(!id)return fail(capturedAt,'ERROR',{code:scCode||'AUDIT_REFUSED',message:'OpenSEO did not start the audit (no auditId)',retryable:scCode==='AUDIT_ALREADY_RUNNING'});
+    return done('OK',[{jobId:id,auditId:id,provider:'openseo',state:'SYNCING',startedAt:capturedAt,url:built.args.url,maxPages:built.args.maxPages,runLighthouse:false}],{extra:{auditId:id}});
+  }
+  if(d.operation==='auditStatus'){
+    const providerStatus=bounded(sc.status,40);
+    if(!providerStatus)return fail(capturedAt,'ERROR',{code:'INVALID_RESPONSE',message:'get_audit_status returned no status',retryable:false});
+    const state=classifyStatus(providerStatus,request.statusVocabulary);
+    const row={jobId:auditId,auditId,providerStatus,state,phase:bounded(sc.phase,60)||null,pagesCrawled:numOrNull(sc.pagesCrawled),pagesTotal:numOrNull(sc.pagesTotal)};
+    if(state==='FAILED')return envelope({...base,budget:spent},{status:'ERROR',data:[row],cost,provenance:provenanceOf(capturedAt,{rowCount:1}),errors:[{code:'AUDIT_FAILED',message:'OpenSEO reports the audit as failed',retryable:false}]});
+    if(state==='UNCLASSIFIED')return done('PARTIAL',[row],{partial:{reason:'unclassified-status',received:1,expected:1,rejected:0,capped:0,truncated:false},errors:[{code:'UNCLASSIFIED_STATUS',message:'Status not in the injected statusVocabulary; the job stays SYNCING',retryable:true}]});
+    return done('OK',[row]);
+  }
+  const listKey=d.operation==='auditIssues'?'issues':'pages';
+  if(!Array.isArray(sc[listKey]))return fail(capturedAt,'ERROR',{code:'INVALID_RESPONSE',message:`${d.tool} returned no ${listKey} array`,retryable:false});
+  const normalized=d.operation==='auditIssues'?normalizeOpenSEOIssues(sc.issues,{auditId,capturedAt,index}):normalizeOpenSEOPages(sc.pages,{index});
+  const rows=normalized.rows.slice(0,maxRows),capped=normalized.rows.length-rows.length;
+  const total=d.operation==='auditPages'?numOrNull(sc.total):null,missing=total!==null&&total>normalized.rows.length?total-normalized.rows.length:0;
+  const limitReached=d.operation==='auditIssues'&&sc.issues.length>=built.args.limit;
+  const isPartial=normalized.rejected>0||capped>0||missing>0||limitReached;
+  const reason=normalized.rejected?'invalid-rows':capped?'max-rows':missing?'missing-rows':limitReached?'limit-reached':null;
+  const extra=d.operation==='auditIssues'?{summaryCount:Array.isArray(sc.summary)?sc.summary.length:null}:{total};
+  if(!rows.length&&!isPartial)return done('EMPTY',[],{extra});
+  return done(isPartial?'PARTIAL':'OK',rows,{partial:isPartial?{reason,received:rows.length,expected:total,rejected:normalized.rejected,capped,truncated:capped>0||limitReached}:null,extra});
+}
+
+/* Connectivity (D-14 + D-22): CONNECTED only when the health check (the injected result of
+   intelligence.OpenSEOAdapter.connectivity()) is ok AND whoami succeeds through a live MCP
+   client. Health alone, or a mock client, stays NOT_CONNECTED / NOT_VERIFIED. */
+async function openseoConnectivity({health,mcp,clock}={}){
+  const h=typeof health==='function'?await health():health;
+  if(!h||h.status==='NOT_CONFIGURED')return {status:'NOT_CONFIGURED',health:null,authorization:'NOT_VERIFIED'};
+  if(h.health!=='ok')return {status:h.status==='NOT_CONNECTED'?'NOT_CONNECTED':'ERROR',health:h.health?bounded(h.health,20):null,authorization:'NOT_VERIFIED',failingChecks:arr(h.failingChecks).map(x=>bounded(x,60)).filter(Boolean),error:h.error?redact(h.error):null};
+  if(mcp==null)return {status:'NOT_CONNECTED',health:'ok',authorization:'NOT_VERIFIED'};
+  const r=await runProviderRequest({provider:'openseo',operation:'whoami',mcp,clock});
+  const checkedAt=r.provenance?.capturedAt||null;
+  if(r.status==='OK'&&r.connection==='VERIFIED')return {status:'CONNECTED',health:'ok',authorization:'VERIFIED',checkedAt};
+  if(r.status==='OK')return {status:'NOT_CONNECTED',health:'ok',authorization:'NOT_VERIFIED',reason:'MOCK_CLIENT',checkedAt};
+  if(r.status==='NOT_CONNECTED')return {status:'NOT_CONNECTED',health:'ok',authorization:'REJECTED',checkedAt,error:r.errors[0]||null};
+  return {status:'ERROR',health:'ok',authorization:'NOT_VERIFIED',checkedAt,error:r.errors[0]||null};
 }
 
 /* A result older than maxAgeMs becomes STALE; data and provenance are kept for review. */
@@ -257,5 +415,5 @@ function toReleaseE(result,{releaseE,adapter}={}){
   return {status:result.status,records,provenance:clone(result.provenance),partial:clone(result.partial)};
 }
 
-return Object.freeze({RESULT_STATUSES,COST_MODELS,catalog,describe,runProviderRequest,markStale,toReleaseC,toReleaseE,normalizeBacklinks,stableKey,redact});
+return Object.freeze({RESULT_STATUSES,COST_MODELS,catalog,describe,runProviderRequest,openseoConnectivity,markStale,toReleaseC,toReleaseE,normalizeBacklinks,stableKey,redact});
 });

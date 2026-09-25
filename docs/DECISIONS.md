@@ -442,3 +442,46 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
 
 
 **Cierre de CORE-7:** el HEAD final `e394035` pasó CI en Node 20.20.2 y 22.23.2, 205/205 pruebas por job y 0 omitidas, además de sintaxis, documentación y smoke CLI (run [36121912236](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36121912236)). PR #10 fusionado con `6ef8c4e56da1ea9e28649c8160f815ef6c9895c2`. Sin deploy.
+
+## D-22 · Contrato Core-only del puente OpenSEO/MCP (CORE-7.1)
+
+**Estado:** implementado en la rama `feat/core-7-1-openseo-bridge`. En progreso hasta su merge. **No activa ninguna conexión real:** el transporte MCP, la autenticación, el backend, los secretos y la persistencia siguen en CORE-9 (D-20).
+
+- **Fuente única:** `docs/integrations/OPENSEO.md`. Solo se mapean las herramientas documentadas: `whoami`, `run_site_audit`, `get_audit_status`, `get_audit_issues` y `get_audit_pages`. Se toman sus argumentos, los códigos `AUDIT_CAPACITY_REACHED`, `AUDIT_ALREADY_RUNNING`, `RATE_LIMITED` y `USAGE_EXCEEDED`, las severidades `critical`/`warning`/`info` y los tipos `blocked-page`/`rate-limited-page`.
+- **Dependencia inyectada:** en `src/rubik-seo-geo-providers.js`, el catálogo `openseo` pasa a `requires:'mcp'` con las operaciones `whoami`, `siteAudit`, `auditStatus`, `auditIssues` y `auditPages`, todas `free`.
+  - `runProviderRequest` solo las ejecuta con un cliente `mcp:{kind:'mock'|'live', callTool(name,args)}` que el host o la plataforma aportan server-side.
+  - Sin él → `NOT_CONFIGURED`/`BRIDGE_PENDING`. Un `transport` genérico nunca se usa para OpenSEO.
+  - No hay SDK MCP, `fetch`, credenciales, OAuth, storage ni trabajos programados.
+- **Solo `structuredContent`:** el texto (`content`) nunca se copia. Estos casos son errores controlados y redactados, sin cuerpos crudos:
+  - `isError` → `TOOL_ERROR`, o el código documentado si viene;
+  - sin `structuredContent` → `NO_STRUCTURED_CONTENT`;
+  - una forma inválida → `INVALID_RESPONSE`;
+  - fallos del cliente: 401 → `NOT_CONNECTED`/`AUTH`; 403 → `FORBIDDEN`; 429 o `RATE_LIMITED` → `RATE_LIMITED` con `retryAfterSeconds` del `Retry-After`; `USAGE_EXCEEDED`; `AbortError` → `TIMEOUT`; un JSON-RPC numérico → `MCP_ERROR`; cualquier otra excepción → `TRANSPORT_ERROR`.
+- **Mapeo:**
+  - **Inicio de auditoría:** `run_site_audit` se llama siempre con `{projectId, url (https, sin credenciales), maxPages (10–10000, 50 por defecto), runLighthouse:false}`.
+    - Pedir Lighthouse → `LIGHTHOUSE_NOT_ALLOWED`.
+    - Solo se lanza con `trigger:'manual'`; si no → `MANUAL_TRIGGER_REQUIRED`. Así se impide lanzar auditorías desde el render, la importación o tareas automáticas.
+    - Si hay un `activeJob` en `SYNCING`, se reutiliza en lugar de lanzar otra.
+  - **Job:** `auditId` → `jobId` del Core, con estado `SYNCING`. Una respuesta sin `auditId` es un rechazo: `AUDIT_CAPACITY_REACHED`/`AUDIT_ALREADY_RUNNING` si el `structuredContent` trae ese código documentado; si no, `AUDIT_REFUSED`.
+  - **Estado:** `get_audit_status` → `{providerStatus, state, phase, pagesCrawled, pagesTotal}`. **OPENSEO.md no documenta los valores de `status`**, así que el llamador inyecta `statusVocabulary` (`completed`/`failed`/`pending`). Un estado no clasificado (o sin vocabulario) queda `UNCLASSIFIED` (`PARTIAL`) y **nunca** se convierte en `COMPLETED`/`READY`. `failed` → `ERROR`/`AUDIT_FAILED`.
+  - **Incidencias:** `get_audit_issues` se llama con `severity` opcional, `issueType` en kebab-case y `limit` entre 1 y 1000 (200 por defecto). Cada incidencia pasa a la forma de Intelligence: `source:'openseo'`, `category=issueType`, severidad `critical→ERROR`/`warning→WARNING`/`info→OPPORTUNITY`, `evidence {auditId, issueType, providerSeverity, url, crawlAccess:'BLOCKED'|'RATE_LIMITED'}` para `blocked-page`/`rate-limited-page`, y `detectedAt` igual a la fecha de captura.
+    - Es compatible con `makeSnapshot`, `diff` y `triage`.
+    - `summary` solo se cuenta.
+    - Si se devuelven tantas incidencias como el `limit` → `PARTIAL`/`limit-reached`.
+  - **Páginas:** `get_audit_pages` → `{url, pageId, inRegistry}`. OPENSEO.md no documenta más campos, así que no se copian. `total` > recibidas → `PARTIAL`.
+  - **Correlación:** `pageId` se asigna por **URL canónica** exacta (sin fragmento) contra el `registry` inyectado, por ejemplo `intelligence.pages(config,{releaseB})`. El crawl puede cubrir URLs fuera del Page Registry (`inRegistry:false`).
+- **Conectividad:** `openseoConnectivity({health, mcp, clock})`.
+  - `health` es el resultado, o una función, de `intelligence.OpenSEOAdapter.connectivity()` (D-14, sin cambios).
+  - `CONNECTED`/`VERIFIED` **solo** si el health es `ok` **y** `whoami` responde con un `structuredContent` no vacío a través de un cliente `live`.
+  - Health solo → `NOT_CONNECTED`/`NOT_VERIFIED`; cliente mock → `NOT_CONNECTED` (`reason:'MOCK_CLIENT'`); 401 → `authorization:'REJECTED'`.
+  - La identidad devuelta por `whoami` no se copia.
+  - D-16 y sus mensajes no cambian.
+- **Sin cambios:** el `crawl()` y el `connectivity()` heredados de `OpenSEOAdapter`, las comprobaciones de CORE-7 (conexión verificada, secretos, coste) y el golden. Única adaptación: la aserción de CORE-7 que comprobaba `deferred:'CORE-7.1'` ahora comprueba `requires:'mcp'`; la de `BRIDGE_PENDING` sin dependencia sigue igual.
+- **Evidencia:**
+  - `tests/core-7-1-openseo-bridge.test.cjs` (21 pruebas);
+  - mutaciones detectadas: un mock que verifica, quitar la validación de Lighthouse, un estado no clasificado convertido en completado, ignorar la falta del cliente MCP, copiar el texto de `content` o quitar el disparador manual. La mutación «argumento Lighthouse desde el input» es equivalente, porque la validación previa la hace inalcanzable;
+  - golden y paridad sin cambios.
+- **Deuda:**
+  - validar contra una instancia real en CORE-9, incluidos los valores reales de `status` para `statusVocabulary` y la forma de las páginas;
+  - la persistencia del `projectId` de OpenSEO y del job activo corresponde al backend del host;
+  - `crawl()` heredado.

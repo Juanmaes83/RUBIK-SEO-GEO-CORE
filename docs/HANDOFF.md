@@ -239,3 +239,20 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - **CI del HEAD final `e394035`:** Node 20.20.2 y 22.23.2, 205/205 en cada job, 0 omitidas; sintaxis, documentación y smoke CLI verdes (run [36121912236](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36121912236)).
 - **Contrato final:** redacción/rechazo de pares genéricos `token`/`key`, presupuesto finito obligatorio para operaciones quota/paid (`BUDGET_REQUIRED`) y normalización neutral de backlinks. 31 pruebas en el módulo de providers. No hubo llamadas a proveedores reales ni deploy.
 - **Siguiente:** CORE-7.1, contrato y pruebas con mocks MCP en este repositorio. No implementar todavía la conexión autenticada/backend; queda para CORE-9. CORE-2/4/5 siguen fuera del alcance actual por depender de validación en host.
+
+## Sesión 17 — CORE-7.1 puente OpenSEO/MCP (25/09/2026)
+
+**Rama:** `feat/core-7-1-openseo-bridge` desde `main@3e03f49` (cierre de CORE-7). Estado inicial: `npm run verify` daba 205 (203 pasan, 2 se omiten en Windows).
+
+1. **D-22:** contrato del puente dentro de `providers`.
+   - Catálogo `openseo` con `requires:'mcp'` y las 5 herramientas documentadas.
+   - Cliente MCP inyectado, lectura solo de `structuredContent` y errores controlados (401/403/429 + `Retry-After`, `USAGE_EXCEEDED`, timeout, JSON-RPC, `isError`, sin `structuredContent`).
+   - `auditId` pasa a ser el job; estados con el `statusVocabulary` inyectado (lo no clasificado nunca es `READY`).
+   - Incidencias en la forma de Intelligence, con `crawlAccess` para `blocked-page`/`rate-limited-page`; páginas correlacionadas por URL canónica.
+   - `openseoConnectivity`: `CONNECTED` solo con health ok y `whoami` a través de un cliente live.
+   - Lighthouse siempre desactivado y disparador manual obligatorio.
+2. **Sin cambios:** D-14, D-16, `crawl()` heredado, las comprobaciones de CORE-7 y el golden. Solo se adaptó la aserción `deferred` → `requires` de CORE-7.
+3. **Pruebas:** `tests/core-7-1-openseo-bridge.test.cjs` (21) y verificación por mutación. `npm run verify` da 226 (224 pasan, 2 se omiten en Windows), igual con Node 20.20.2 y 22.23.3.
+4. **Deuda:** validación contra una instancia real, transporte MCP autenticado, secretos y persistencia del `projectId`/job en CORE-9; valores reales de `status` para el vocabulario; `crawl()` heredado.
+
+**Pendiente:** CI Node 20/22 del PR de CORE-7.1 (`feat/core-7-1-openseo-bridge`), revisión humana y merge. Sin merge ni deploy.

@@ -58,6 +58,7 @@ git hash-object --path=src/rubik-seo-geo-core.js src/rubik-seo-geo-core.js
 | `tests/core-independence.test.cjs`, `tests/core-source-parity.test.cjs` | Gates nuevos (D-08). |
 | `tests/core-materialize-path-safety.test.cjs` | Prueba de seguridad de path traversal (D-11). |
 | `src/rubik-seo-geo-providers.js` | Nuevo en CORE-7 (D-21): contratos neutrales de proveedor para Release C/E. Sin equivalente en el fuente. |
+| `tests/core-7-1-openseo-bridge.test.cjs` | CORE-7.1: puente OpenSEO/MCP con cliente inyectado y mocks (D-22). |
 | `tests/core-7-provider-contracts.test.cjs` | CORE-7: sobre de resultado, provenance, errores, datos parciales, coste/presupuesto/caché y mapeo C/E con mocks (D-21). |
 | `tests/core-6-multilingual.test.cjs` | CORE-6: contrato multidioma D-19 (locales, hreflang recíproco, canonical por locale, materializer). |
 | `tests/core-3-2-neutral-intelligence.test.cjs` | CORE-3.2: `geoReadiness()` y `entityGraph()` desde `source(config)` de los 7 adapters (D-18). |

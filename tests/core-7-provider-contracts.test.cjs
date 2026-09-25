@@ -35,7 +35,7 @@ test('catalogue is declarative: release, cost model and source type per operatio
   }
   cat['search-console'].label='mutated';
   assert.equal(providers.catalog()['search-console'].label,'Google Search Console','catalog() returns a copy');
-  assert.equal(providers.describe('openseo','siteAudit').deferred,'CORE-7.1');
+  assert.equal(providers.describe('openseo','siteAudit').requires,'mcp','CORE-7.1 (D-22): OpenSEO runs only through an injected MCP client');
   assert.equal(providers.describe('nope','x'),null);
 });
 
