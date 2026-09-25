@@ -1,6 +1,6 @@
 # Integración prevista: OpenSEO
 
-**Estado:** 📝 DOCUMENTADA · ⛔ PUENTE NO IMPLEMENTADO · bloqueada por CORE-2 (bloqueado por alcance), por la validación con mocks MCP y por la Platform Layer (ROADMAP CORE-7.1). La conectividad honesta por `/api/health` está implementada en CORE-3 (D-14), pendiente de merge.
+**Estado:** 📝 DOCUMENTADA · 🔄 **CONTRATO DEL PUENTE PREPARADO (CORE-7.1, D-22)**, en revisión en PR de CORE-7.1 (`feat/core-7-1-openseo-bridge`). Se valida solo con mocks, sin conexión real. El transporte MCP autenticado, el backend y los secretos corresponden a CORE-9. La conectividad por `/api/health` está en D-14.
 **Verificado el:** 24/09/2026, contra el código de `Juanmaes83/open-seo@0ffff93101043aad7600a3b6a499a0cd2887ef49`. Es un fork idéntico a `every-app/open-seo` en esa fecha (`compare`: ahead 0 / behind 0).
 **Método:** lectura del código fuente en un clon de solo lectura. **No** se ha llamado a ninguna instancia de OpenSEO ni a DataForSEO, ni se ha desplegado nada.
 
@@ -163,6 +163,29 @@ El importe concreto por llamada no se documenta aquí: depende de la tarifa vige
 | `NOT_MEASURED` | Métricas que requieren DataForSEO sin cliente autorizado: volumen y dificultad = `null` |
 
 Una ausencia de datos nunca es `READY` ni PASS.
+
+## 7.1 Contrato del puente en el Core (CORE-7.1, D-22)
+
+`src/rubik-seo-geo-providers.js` implementa, Core-only, el lado del Core del puente descrito en §4.
+
+- **Dependencia:** un cliente MCP inyectado `{kind:'mock'|'live', callTool(name,args)}`, que ejecuta el backend del host o la plataforma (CORE-9) con las credenciales. Sin él: `NOT_CONFIGURED`/`BRIDGE_PENDING`.
+- **Operaciones** (`runProviderRequest({provider:'openseo', operation, input, mcp, statusVocabulary, registry, activeJob})`):
+
+  | Operación | Herramienta | Salida del Core |
+  |---|---|---|
+  | `whoami` | `whoami` | Sin datos (la identidad no se copia) |
+  | `siteAudit` | `run_site_audit` (`runLighthouse:false` siempre, `trigger:'manual'` obligatorio) | Job `{jobId=auditId, state:'SYNCING'}` o rechazo `AUDIT_CAPACITY_REACHED`/`AUDIT_ALREADY_RUNNING`/`AUDIT_REFUSED` |
+  | `auditStatus` | `get_audit_status` | `{providerStatus, state, phase, pagesCrawled, pagesTotal}`, con `state` según el `statusVocabulary` inyectado |
+  | `auditIssues` | `get_audit_issues` | Incidencias con forma de Intelligence: severidad mapeada, evidencia y correlación por URL canónica |
+  | `auditPages` | `get_audit_pages` | `{url, pageId, inRegistry}` y `total` |
+
+- **Conectividad:** `openseoConnectivity({health, mcp, whoamiAuthenticated})` devuelve `CONNECTED` solo con health `ok` y un `whoami` que confirme la autorización a través de un cliente `live`.
+  - Como la forma de `whoami` no está documentada, la confirmación exige un verificador inyectado por el host o CORE-9 (`whoamiAuthenticated(structuredContent) === true`).
+  - `authenticated:false`, `authorized:false`, un `error` presente o un `errors` no vacío (cadena, array u objeto) siempre la anulan.
+  - Sin verificador: `NOT_CONNECTED`/`WHOAMI_UNVERIFIED`.
+  - La identidad nunca se copia.
+- **Lectura de respuestas:** solo `structuredContent`. Los errores se redactan y se limitan a 200 caracteres.
+- **Límite documental:** OPENSEO.md no enumera los valores de `get_audit_status.status` ni la forma de `get_audit_pages` o de `whoami`. Por eso el vocabulario de estados y el verificador de `whoami` son inyectados, y de las páginas solo se usa `url`. Los tres se validarán contra una instancia real en CORE-9.
 
 ## 8. Lo que no se debe hacer
 
