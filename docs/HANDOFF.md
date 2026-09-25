@@ -298,3 +298,20 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - **Pruebas:** 29 nuevas; una aserción del catálogo de CORE-7 ampliada (`ai-assist`, release `O` siempre `paid`). La verificación por mutación de 12 guardas las mata todas. `npm run verify`: 262 (260 pasan, 2 se omiten en Windows). Golden sin cambios.
 - **Pendiente para cerrar CORE-8:** PR, CI Node 20/22 en verde y revisión. Sin merge ni deploy.
 - **CORE-9:** conectores reales, modelos, persistencia, programación, historial, envío tras aprobación y secretos.
+
+
+## Sesión 20 — auditoría CORE-8 y ejecución autónoma preparada (25/09/2026)
+
+**Estado verificado del punto de partida:** PR #12, rama `feat/core-8-offpage-authority`, HEAD `42d213da5d728bee3296a34b0266f52e82a3368a`; PR abierto, sin conflictos reportados; CI run `36129957035` verde en Node 20/22 con 262/262 por job, sin omitidas. No está fusionado ni desplegado.
+
+**Auditoría:** no aprobar merge hasta corregir y cubrir con regresiones:
+1. `measurement()`/`geoRun()` no deben permitir que campos de entrada falsificables conviertan datos manuales en `VERIFIED`.
+2. `summarizeGeo()` debe calcular cobertura/repeticiones sobre consultas del mismo locale y mercado.
+3. `compareGeo()` debe hacer no comparable la serie cuando cambia el modelo/superficie relevante; no informar `UP`/`DOWN` entre modelos distintos.
+4. `findConflicts()` debe separar cambios temporales/proveedores no comparables de contradicciones reales.
+5. `evidenceItem()` debe minimizar/validar también `id`, `subject`, `field` y `provider` antes de enviarlos a un modelo.
+6. `validateAiOutput()` no comprueba entailment semántico. Ajustar el contrato para que “aceptada” no se presente como hecho probado, preservar revisión humana y limitar estado FACT a evidencia comparable con reglas honestas; añadir pruebas para afirmaciones no respaldadas semánticamente.
+
+**Siguiente secuencia:** terminar correcciones CORE-8 y CI; luego implementar CORE-8.1 de acuerdo con D-24 y OFFPAGE-SERVICE §6; luego avanzar CORE-9 en este repo con diseño/contratos/mocks hasta el límite autorizado. Detalle paso a paso: [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS-CONTINUATION.md).
+
+**Persistencia para pausa por créditos:** antes de parar, Claude debe dejar commits coherentes y actualizar este handoff con fecha, rama/PR, HEAD, archivos, pruebas exactas, CI, hallazgos, bloqueos y el siguiente comando/tarea. Al reanudar, verificar el HEAD del remoto y el estado de CI antes de repetir trabajo. No merge/deploy y nunca acceder ni escribir en WEB-RESTAURACI-N-PREMIUM-DIN-MICA ni otro repositorio.
