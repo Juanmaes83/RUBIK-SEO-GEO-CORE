@@ -485,3 +485,15 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
   - validar contra una instancia real en CORE-9, incluidos los valores reales de `status` para `statusVocabulary` y la forma de las páginas;
   - la persistencia del `projectId` de OpenSEO y del job activo corresponde al backend del host;
   - `crawl()` heredado.
+
+### Corrección tras la revisión del PR #11: señal de autenticación de `whoami`
+
+- **Hallazgo:** `whoami` aceptaba cualquier `structuredContent` no vacío como autenticación, así que `{authenticated:false}` o `{error:"unauthorized"}` podían acabar en `CONNECTED`.
+- **Límite documental:** OPENSEO.md no documenta la forma de la respuesta de `whoami`. Por eso el Core **no inventa** un campo de éxito (como `authenticated:true`).
+- **Señal mínima y explícita:** la autenticación exige un verificador inyectado `whoamiAuthenticated(structuredContent)` que aportan el host o el puente de CORE-9 tras comprobar la forma real contra su instancia. Es el mismo patrón que `statusVocabulary`.
+  - El verificador recibe una copia congelada y solo cuenta si devuelve **exactamente** `true`. Cualquier otro valor, o una excepción, significa «no autenticado».
+  - Sin verificador: `NOT_CONNECTED`/`WHOAMI_UNVERIFIED`, y `openseoConnectivity` devuelve `authorization:'NOT_VERIFIED'` con `reason:'WHOAMI_UNVERIFIED'`.
+  - **Negativas explícitas, siempre por encima del verificador:** `authenticated:false`, `authorized:false`, `error` no vacío o `errors` con elementos → `NOT_CONNECTED`/`WHOAMI_NOT_AUTHENTICATED` (`authorization:'REJECTED'`).
+  - Un `structuredContent` vacío o ausente sigue siendo `ERROR` y nunca `CONNECTED`.
+- **Reglas que se mantienen:** el health solo, o un cliente mock, nunca verifican. La identidad (id, correo, nombre) no se copia al resultado, a la evidencia ni a los errores; tampoco el mensaje de una excepción del verificador.
+- **Evidencia:** 5 pruebas nuevas en `tests/core-7-1-openseo-bridge.test.cjs` (26 en total). Con el módulo anterior (`e78e66a`) fallan 4; la quinta, sobre contenido vacío o ausente, ya estaba cubierta. `npm run verify` da 231 (229 pasan, 2 se omiten en Windows).

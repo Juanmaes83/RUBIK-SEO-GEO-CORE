@@ -241,6 +241,19 @@ function classifyStatus(value,vocabulary){
   if(has(vocabulary?.pending))return 'SYNCING';
   return 'UNCLASSIFIED';
 }
+/* whoami (D-22): OPENSEO.md does not document the whoami result shape, so the Core does not
+   invent a success field. Authentication requires an explicit verifier injected by the
+   host/CORE-9 bridge (checked against a real instance): whoamiAuthenticated(frozen copy)
+   must return exactly true. Explicit negatives always win: authenticated/authorized false or a
+   non-empty error/errors. No verifier → UNVERIFIED. Nothing from the payload is copied. */
+function whoamiAuthentication(sc,verifier){
+  const negative=sc.authenticated===false||sc.authorized===false||(sc.error!==undefined&&sc.error!==null&&sc.error!==''&&sc.error!==false)||(Array.isArray(sc.errors)&&sc.errors.length>0);
+  if(negative)return 'NOT_AUTHENTICATED';
+  if(typeof verifier!=='function')return 'UNVERIFIED';
+  let ok=false;
+  try{ok=verifier(freeze(clone(sc)))===true;}catch{ok=false;}
+  return ok?'AUTHENTICATED':'NOT_AUTHENTICATED';
+}
 function normalizeOpenSEOIssues(items,{auditId,capturedAt,index}){
   const out=[];let rejected=0;
   for(const item of arr(items)){
@@ -291,6 +304,8 @@ async function runOpenSEO(d,request,base,budget){
   const index=registryIndex(request.registry);
   if(d.operation==='whoami'){
     if(!Object.keys(sc).length)return fail(capturedAt,'ERROR',{code:'INVALID_RESPONSE',message:'whoami returned an empty structuredContent',retryable:false});
+    const auth=whoamiAuthentication(sc,request.whoamiAuthenticated);
+    if(auth!=='AUTHENTICATED')return fail(capturedAt,'NOT_CONNECTED',auth==='UNVERIFIED'?{code:'WHOAMI_UNVERIFIED',message:'No whoamiAuthenticated verifier injected; authorization cannot be confirmed',retryable:false}:{code:'WHOAMI_NOT_AUTHENTICATED',message:'whoami does not confirm authorization',retryable:false});
     return done('OK',[]);
   }
   if(d.operation==='siteAudit'){
@@ -323,15 +338,16 @@ async function runOpenSEO(d,request,base,budget){
 /* Connectivity (D-14 + D-22): CONNECTED only when the health check (the injected result of
    intelligence.OpenSEOAdapter.connectivity()) is ok AND whoami succeeds through a live MCP
    client. Health alone, or a mock client, stays NOT_CONNECTED / NOT_VERIFIED. */
-async function openseoConnectivity({health,mcp,clock}={}){
+async function openseoConnectivity({health,mcp,clock,whoamiAuthenticated}={}){
   const h=typeof health==='function'?await health():health;
   if(!h||h.status==='NOT_CONFIGURED')return {status:'NOT_CONFIGURED',health:null,authorization:'NOT_VERIFIED'};
   if(h.health!=='ok')return {status:h.status==='NOT_CONNECTED'?'NOT_CONNECTED':'ERROR',health:h.health?bounded(h.health,20):null,authorization:'NOT_VERIFIED',failingChecks:arr(h.failingChecks).map(x=>bounded(x,60)).filter(Boolean),error:h.error?redact(h.error):null};
   if(mcp==null)return {status:'NOT_CONNECTED',health:'ok',authorization:'NOT_VERIFIED'};
-  const r=await runProviderRequest({provider:'openseo',operation:'whoami',mcp,clock});
+  const r=await runProviderRequest({provider:'openseo',operation:'whoami',mcp,clock,whoamiAuthenticated});
   const checkedAt=r.provenance?.capturedAt||null;
   if(r.status==='OK'&&r.connection==='VERIFIED')return {status:'CONNECTED',health:'ok',authorization:'VERIFIED',checkedAt};
   if(r.status==='OK')return {status:'NOT_CONNECTED',health:'ok',authorization:'NOT_VERIFIED',reason:'MOCK_CLIENT',checkedAt};
+  if(r.status==='NOT_CONNECTED'&&r.errors[0]?.code==='WHOAMI_UNVERIFIED')return {status:'NOT_CONNECTED',health:'ok',authorization:'NOT_VERIFIED',reason:'WHOAMI_UNVERIFIED',checkedAt,error:r.errors[0]};
   if(r.status==='NOT_CONNECTED')return {status:'NOT_CONNECTED',health:'ok',authorization:'REJECTED',checkedAt,error:r.errors[0]||null};
   return {status:'ERROR',health:'ok',authorization:'NOT_VERIFIED',checkedAt,error:r.errors[0]||null};
 }

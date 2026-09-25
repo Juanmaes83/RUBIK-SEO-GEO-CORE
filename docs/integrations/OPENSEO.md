@@ -179,9 +179,13 @@ Una ausencia de datos nunca es `READY` ni PASS.
   | `auditIssues` | `get_audit_issues` | Incidencias con forma de Intelligence: severidad mapeada, evidencia y correlación por URL canónica |
   | `auditPages` | `get_audit_pages` | `{url, pageId, inRegistry}` y `total` |
 
-- **Conectividad:** `openseoConnectivity({health, mcp})` devuelve `CONNECTED` solo con health `ok` y `whoami` confirmado por un cliente `live`.
+- **Conectividad:** `openseoConnectivity({health, mcp, whoamiAuthenticated})` devuelve `CONNECTED` solo con health `ok` y un `whoami` que confirme la autorización a través de un cliente `live`.
+  - Como la forma de `whoami` no está documentada, la confirmación exige un verificador inyectado por el host o CORE-9 (`whoamiAuthenticated(structuredContent) === true`).
+  - `authenticated:false`, `authorized:false` o un `error`/`errors` presente siempre la anulan.
+  - Sin verificador: `NOT_CONNECTED`/`WHOAMI_UNVERIFIED`.
+  - La identidad nunca se copia.
 - **Lectura de respuestas:** solo `structuredContent`. Los errores se redactan y se limitan a 200 caracteres.
-- **Límite documental:** OPENSEO.md no enumera los valores de `get_audit_status.status` ni la forma de `get_audit_pages`. Por eso el vocabulario de estados es inyectado, y de las páginas solo se usa `url`. Ambos se validarán contra una instancia real en CORE-9.
+- **Límite documental:** OPENSEO.md no enumera los valores de `get_audit_status.status` ni la forma de `get_audit_pages` o de `whoami`. Por eso el vocabulario de estados y el verificador de `whoami` son inyectados, y de las páginas solo se usa `url`. Los tres se validarán contra una instancia real en CORE-9.
 
 ## 8. Lo que no se debe hacer
 

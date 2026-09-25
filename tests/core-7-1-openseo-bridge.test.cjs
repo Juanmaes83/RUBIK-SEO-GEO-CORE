@@ -12,6 +12,8 @@ const intelligence=require('../src/rubik-seo-geo-intelligence.js');
 const clock=()=>new Date('2026-09-25T12:00:00Z');
 const AUDIT='audit-123';
 const VOCAB=Object.freeze({pending:['queued','running'],completed:['completed'],failed:['failed']});
+/* Example host/CORE-9 verifier for the undocumented whoami shape (tests only). */
+const VERIFY=sc=>typeof sc?.user?.id==='string'&&sc.user.id.trim().length>0;
 const DOCUMENTED_TOOLS=['whoami','run_site_audit','get_audit_status','get_audit_issues','get_audit_pages'];
 
 /* MCP client mock: {kind, callTool(name,args)} returning {structuredContent, content, isError}. */
@@ -54,7 +56,7 @@ test('module has no MCP SDK, fetch, credentials or storage; runs never touch glo
   const original=globalThis.fetch;globalThis.fetch=()=>{throw new Error('network must not be used');};
   try{
     const {mcp}=mcpMock({whoami:sc({user:{id:'u1'}})},{kind:'live'});
-    assert.equal((await run('whoami',{},{mcp})).status,'OK');
+    assert.equal((await run('whoami',{},{mcp,whoamiAuthenticated:VERIFY})).status,'OK');
   }finally{globalThis.fetch=original;}
 });
 
@@ -77,20 +79,20 @@ test('health from the real D-14 adapter (mocked fetch) feeds the bridge; D-14 ou
   const health=await adapter.connectivity();
   assert.deepEqual([health.status,health.authorization],['NOT_CONNECTED','NOT_VERIFIED'],'D-14 contract unchanged');
   const {mcp}=mcpMock({whoami:sc({user:{id:'u1'}})},{kind:'live'});
-  assert.equal((await providers.openseoConnectivity({health:()=>adapter.connectivity(),mcp,clock})).status,'CONNECTED');
+  assert.equal((await providers.openseoConnectivity({health:()=>adapter.connectivity(),mcp,clock,whoamiAuthenticated:VERIFY})).status,'CONNECTED');
 });
 
 test('whoami valid through a live client → CONNECTED/VERIFIED; a mock client never verifies',async()=>{
   const live=mcpMock({whoami:sc({user:{id:'u1',email:'user@example.test'}})},{kind:'live'});
-  const connected=await providers.openseoConnectivity({health:HEALTH_OK,mcp:live.mcp,clock});
+  const connected=await providers.openseoConnectivity({health:HEALTH_OK,mcp:live.mcp,clock,whoamiAuthenticated:VERIFY});
   assert.deepEqual(connected,{status:'CONNECTED',health:'ok',authorization:'VERIFIED',checkedAt:'2026-09-25T12:00:00.000Z'});
   assert.deepEqual(live.calls,[{name:'whoami',args:{}}]);
   noLeak(connected,'whoami identity is not copied');
-  const direct=await run('whoami',{},{mcp:live.mcp});
+  const direct=await run('whoami',{},{mcp:live.mcp,whoamiAuthenticated:VERIFY});
   assert.deepEqual([direct.status,direct.data,direct.connection],['OK',[],'VERIFIED'],'whoami returns no identity or text content');
   noLeak(direct,'whoami envelope');
   const mock=mcpMock({whoami:sc({user:{id:'u1'}})});
-  const notVerified=await providers.openseoConnectivity({health:HEALTH_OK,mcp:mock.mcp,clock});
+  const notVerified=await providers.openseoConnectivity({health:HEALTH_OK,mcp:mock.mcp,clock,whoamiAuthenticated:VERIFY});
   assert.deepEqual([notVerified.status,notVerified.authorization,notVerified.reason],['NOT_CONNECTED','NOT_VERIFIED','MOCK_CLIENT']);
 });
 
@@ -293,4 +295,84 @@ test('bridge results are deterministic and the legacy crawl() is untouched',asyn
   const make=()=>run('auditIssues',{projectId:'p',auditId:AUDIT},{mcp:mcpMock({get_audit_issues:sc({issues:[{issueType:'a',severity:'info',url:'https://site.example/'}]})}).mcp,registry:REGISTRY});
   assert.deepEqual(await make(),await make());
   assert.equal(typeof intelligence.OpenSEOAdapter.prototype.crawl,'function');
+});
+
+// ── Review follow-up: whoami must positively confirm authorization (D-22) ─────
+
+test('whoami without an injected verifier never authenticates, even with a live client',async()=>{
+  const {mcp}=mcpMock({whoami:sc({user:{id:'u1'}})},{kind:'live'});
+  const r=await run('whoami',{},{mcp});
+  assert.deepEqual([r.status,r.errors[0].code,r.connection,r.data],['NOT_CONNECTED','WHOAMI_UNVERIFIED','NOT_VERIFIED',[]]);
+  const c=await providers.openseoConnectivity({health:HEALTH_OK,mcp,clock});
+  assert.deepEqual([c.status,c.authorization,c.reason],['NOT_CONNECTED','NOT_VERIFIED','WHOAMI_UNVERIFIED']);
+});
+
+test('non-empty but unauthenticated whoami responses are never CONNECTED',async()=>{
+  const payloads=[
+    {authenticated:false},
+    {authenticated:false,user:{id:'u1'}},
+    {authorized:false,user:{id:'u1'}},
+    {error:'unauthorized'},
+    {error:{code:'UNAUTHORIZED'},user:{id:'u1'}},
+    {errors:[{message:'Unauthorized'}],user:{id:'u1'}},
+    {user:{}},
+    {user:null},
+    {user:{id:''}},
+    {user:{id:'   '}},
+    {user:{id:42}},
+    {user:'u1'},
+    {status:'ok'}
+  ];
+  for(const payload of payloads){
+    const {mcp}=mcpMock({whoami:sc(payload)},{kind:'live'});
+    const r=await run('whoami',{},{mcp,whoamiAuthenticated:VERIFY});
+    assert.equal(r.status,'NOT_CONNECTED',JSON.stringify(payload));
+    assert.equal(r.errors[0].code,'WHOAMI_NOT_AUTHENTICATED',JSON.stringify(payload));
+    assert.equal(r.connection,'NOT_VERIFIED');
+    const c=await providers.openseoConnectivity({health:HEALTH_OK,mcp,clock,whoamiAuthenticated:VERIFY});
+    assert.notEqual(c.status,'CONNECTED',JSON.stringify(payload));
+    assert.deepEqual([c.status,c.authorization],['NOT_CONNECTED','REJECTED'],JSON.stringify(payload));
+  }
+});
+
+test('explicit negatives win over a permissive verifier; only a literal true verifies',async()=>{
+  const permissive=()=>true;
+  for(const payload of [{authenticated:false},{error:'unauthorized'},{errors:['x']},{authorized:false}]){
+    const {mcp}=mcpMock({whoami:sc(payload)},{kind:'live'});
+    assert.equal((await providers.openseoConnectivity({health:HEALTH_OK,mcp,clock,whoamiAuthenticated:permissive})).status,'NOT_CONNECTED',JSON.stringify(payload));
+  }
+  for(const verdict of [1,'true',{},'yes']){
+    const {mcp}=mcpMock({whoami:sc({user:{id:'u1'}})},{kind:'live'});
+    assert.equal((await run('whoami',{},{mcp,whoamiAuthenticated:()=>verdict})).status,'NOT_CONNECTED',String(verdict));
+  }
+  const throwing=mcpMock({whoami:sc({user:{id:'u1'}})},{kind:'live'});
+  const t=await run('whoami',{},{mcp:throwing.mcp,whoamiAuthenticated:()=>{throw new Error('verifier crashed user@example.test');}});
+  assert.deepEqual([t.status,t.errors[0].code],['NOT_CONNECTED','WHOAMI_NOT_AUTHENTICATED']);
+  noLeak(t,'verifier exception');
+});
+
+test('empty or missing whoami structuredContent is never CONNECTED',async()=>{
+  for(const response of [sc({}),{content:[{type:'text',text:'Agent-facing text'}]},{structuredContent:null},{structuredContent:[]}]){
+    const {mcp}=mcpMock({whoami:response},{kind:'live'});
+    const c=await providers.openseoConnectivity({health:HEALTH_OK,mcp,clock,whoamiAuthenticated:()=>true});
+    assert.notEqual(c.status,'CONNECTED');
+    assert.equal(c.authorization,'NOT_VERIFIED');
+  }
+});
+
+test('the verifier sees a frozen copy; identity never reaches the result, evidence or errors',async()=>{
+  let seen;
+  const payload={user:{id:'u1',email:'user@example.test',name:'Private Name'}};
+  const {mcp}=mcpMock({whoami:sc(payload)},{kind:'live'});
+  const r=await run('whoami',{},{mcp,whoamiAuthenticated:x=>{seen=x;return VERIFY(x);}});
+  assert.equal(r.status,'OK');
+  assert.ok(Object.isFrozen(seen)&&Object.isFrozen(seen.user));
+  assert.equal(payload.user.email,'user@example.test','the caller payload is not mutated');
+  assert.doesNotMatch(JSON.stringify(r),/user@example\.test|Private Name|u1/);
+  const c=await providers.openseoConnectivity({health:HEALTH_OK,mcp,clock,whoamiAuthenticated:VERIFY});
+  assert.doesNotMatch(JSON.stringify(c),/user@example\.test|Private Name|u1/);
+  // Health alone and mock clients still never verify, whatever the verifier says.
+  assert.equal((await providers.openseoConnectivity({health:HEALTH_OK,clock,whoamiAuthenticated:()=>true})).status,'NOT_CONNECTED');
+  const mock=mcpMock({whoami:sc(payload)});
+  assert.equal((await providers.openseoConnectivity({health:HEALTH_OK,mcp:mock.mcp,clock,whoamiAuthenticated:()=>true})).reason,'MOCK_CLIENT');
 });

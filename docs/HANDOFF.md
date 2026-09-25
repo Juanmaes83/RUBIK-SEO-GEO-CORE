@@ -256,3 +256,12 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 4. **Deuda:** validación contra una instancia real, transporte MCP autenticado, secretos y persistencia del `projectId`/job en CORE-9; valores reales de `status` para el vocabulario; `crawl()` heredado.
 
 **Pendiente:** CI Node 20/22 del PR de CORE-7.1 (`feat/core-7-1-openseo-bridge`), revisión humana y merge. Sin merge ni deploy.
+
+### Sesión 17b — revisión del PR #11 (25/09/2026)
+
+1. **`whoami` ya no autentica con cualquier contenido no vacío.** Como su forma no está documentada, exige el verificador inyectado `whoamiAuthenticated`, que debe devolver exactamente `true`.
+   - `authenticated:false`, `authorized:false` y un `error`/`errors` presente siempre dan «no autenticado».
+   - Sin verificador → `WHOAMI_UNVERIFIED`.
+   - La identidad no se copia.
+   - El health solo y los mocks siguen sin verificar.
+2. **Pruebas:** 5 nuevas (26 en total en `core-7-1-openseo-bridge`); 4 fallan con el módulo anterior. `npm run verify` y Node 20.20.2/22.23.3 dan 231 (229 pasan, 2 se omiten en Windows). Golden sin cambios.
