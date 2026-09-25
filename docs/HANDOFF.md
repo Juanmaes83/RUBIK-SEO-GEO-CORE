@@ -231,3 +231,11 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 2. **Presupuesto:** las operaciones quota/paid sin presupuesto finito devuelven `BUDGET_REQUIRED` antes de llamar. La confirmación de pago se mantiene. `estimatedUsd` sigue en `null`.
 3. **Backlinks:** `normalizeBacklinks` neutral para `dataforseo.backlinks`, con esquema documentado en D-21 y en el contrato de host. Los valores ausentes son `null` y las filas inválidas dejan el mapeo en `PARTIAL`.
 4. **Pruebas:** 27 en `core-7-provider-contracts`; con el módulo anterior fallan 7 de las nuevas. Las mutaciones se detectan. `npm run verify` y Node 20.20.2/22.23.3 dan 201 (199 pasan, 2 se omiten en Windows). Smoke del CLI correcto; golden y paridad sin cambios.
+
+
+## Sesión 17 — cierre de CORE-7 y siguiente fase (25/09/2026)
+
+- **CORE-7/D-21 cerrado:** PR #10 fusionado en `main` con merge `6ef8c4e56da1ea9e28649c8160f815ef6c9895c2`.
+- **CI del HEAD final `e394035`:** Node 20.20.2 y 22.23.2, 205/205 en cada job, 0 omitidas; sintaxis, documentación y smoke CLI verdes (run [36121912236](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36121912236)).
+- **Contrato final:** redacción/rechazo de pares genéricos `token`/`key`, presupuesto finito obligatorio para operaciones quota/paid (`BUDGET_REQUIRED`) y normalización neutral de backlinks. 31 pruebas en el módulo de providers. No hubo llamadas a proveedores reales ni deploy.
+- **Siguiente:** CORE-7.1, contrato y pruebas con mocks MCP en este repositorio. No implementar todavía la conexión autenticada/backend; queda para CORE-9. CORE-2/4/5 siguen fuera del alcance actual por depender de validación en host.

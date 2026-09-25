@@ -369,7 +369,7 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
 
 ## D-21 · Contratos neutrales de integración para Release C y Release E (CORE-7)
 
-**Estado:** implementado en la rama `feat/core-7-provider-contracts`. En progreso hasta su merge. No activa ningún proveedor real; eso corresponde a CORE-9, según D-20.
+**Estado:** CORE-7 cerrado en [PR #10](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/10), merge `6ef8c4e56da1ea9e28649c8160f815ef6c9895c2`. No activa ningún proveedor real; eso corresponde a CORE-9, según D-20.
 
 - **Problema:** las integraciones heredadas (`SearchConsoleAdapter`, `DataForSEOAdapter`, `OpenSEOAdapter` y las funciones de Release E) ya tienen estados honestos, pero cada una resuelve a su manera la procedencia, los errores, los datos parciales y el coste. Ninguna fija un sobre común ni límites de uso verificables. Para CORE-9 hace falta un contrato estable al que conectar transportes reales sin cambiar el Core.
 - **Decisión:** nuevo módulo `src/rubik-seo-geo-providers.js` (export `./providers`), sin dependencias, que no importa `core`, `intelligence` ni `release-e`. Los contratos existentes **no cambian** y el golden queda intacto.
@@ -380,7 +380,7 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
      - `transport` es `{kind:'mock'|'live', request(op,input)}` y lo inyecta el host o la futura plataforma;
      - `clock` hace que las fechas sean deterministas; `cache` es un Map-like en memoria que aporta quien llama; `budget` es un valor, se devuelve actualizado y no se muta;
      - no usa `fetch`, `process.env` ni storage.
-  3. **Sobre de resultado** (inmutable), con `status` ∈ `OK`, `PARTIAL`, `EMPTY`, `NOT_CONFIGURED`, `NOT_CONNECTED`, `NOT_MEASURED`, `COST_CONFIRMATION_REQUIRED`, `BUDGET_EXCEEDED`, `RATE_LIMITED`, `ERROR` o `STALE`. Además lleva `data`, `partial`, `errors[]`, `cost`, `budget`, `cached`, `connection` y `provenance`.
+  3. **Sobre de resultado** (inmutable), con `status` ∈ `OK`, `PARTIAL`, `EMPTY`, `NOT_CONFIGURED`, `NOT_CONNECTED`, `NOT_MEASURED`, `COST_CONFIRMATION_REQUIRED`, `BUDGET_REQUIRED`, `BUDGET_EXCEEDED`, `RATE_LIMITED`, `ERROR` o `STALE`. Además lleva `data`, `partial`, `errors[]`, `cost`, `budget`, `cached`, `connection` y `provenance`.
   4. **Provenance: fuente, fecha y evidencia.** Incluye `provider`, `sourceType`, `operation`, `requestedAt`, `capturedAt` y `method` (`api` solo con un transporte `live`; si no, `mock`).
      - La `evidence` está en lista blanca: `rowCount`, `httpStatus`, `requestId`, `externalId`, `sourceUrl` redactada, `providerVersion`, `expected` y `truncated`.
      - Nunca se copian cabeceras ni cuerpos crudos.
@@ -396,8 +396,8 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
      - no hay reintentos automáticos.
   7. **Datos parciales:** `truncated`, filas esperadas que faltan, filas inválidas (o con campos secretos), errores por elemento o el recorte `maxRows` → `PARTIAL`, con `partial.{received,expected,rejected,capped,reason}`. Nunca se rellena con ceros: las métricas ausentes siguen siendo `null` al mapear.
   8. **Límites de uso y coste:**
-     - una operación `paid` exige `confirmCost:true` (si falta → `COST_CONFIRMATION_REQUIRED`, sin llamada);
-     - `budget.{maxUnits,maxRequests}` se comprueba **antes** de llamar (`BUDGET_EXCEEDED`);
+     - las operaciones `quota` y `paid` exigen un presupuesto con `maxUnits` y `maxRequests` finitos y no negativos; si falta → `BUDGET_REQUIRED`, sin llamada;
+     - las operaciones `paid` exigen `confirmCost:true` (si falta → `COST_CONFIRMATION_REQUIRED`, comprobado primero); tras validar el presupuesto, exceder un límite devuelve `BUDGET_EXCEEDED` antes de llamar;
      - `cost.estimatedUsd` es siempre `null`, porque el Core no conoce tarifas;
      - la caché inyectada deduplica peticiones idénticas (clave estable, independiente del orden) con coste 0 y no guarda errores;
      - `markStale` marca como `STALE` un resultado antiguo y conserva datos y provenance.
@@ -409,7 +409,7 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
       - los resultados de C no se mapean a E ni al revés.
 - **Fuera de alcance:** transportes reales, backend, OAuth, secretos, trabajos programados e historial persistente (CORE-9); el puente OpenSEO/MCP (CORE-7.1). `crawl()` y `connectivity()` heredados siguen como estaban (D-09, D-14). D-16 sigue aplazada.
 - **Evidencia:**
-  - `tests/core-7-provider-contracts.test.cjs` (18 pruebas);
+  - `tests/core-7-provider-contracts.test.cjs` (31 pruebas finales);
   - verificación por mutación: marcar un mock como verificado, quitar la confirmación de coste o convertir `NOT_MEASURED` en `OK` rompe al menos una prueba;
   - golden y fixtures sin cambios.
 
@@ -436,6 +436,9 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
 - **Pares genéricos `token` / `key` (segunda revisión del PR #10):** la redacción de pares y el rechazo de valores en el input cubren también `token` y `key` como palabra completa seguida de `:` o `=` (JSON, `clave=valor`, cualquier combinación de mayúsculas). Los esquemas `Bearer`/`Basic`/`Token` solo se redactan si el valor parece una credencial (contiene un dígito, mezcla mayúsculas y minúsculas o incluye alguno de `._~+/=-`), así que la prosa que solo menciona «token», «key», «basic» o «bearer» no se toca.
 - **Límite conocido (conservador):** la detección por nombre de clave rechaza también claves no secretas con esos sufijos (por ejemplo `nextPageToken` o `key`). Si un proveedor necesitara paginación por token, el transporte debe gestionarla server-side, o se hará una excepción explícita cuando se active en CORE-9.
 - **Evidencia adicional:**
-  - 9 pruebas más en `tests/core-7-provider-contracts.test.cjs` (27 en total). Con el módulo anterior (`dcdbf61`) fallan 7 de ellas;
+  - La primera revisión añadió 9 pruebas (27 en ese commit); la segunda añadió 4 (31 finales), incluidas redacción de pares genéricos `token`/`key` y preservación de prosa normal. Las cuatro nuevas fallan contra `e8e32b9`;
   - mutaciones: reintroducir un límite de profundidad, quitar `BUDGET_REQUIRED` o volver a copiar los backlinks sin normalizar rompe pruebas;
   - golden, fixtures y paridad sin cambios.
+
+
+**Cierre de CORE-7:** el HEAD final `e394035` pasó CI en Node 20.20.2 y 22.23.2, 205/205 pruebas por job y 0 omitidas, además de sintaxis, documentación y smoke CLI (run [36121912236](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36121912236)). PR #10 fusionado con `6ef8c4e56da1ea9e28649c8160f815ef6c9895c2`. Sin deploy.
