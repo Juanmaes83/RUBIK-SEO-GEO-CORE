@@ -59,6 +59,13 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 4. El único repositorio de trabajo es RUBIK-SEO-GEO-CORE. No se accede ni modifica ningún otro repositorio.
 5. CORE-2 requiere cambios de host y queda fuera de alcance. CORE-3 pasa a ser la siguiente fase Core-only, según ROADMAP.
 
+## Sesión 7 — evaluación del ecosistema SEO/GEO (25/09/2026)
+
+1. A petición y con autorización expresa del usuario, se revisaron en modo lectura los README de repositorios SEO/GEO de su cuenta y la documentación del Core. No fue una auditoría de código, licencias, seguridad ni mantenimiento.
+2. No se accedió a WEB-RESTAURACI-N-PREMIUM-DINAMICA ni se modificó ningún repositorio externo.
+3. La decisión quedó registrada en [`ECOSYSTEM-REFERENCES.md`](ECOSYSTEM-REFERENCES.md): CORE-3 sigue primero; `open-seo` es candidato de integración futura y sigue sujeto a contrato inyectable, mocks y Platform Layer; crawlers y medición son proveedores intercambiables; skills y extensiones son referencias de workflow/QA, no dependencias del Core.
+4. Se actualizó [`docs/README.md`](README.md) y [`ROADMAP.md`](ROADMAP.md) con el mapa de autoridad, la decisión y el límite de acceso: los cambios siempre se hacen en el Core; lecturas externas solo con autorización específica; el repositorio de Restaurantes no se accede nunca.
+
 ## Pendiente
 
 - CORE-3: inyección explícita de dependencias, vertical activo en Release E, health honesto de OpenSEO según el contrato ya documentado y validación temprana de rutas del Page Registry.
