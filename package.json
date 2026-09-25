@@ -1,0 +1,36 @@
+{
+  "name": "@rubik/seo-geo-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Rubik SEO/GEO Core: one vertical-agnostic SEO/GEO engine, adapter registry and Publisher shared by Rubik products.",
+  "license": "UNLICENSED",
+  "main": "src/rubik-seo-geo-core.js",
+  "exports": {
+    ".": "./src/rubik-seo-geo-core.js",
+    "./adapters": "./src/rubik-seo-geo-adapters.js",
+    "./publisher": "./src/rubik-seo-geo-publisher.js",
+    "./content": "./src/rubik-seo-geo-release-b.js",
+    "./media": "./src/rubik-seo-geo-media.js",
+    "./intelligence": "./src/rubik-seo-geo-intelligence.js",
+    "./authority": "./src/rubik-seo-geo-release-e.js",
+    "./materialize": "./src/rubik-seo-geo-materialize.cjs",
+    "./hosts/restaurant": "./hosts/restaurant/restaurant-host.cjs"
+  },
+  "bin": {
+    "rubik-seo-geo-materialize": "src/rubik-seo-geo-materialize.cjs"
+  },
+  "files": [
+    "src",
+    "hosts",
+    "docs"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node scripts/check-syntax.cjs",
+    "check:docs": "node scripts/check-docs.cjs",
+    "test": "node scripts/run-tests.cjs",
+    "verify": "npm run check && npm run check:docs && npm test"
+  }
+}

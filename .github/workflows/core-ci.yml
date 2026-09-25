@@ -1,0 +1,48 @@
+# Rubik SEO/GEO Core — independent CI.
+# Consolidates the Node-only gates of the source workflows (seo-geo-foundation,
+# seo-geo-intelligence, seo-geo-release-d, seo-geo-release-e, seo-geo-hardening-a/b).
+# Browser E2E (Studio) and Hardening C (Lighthouse/mobile) belong to each host product.
+name: core-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Syntax
+        run: npm run check
+      - name: Documentation gate
+        run: npm run check:docs
+      - name: Releases A-E + Hardening A/B + independence + source parity
+        run: npm test
+      - name: Preview materialization is fail-closed
+        run: |
+          node src/rubik-seo-geo-materialize.cjs --environment=preview \
+            --project-state=tests/fixtures/restaurant-lumina-state.json \
+            --template=tests/fixtures/restaurant-home-template.html \
+            --home-body=hosts/restaurant/restaurant-host.cjs \
+            --output=.tmp-preview
+          grep -q 'Disallow: /' .tmp-preview/robots.txt
+          grep -q 'content="noindex,nofollow"' .tmp-preview/index.html
+          if grep -q 'rel="canonical"' .tmp-preview/index.html; then echo 'preview must not emit canonical'; exit 1; fi
+      - name: Production without HTTPS base URL is refused
+        run: |
+          if node src/rubik-seo-geo-materialize.cjs --environment=production \
+            --project-state=tests/fixtures/restaurant-lumina-state.json \
+            --template=tests/fixtures/restaurant-home-template.html \
+            --output=.tmp-prod; then echo 'production without baseUrl must fail'; exit 1; fi

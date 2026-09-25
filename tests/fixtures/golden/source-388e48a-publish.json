@@ -1,0 +1,2371 @@
+{
+ "source": "Juanmaes83/WEB-RESTAURACI-N-PREMIUM-DIN-MICA@388e48a98e881aff4adf26f16a0679dc3e1f11f5",
+ "cases": {
+  "lumina:production": {
+   "seo": {
+    "schemaVersion": 3,
+    "adapterId": "restaurant",
+    "site": {
+     "baseUrl": "https://restaurant.example.test/",
+     "defaultLanguage": "es",
+     "supportedLanguages": [
+      "es"
+     ],
+     "defaultSocialImageRef": ""
+    },
+    "business": {
+     "businessType": "restaurant",
+     "schemaType": "Restaurant",
+     "category": "Restaurante mediterráneo",
+     "cuisine": [
+      "Mediterránea"
+     ],
+     "legalName": "",
+     "priceRange": "",
+     "publicDataConfirmed": false,
+     "confirmationSignature": ""
+    },
+    "visibility": {
+     "address": "private",
+     "phone": "private",
+     "email": "private"
+    },
+    "pages": {
+     "home": {
+      "id": "home",
+      "path": "/",
+      "type": "home",
+      "indexable": true,
+      "canonicalMode": "auto",
+      "seo": {
+       "title": {
+        "mode": "auto",
+        "value": "LÚMINA | Restaurante mediterráneo",
+        "templateId": "restaurant.home.title.v2.es",
+        "derivedFrom": [
+         "brand.name",
+         "seo.business.category",
+         "modules.location.address.city"
+        ],
+        "updatedAt": "<ISO>",
+        "decisionReason": "Marca y categoría reales; falta ciudad.",
+        "candidates": [
+         "LÚMINA | Restaurante mediterráneo",
+         "LÚMINA"
+        ]
+       },
+       "description": {
+        "mode": "auto",
+        "value": "LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.",
+        "templateId": "restaurant.home.description.v2.es",
+        "derivedFrom": [
+         "brand.name",
+         "hero.body",
+         "seo.business.category",
+         "modules.location.address.city",
+         "visit.bookingUrl"
+        ],
+        "updatedAt": "<ISO>",
+        "decisionReason": "Descripción honesta sin CTA: falta URL pública de reserva."
+       },
+       "h1": {
+        "mode": "auto",
+        "value": "LÚMINA · Mediterránea",
+        "templateId": "restaurant.home.h1.v2.es",
+        "derivedFrom": [
+         "brand.name",
+         "seo.business.cuisine",
+         "modules.location.address.city"
+        ],
+        "updatedAt": "<ISO>",
+        "decisionReason": "Alineado con especialidad real y contenido visible."
+       }
+      }
+     }
+    },
+    "integrations": {
+     "openseo": {
+      "status": "NOT_CONFIGURED",
+      "endpoint": "",
+      "lastSyncAt": "",
+      "lastSuccessfulSyncAt": "",
+      "error": ""
+     },
+     "searchConsole": {
+      "status": "NOT_CONNECTED",
+      "property": "",
+      "dateRange": "28d",
+      "lastSyncAt": "",
+      "lastSuccessfulSyncAt": "",
+      "error": ""
+     },
+     "dataForSEO": {
+      "status": "NOT_MEASURED",
+      "enabled": false,
+      "lastSyncAt": "",
+      "lastSuccessfulSyncAt": "",
+      "error": "",
+      "lastFetchedAt": "",
+      "costWarning": false
+     }
+    },
+    "intelligence": {
+     "snapshots": [],
+     "issues": [],
+     "opportunities": [],
+     "queries": [],
+     "pages": [],
+     "competitors": [],
+     "keywords": [],
+     "serps": [],
+     "backlinks": [],
+     "insights": [],
+     "history": []
+    },
+    "geo": {
+     "entityReadiness": {},
+     "citationReadiness": {
+      "label": "HEURISTIC",
+      "strengths": [],
+      "weaknesses": [],
+      "recommendations": []
+     },
+     "crawlerAccess": {},
+     "factualCoverage": {},
+     "sourceSignals": {},
+     "aiSearchAudit": {
+      "status": "NOT_MEASURED",
+      "observations": []
+     },
+     "history": []
+    }
+   },
+   "publisher": {
+    "environment": "production",
+    "indexable": true,
+    "canonical": "https://restaurant.example.test/",
+    "robots": "index,follow",
+    "head": "<title data-rubik-seo=\"title\">LÚMINA | Restaurante mediterráneo</title>\n<meta name=\"description\" content=\"LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\" data-rubik-seo=\"description\">\n<meta name=\"robots\" content=\"index,follow\" data-rubik-seo=\"robots\">\n<link rel=\"canonical\" href=\"https://restaurant.example.test/\" data-rubik-seo=\"canonical\">\n<meta property=\"og:type\" content=\"website\" data-rubik-seo=\"og-type\">\n<meta property=\"og:title\" content=\"LÚMINA | Restaurante mediterráneo\" data-rubik-seo=\"og-title\">\n<meta property=\"og:description\" content=\"LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\" data-rubik-seo=\"og-description\">\n<meta property=\"og:url\" content=\"https://restaurant.example.test/\" data-rubik-seo=\"og-url\">\n<meta name=\"twitter:card\" content=\"summary_large_image\" data-rubik-seo=\"twitter-card\">\n<meta name=\"twitter:title\" content=\"LÚMINA | Restaurante mediterráneo\" data-rubik-seo=\"twitter-title\">\n<meta name=\"twitter:description\" content=\"LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\" data-rubik-seo=\"twitter-description\">\n<script type=\"application/ld+json\" data-rubik-seo=\"schema\">{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"WebSite\",\"name\":\"LÚMINA\",\"@id\":\"https://restaurant.example.test/#website\",\"url\":\"https://restaurant.example.test/\"},{\"@type\":\"WebPage\",\"name\":\"LÚMINA | Restaurante mediterráneo\",\"@id\":\"https://restaurant.example.test/#webpage\",\"url\":\"https://restaurant.example.test/\",\"isPartOf\":{\"@id\":\"https://restaurant.example.test/#website\"},\"about\":{\"@id\":\"https://restaurant.example.test/#restaurant\"}},{\"@type\":\"Restaurant\",\"name\":\"LÚMINA\",\"@id\":\"https://restaurant.example.test/#restaurant\",\"description\":\"Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\",\"url\":\"https://restaurant.example.test/\",\"servesCuisine\":[\"Mediterránea\"]}]}</script>",
+    "schema": {
+     "@context": "https://schema.org",
+     "@graph": [
+      {
+       "@type": "WebSite",
+       "name": "LÚMINA",
+       "@id": "https://restaurant.example.test/#website",
+       "url": "https://restaurant.example.test/"
+      },
+      {
+       "@type": "WebPage",
+       "name": "LÚMINA | Restaurante mediterráneo",
+       "@id": "https://restaurant.example.test/#webpage",
+       "url": "https://restaurant.example.test/",
+       "isPartOf": {
+        "@id": "https://restaurant.example.test/#website"
+       },
+       "about": {
+        "@id": "https://restaurant.example.test/#restaurant"
+       }
+      },
+      {
+       "@type": "Restaurant",
+       "name": "LÚMINA",
+       "@id": "https://restaurant.example.test/#restaurant",
+       "description": "Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.",
+       "url": "https://restaurant.example.test/",
+       "servesCuisine": [
+        "Mediterránea"
+       ]
+      }
+     ]
+    },
+    "sitemap": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://restaurant.example.test</loc></url></urlset>",
+    "robotsTxt": "User-agent: *\nAllow: /\nSitemap: https://restaurant.example.test/sitemap.xml\n",
+    "pages": {
+     "/": "<!doctype html><html lang=\"es\"><head><title data-rubik-seo=\"title\">LÚMINA | Restaurante mediterráneo</title>\n<meta name=\"description\" content=\"LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\" data-rubik-seo=\"description\">\n<meta name=\"robots\" content=\"index,follow\" data-rubik-seo=\"robots\">\n<link rel=\"canonical\" href=\"https://restaurant.example.test/\" data-rubik-seo=\"canonical\">\n<meta property=\"og:type\" content=\"website\" data-rubik-seo=\"og-type\">\n<meta property=\"og:title\" content=\"LÚMINA | Restaurante mediterráneo\" data-rubik-seo=\"og-title\">\n<meta property=\"og:description\" content=\"LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\" data-rubik-seo=\"og-description\">\n<meta property=\"og:url\" content=\"https://restaurant.example.test/\" data-rubik-seo=\"og-url\">\n<meta name=\"twitter:card\" content=\"summary_large_image\" data-rubik-seo=\"twitter-card\">\n<meta name=\"twitter:title\" content=\"LÚMINA | Restaurante mediterráneo\" data-rubik-seo=\"twitter-title\">\n<meta name=\"twitter:description\" content=\"LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\" data-rubik-seo=\"twitter-description\">\n<script type=\"application/ld+json\" data-rubik-seo=\"schema\">{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"WebSite\",\"name\":\"LÚMINA\",\"@id\":\"https://restaurant.example.test/#website\",\"url\":\"https://restaurant.example.test/\"},{\"@type\":\"WebPage\",\"name\":\"LÚMINA | Restaurante mediterráneo\",\"@id\":\"https://restaurant.example.test/#webpage\",\"url\":\"https://restaurant.example.test/\",\"isPartOf\":{\"@id\":\"https://restaurant.example.test/#website\"},\"about\":{\"@id\":\"https://restaurant.example.test/#restaurant\"}},{\"@type\":\"Restaurant\",\"name\":\"LÚMINA\",\"@id\":\"https://restaurant.example.test/#restaurant\",\"description\":\"Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\",\"url\":\"https://restaurant.example.test/\",\"servesCuisine\":[\"Mediterránea\"]}]}</script></head><body><main data-rubik-page=\"home\"><h1>LÚMINA · Mediterránea</h1></main></body></html>"
+    },
+    "redirects": [],
+    "adapter": {
+     "id": "restaurant",
+     "label": "Restauración",
+     "schemaType": "Restaurant",
+     "entityId": "restaurant",
+     "registered": 7
+    }
+   },
+   "preview": {
+    "seo": {
+     "schemaVersion": 3,
+     "adapterId": "restaurant",
+     "site": {
+      "baseUrl": "https://restaurant.example.test/",
+      "defaultLanguage": "es",
+      "supportedLanguages": [
+       "es"
+      ],
+      "defaultSocialImageRef": ""
+     },
+     "business": {
+      "businessType": "restaurant",
+      "schemaType": "Restaurant",
+      "category": "Restaurante mediterráneo",
+      "cuisine": [
+       "Mediterránea"
+      ],
+      "legalName": "",
+      "priceRange": "",
+      "publicDataConfirmed": false,
+      "confirmationSignature": ""
+     },
+     "visibility": {
+      "address": "private",
+      "phone": "private",
+      "email": "private"
+     },
+     "pages": {
+      "home": {
+       "id": "home",
+       "path": "/",
+       "type": "home",
+       "indexable": true,
+       "canonicalMode": "auto",
+       "seo": {
+        "title": {
+         "mode": "auto",
+         "value": "LÚMINA | Restaurante mediterráneo",
+         "templateId": "restaurant.home.title.v2.es",
+         "derivedFrom": [
+          "brand.name",
+          "seo.business.category",
+          "modules.location.address.city"
+         ],
+         "updatedAt": "<ISO>",
+         "decisionReason": "Marca y categoría reales; falta ciudad.",
+         "candidates": [
+          "LÚMINA | Restaurante mediterráneo",
+          "LÚMINA"
+         ]
+        },
+        "description": {
+         "mode": "auto",
+         "value": "LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.",
+         "templateId": "restaurant.home.description.v2.es",
+         "derivedFrom": [
+          "brand.name",
+          "hero.body",
+          "seo.business.category",
+          "modules.location.address.city",
+          "visit.bookingUrl"
+         ],
+         "updatedAt": "<ISO>",
+         "decisionReason": "Descripción honesta sin CTA: falta URL pública de reserva."
+        },
+        "h1": {
+         "mode": "auto",
+         "value": "LÚMINA · Mediterránea",
+         "templateId": "restaurant.home.h1.v2.es",
+         "derivedFrom": [
+          "brand.name",
+          "seo.business.cuisine",
+          "modules.location.address.city"
+         ],
+         "updatedAt": "<ISO>",
+         "decisionReason": "Alineado con especialidad real y contenido visible."
+        }
+       }
+      }
+     },
+     "integrations": {
+      "openseo": {
+       "status": "NOT_CONFIGURED",
+       "endpoint": "",
+       "lastSyncAt": "",
+       "lastSuccessfulSyncAt": "",
+       "error": ""
+      },
+      "searchConsole": {
+       "status": "NOT_CONNECTED",
+       "property": "",
+       "dateRange": "28d",
+       "lastSyncAt": "",
+       "lastSuccessfulSyncAt": "",
+       "error": ""
+      },
+      "dataForSEO": {
+       "status": "NOT_MEASURED",
+       "enabled": false,
+       "lastSyncAt": "",
+       "lastSuccessfulSyncAt": "",
+       "error": "",
+       "lastFetchedAt": "",
+       "costWarning": false
+      }
+     },
+     "intelligence": {
+      "snapshots": [],
+      "issues": [],
+      "opportunities": [],
+      "queries": [],
+      "pages": [],
+      "competitors": [],
+      "keywords": [],
+      "serps": [],
+      "backlinks": [],
+      "insights": [],
+      "history": []
+     },
+     "geo": {
+      "entityReadiness": {},
+      "citationReadiness": {
+       "label": "HEURISTIC",
+       "strengths": [],
+       "weaknesses": [],
+       "recommendations": []
+      },
+      "crawlerAccess": {},
+      "factualCoverage": {},
+      "sourceSignals": {},
+      "aiSearchAudit": {
+       "status": "NOT_MEASURED",
+       "observations": []
+      },
+      "history": []
+     }
+    },
+    "adapter": {
+     "id": "restaurant",
+     "label": "Restauración",
+     "schemaType": "Restaurant",
+     "entityId": "restaurant",
+     "registered": 7
+    },
+    "source": {
+     "language": "es",
+     "name": "LÚMINA",
+     "description": "Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.",
+     "category": "Restaurante mediterráneo",
+     "cuisine": [
+      "Mediterránea"
+     ],
+     "legalName": "",
+     "priceRange": "",
+     "city": "",
+     "address": {
+      "streetAddress": "Muelle 08 · Alicante"
+     },
+     "locationVisible": false,
+     "phone": "",
+     "email": "hello@lumina.demo",
+     "reservationUrl": "",
+     "actionUrl": "",
+     "hoursLabel": "19:30 — 00:30",
+     "maps": null,
+     "dishes": [
+      {
+       "id": "dish-01",
+       "name": "Wild Red Prawn",
+       "origin": "Lonja de Santa Pola · Alicante",
+       "ingredients": "Red prawn · smoked almond · citrus · sea fennel",
+       "mediaRef": "dish-01"
+      },
+      {
+       "id": "dish-02",
+       "name": "Bluefin / Blood Orange",
+       "origin": "Western Mediterranean",
+       "ingredients": "Bluefin tuna · blood orange · ponzu · caper leaf",
+       "mediaRef": "dish-02"
+      },
+      {
+       "id": "dish-03",
+       "name": "Charred Artichoke",
+       "origin": "Vega Baja · Alicante",
+       "ingredients": "Artichoke · egg yolk · hazelnut · parsley oil",
+       "mediaRef": "dish-03"
+      },
+      {
+       "id": "dish-04",
+       "name": "Wild Sea Bass",
+       "origin": "Calpe coast · Alicante",
+       "ingredients": "Sea bass · saffron · leek · fennel",
+       "mediaRef": "dish-04"
+      },
+      {
+       "id": "dish-05",
+       "name": "Iberian Presa",
+       "origin": "Extremadura · Spain",
+       "ingredients": "Iberian pork · aubergine · PX · spring onion",
+       "mediaRef": "dish-05"
+      },
+      {
+       "id": "dish-06",
+       "name": "Burnt Honey Citrus",
+       "origin": "Alicante citrus & local honey",
+       "ingredients": "Burnt honey · citrus · olive oil · almond",
+       "mediaRef": "dish-06"
+      }
+     ],
+     "offerings": [
+      {
+       "id": "dish-01",
+       "name": "Wild Red Prawn",
+       "origin": "Lonja de Santa Pola · Alicante",
+       "ingredients": "Red prawn · smoked almond · citrus · sea fennel",
+       "mediaRef": "dish-01",
+       "description": ""
+      },
+      {
+       "id": "dish-02",
+       "name": "Bluefin / Blood Orange",
+       "origin": "Western Mediterranean",
+       "ingredients": "Bluefin tuna · blood orange · ponzu · caper leaf",
+       "mediaRef": "dish-02",
+       "description": ""
+      },
+      {
+       "id": "dish-03",
+       "name": "Charred Artichoke",
+       "origin": "Vega Baja · Alicante",
+       "ingredients": "Artichoke · egg yolk · hazelnut · parsley oil",
+       "mediaRef": "dish-03",
+       "description": ""
+      },
+      {
+       "id": "dish-04",
+       "name": "Wild Sea Bass",
+       "origin": "Calpe coast · Alicante",
+       "ingredients": "Sea bass · saffron · leek · fennel",
+       "mediaRef": "dish-04",
+       "description": ""
+      },
+      {
+       "id": "dish-05",
+       "name": "Iberian Presa",
+       "origin": "Extremadura · Spain",
+       "ingredients": "Iberian pork · aubergine · PX · spring onion",
+       "mediaRef": "dish-05",
+       "description": ""
+      },
+      {
+       "id": "dish-06",
+       "name": "Burnt Honey Citrus",
+       "origin": "Alicante citrus & local honey",
+       "ingredients": "Burnt honey · citrus · olive oil · almond",
+       "mediaRef": "dish-06",
+       "description": ""
+      }
+     ],
+     "media": [
+      {
+       "ref": "hero",
+       "type": "image"
+      },
+      {
+       "ref": "origin",
+       "type": "image"
+      },
+      {
+       "ref": "atmosphere",
+       "type": "image"
+      },
+      {
+       "ref": "chef",
+       "type": "image"
+      }
+     ],
+     "paths": {
+      "name": "brand.name",
+      "description": "hero.body",
+      "category": "seo.business.category",
+      "city": "modules.location.address.city|visit.address",
+      "legacyAddress": "visit.address",
+      "phone": "modules.location.phone",
+      "email": "visit.contact",
+      "hours": "modules.location.hours|visit.service"
+     },
+     "adapterId": "restaurant",
+     "entityType": "Restaurant"
+    },
+    "home": {
+     "id": "home",
+     "path": "/",
+     "type": "home",
+     "indexable": true,
+     "canonicalMode": "auto",
+     "seo": {
+      "title": {
+       "mode": "auto",
+       "value": "LÚMINA | Restaurante mediterráneo",
+       "templateId": "restaurant.home.title.v2.es",
+       "derivedFrom": [
+        "brand.name",
+        "seo.business.category",
+        "modules.location.address.city"
+       ],
+       "updatedAt": "<ISO>",
+       "decisionReason": "Marca y categoría reales; falta ciudad.",
+       "candidates": [
+        "LÚMINA | Restaurante mediterráneo",
+        "LÚMINA"
+       ]
+      },
+      "description": {
+       "mode": "auto",
+       "value": "LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.",
+       "templateId": "restaurant.home.description.v2.es",
+       "derivedFrom": [
+        "brand.name",
+        "hero.body",
+        "seo.business.category",
+        "modules.location.address.city",
+        "visit.bookingUrl"
+       ],
+       "updatedAt": "<ISO>",
+       "decisionReason": "Descripción honesta sin CTA: falta URL pública de reserva."
+      },
+      "h1": {
+       "mode": "auto",
+       "value": "LÚMINA · Mediterránea",
+       "templateId": "restaurant.home.h1.v2.es",
+       "derivedFrom": [
+        "brand.name",
+        "seo.business.cuisine",
+        "modules.location.address.city"
+       ],
+       "updatedAt": "<ISO>",
+       "decisionReason": "Alineado con especialidad real y contenido visible."
+      }
+     }
+    },
+    "canonical": "https://restaurant.example.test/",
+    "schema": {
+     "@context": "https://schema.org",
+     "@graph": [
+      {
+       "@type": "WebSite",
+       "name": "LÚMINA",
+       "@id": "https://restaurant.example.test/#website",
+       "url": "https://restaurant.example.test/"
+      },
+      {
+       "@type": "WebPage",
+       "name": "LÚMINA | Restaurante mediterráneo",
+       "@id": "https://restaurant.example.test/#webpage",
+       "url": "https://restaurant.example.test/",
+       "isPartOf": {
+        "@id": "https://restaurant.example.test/#website"
+       },
+       "about": {
+        "@id": "https://restaurant.example.test/#restaurant"
+       }
+      },
+      {
+       "@type": "Restaurant",
+       "name": "LÚMINA",
+       "@id": "https://restaurant.example.test/#restaurant",
+       "description": "Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.",
+       "url": "https://restaurant.example.test/",
+       "servesCuisine": [
+        "Mediterránea"
+       ]
+      }
+     ]
+    },
+    "checks": [
+     {
+      "id": "adapter",
+      "severity": "PASS",
+      "message": "Adapter Restauración (Restaurant) activo sobre el Core compartido."
+     },
+     {
+      "id": "name",
+      "severity": "PASS",
+      "message": "Nombre heredado de la fuente canónica del host."
+     },
+     {
+      "id": "title",
+      "severity": "PASS",
+      "message": "Salida generada."
+     },
+     {
+      "id": "description",
+      "severity": "PASS",
+      "message": "Salida generada."
+     },
+     {
+      "id": "h1",
+      "severity": "PASS",
+      "message": "Salida generada."
+     },
+     {
+      "id": "canonical",
+      "severity": "PASS",
+      "message": "URL HTTPS productiva válida."
+     },
+     {
+      "id": "specificity",
+      "severity": "PASS",
+      "message": "Categoría confirmada."
+     },
+     {
+      "id": "local",
+      "severity": "WARNING",
+      "message": "Falta ciudad estructurada → afecta Local SEO, schema y title/meta AUTO."
+     },
+     {
+      "id": "differential",
+      "severity": "PASS",
+      "message": "Señal diferencial real disponible."
+     },
+     {
+      "id": "schema",
+      "severity": "PASS",
+      "message": "Grafo WebSite → WebPage → Restaurant sin ratings/reviews inventados."
+     },
+     {
+      "id": "deferred",
+      "severity": "DEFERRED",
+      "message": "Multidioma continúa como deuda explícita; proveedores externos sólo aportan medición real cuando están conectados."
+     },
+     {
+      "id": "publisher",
+      "severity": "PASS",
+      "message": "Publisher listo para producción."
+     }
+    ],
+    "policy": {
+     "preview": "noindex",
+     "production": "index",
+     "applied": false
+    },
+    "measurements": {
+     "dataForSEO": "NOT MEASURED",
+     "searchConsole": "NOT CONNECTED",
+     "openSEO": "NOT CONNECTED",
+     "aiVisibility": "NOT MEASURED"
+    }
+   }
+  },
+  "lumina:preview": {
+   "seo": {
+    "schemaVersion": 3,
+    "adapterId": "restaurant",
+    "site": {
+     "baseUrl": "https://restaurant.example.test/",
+     "defaultLanguage": "es",
+     "supportedLanguages": [
+      "es"
+     ],
+     "defaultSocialImageRef": ""
+    },
+    "business": {
+     "businessType": "restaurant",
+     "schemaType": "Restaurant",
+     "category": "Restaurante mediterráneo",
+     "cuisine": [
+      "Mediterránea"
+     ],
+     "legalName": "",
+     "priceRange": "",
+     "publicDataConfirmed": false,
+     "confirmationSignature": ""
+    },
+    "visibility": {
+     "address": "private",
+     "phone": "private",
+     "email": "private"
+    },
+    "pages": {
+     "home": {
+      "id": "home",
+      "path": "/",
+      "type": "home",
+      "indexable": true,
+      "canonicalMode": "auto",
+      "seo": {
+       "title": {
+        "mode": "auto",
+        "value": "LÚMINA | Restaurante mediterráneo",
+        "templateId": "restaurant.home.title.v2.es",
+        "derivedFrom": [
+         "brand.name",
+         "seo.business.category",
+         "modules.location.address.city"
+        ],
+        "updatedAt": "<ISO>",
+        "decisionReason": "Marca y categoría reales; falta ciudad.",
+        "candidates": [
+         "LÚMINA | Restaurante mediterráneo",
+         "LÚMINA"
+        ]
+       },
+       "description": {
+        "mode": "auto",
+        "value": "LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.",
+        "templateId": "restaurant.home.description.v2.es",
+        "derivedFrom": [
+         "brand.name",
+         "hero.body",
+         "seo.business.category",
+         "modules.location.address.city",
+         "visit.bookingUrl"
+        ],
+        "updatedAt": "<ISO>",
+        "decisionReason": "Descripción honesta sin CTA: falta URL pública de reserva."
+       },
+       "h1": {
+        "mode": "auto",
+        "value": "LÚMINA · Mediterránea",
+        "templateId": "restaurant.home.h1.v2.es",
+        "derivedFrom": [
+         "brand.name",
+         "seo.business.cuisine",
+         "modules.location.address.city"
+        ],
+        "updatedAt": "<ISO>",
+        "decisionReason": "Alineado con especialidad real y contenido visible."
+       }
+      }
+     }
+    },
+    "integrations": {
+     "openseo": {
+      "status": "NOT_CONFIGURED",
+      "endpoint": "",
+      "lastSyncAt": "",
+      "lastSuccessfulSyncAt": "",
+      "error": ""
+     },
+     "searchConsole": {
+      "status": "NOT_CONNECTED",
+      "property": "",
+      "dateRange": "28d",
+      "lastSyncAt": "",
+      "lastSuccessfulSyncAt": "",
+      "error": ""
+     },
+     "dataForSEO": {
+      "status": "NOT_MEASURED",
+      "enabled": false,
+      "lastSyncAt": "",
+      "lastSuccessfulSyncAt": "",
+      "error": "",
+      "lastFetchedAt": "",
+      "costWarning": false
+     }
+    },
+    "intelligence": {
+     "snapshots": [],
+     "issues": [],
+     "opportunities": [],
+     "queries": [],
+     "pages": [],
+     "competitors": [],
+     "keywords": [],
+     "serps": [],
+     "backlinks": [],
+     "insights": [],
+     "history": []
+    },
+    "geo": {
+     "entityReadiness": {},
+     "citationReadiness": {
+      "label": "HEURISTIC",
+      "strengths": [],
+      "weaknesses": [],
+      "recommendations": []
+     },
+     "crawlerAccess": {},
+     "factualCoverage": {},
+     "sourceSignals": {},
+     "aiSearchAudit": {
+      "status": "NOT_MEASURED",
+      "observations": []
+     },
+     "history": []
+    }
+   },
+   "publisher": {
+    "environment": "preview",
+    "indexable": false,
+    "canonical": "",
+    "robots": "noindex,nofollow",
+    "head": "<title data-rubik-seo=\"title\">LÚMINA | Restaurante mediterráneo</title>\n<meta name=\"description\" content=\"LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\" data-rubik-seo=\"description\">\n<meta name=\"robots\" content=\"noindex,nofollow\" data-rubik-seo=\"robots\">\n<meta property=\"og:type\" content=\"website\" data-rubik-seo=\"og-type\">\n<meta property=\"og:title\" content=\"LÚMINA | Restaurante mediterráneo\" data-rubik-seo=\"og-title\">\n<meta property=\"og:description\" content=\"LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\" data-rubik-seo=\"og-description\">\n<meta property=\"og:url\" content=\"\" data-rubik-seo=\"og-url\">\n<meta name=\"twitter:card\" content=\"summary_large_image\" data-rubik-seo=\"twitter-card\">\n<meta name=\"twitter:title\" content=\"LÚMINA | Restaurante mediterráneo\" data-rubik-seo=\"twitter-title\">\n<meta name=\"twitter:description\" content=\"LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\" data-rubik-seo=\"twitter-description\">\n<script type=\"application/ld+json\" data-rubik-seo=\"schema\">{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"WebSite\",\"name\":\"LÚMINA\",\"@id\":\"https://restaurant.example.test/#website\",\"url\":\"https://restaurant.example.test/\"},{\"@type\":\"WebPage\",\"name\":\"LÚMINA | Restaurante mediterráneo\",\"@id\":\"https://restaurant.example.test/#webpage\",\"url\":\"https://restaurant.example.test/\",\"isPartOf\":{\"@id\":\"https://restaurant.example.test/#website\"},\"about\":{\"@id\":\"https://restaurant.example.test/#restaurant\"}},{\"@type\":\"Restaurant\",\"name\":\"LÚMINA\",\"@id\":\"https://restaurant.example.test/#restaurant\",\"description\":\"Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\",\"url\":\"https://restaurant.example.test/\",\"servesCuisine\":[\"Mediterránea\"]}]}</script>",
+    "schema": {
+     "@context": "https://schema.org",
+     "@graph": [
+      {
+       "@type": "WebSite",
+       "name": "LÚMINA",
+       "@id": "https://restaurant.example.test/#website",
+       "url": "https://restaurant.example.test/"
+      },
+      {
+       "@type": "WebPage",
+       "name": "LÚMINA | Restaurante mediterráneo",
+       "@id": "https://restaurant.example.test/#webpage",
+       "url": "https://restaurant.example.test/",
+       "isPartOf": {
+        "@id": "https://restaurant.example.test/#website"
+       },
+       "about": {
+        "@id": "https://restaurant.example.test/#restaurant"
+       }
+      },
+      {
+       "@type": "Restaurant",
+       "name": "LÚMINA",
+       "@id": "https://restaurant.example.test/#restaurant",
+       "description": "Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.",
+       "url": "https://restaurant.example.test/",
+       "servesCuisine": [
+        "Mediterránea"
+       ]
+      }
+     ]
+    },
+    "sitemap": "",
+    "robotsTxt": "User-agent: *\nDisallow: /\n",
+    "pages": {
+     "/": "<!doctype html><html lang=\"es\"><head><title data-rubik-seo=\"title\">LÚMINA | Restaurante mediterráneo</title>\n<meta name=\"description\" content=\"LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\" data-rubik-seo=\"description\">\n<meta name=\"robots\" content=\"noindex,nofollow\" data-rubik-seo=\"robots\">\n<meta property=\"og:type\" content=\"website\" data-rubik-seo=\"og-type\">\n<meta property=\"og:title\" content=\"LÚMINA | Restaurante mediterráneo\" data-rubik-seo=\"og-title\">\n<meta property=\"og:description\" content=\"LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\" data-rubik-seo=\"og-description\">\n<meta property=\"og:url\" content=\"\" data-rubik-seo=\"og-url\">\n<meta name=\"twitter:card\" content=\"summary_large_image\" data-rubik-seo=\"twitter-card\">\n<meta name=\"twitter:title\" content=\"LÚMINA | Restaurante mediterráneo\" data-rubik-seo=\"twitter-title\">\n<meta name=\"twitter:description\" content=\"LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\" data-rubik-seo=\"twitter-description\">\n<script type=\"application/ld+json\" data-rubik-seo=\"schema\">{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"WebSite\",\"name\":\"LÚMINA\",\"@id\":\"https://restaurant.example.test/#website\",\"url\":\"https://restaurant.example.test/\"},{\"@type\":\"WebPage\",\"name\":\"LÚMINA | Restaurante mediterráneo\",\"@id\":\"https://restaurant.example.test/#webpage\",\"url\":\"https://restaurant.example.test/\",\"isPartOf\":{\"@id\":\"https://restaurant.example.test/#website\"},\"about\":{\"@id\":\"https://restaurant.example.test/#restaurant\"}},{\"@type\":\"Restaurant\",\"name\":\"LÚMINA\",\"@id\":\"https://restaurant.example.test/#restaurant\",\"description\":\"Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.\",\"url\":\"https://restaurant.example.test/\",\"servesCuisine\":[\"Mediterránea\"]}]}</script></head><body><main data-rubik-page=\"home\"><h1>LÚMINA · Mediterránea</h1></main></body></html>"
+    },
+    "redirects": [],
+    "adapter": {
+     "id": "restaurant",
+     "label": "Restauración",
+     "schemaType": "Restaurant",
+     "entityId": "restaurant",
+     "registered": 7
+    }
+   },
+   "preview": {
+    "seo": {
+     "schemaVersion": 3,
+     "adapterId": "restaurant",
+     "site": {
+      "baseUrl": "https://restaurant.example.test/",
+      "defaultLanguage": "es",
+      "supportedLanguages": [
+       "es"
+      ],
+      "defaultSocialImageRef": ""
+     },
+     "business": {
+      "businessType": "restaurant",
+      "schemaType": "Restaurant",
+      "category": "Restaurante mediterráneo",
+      "cuisine": [
+       "Mediterránea"
+      ],
+      "legalName": "",
+      "priceRange": "",
+      "publicDataConfirmed": false,
+      "confirmationSignature": ""
+     },
+     "visibility": {
+      "address": "private",
+      "phone": "private",
+      "email": "private"
+     },
+     "pages": {
+      "home": {
+       "id": "home",
+       "path": "/",
+       "type": "home",
+       "indexable": true,
+       "canonicalMode": "auto",
+       "seo": {
+        "title": {
+         "mode": "auto",
+         "value": "LÚMINA | Restaurante mediterráneo",
+         "templateId": "restaurant.home.title.v2.es",
+         "derivedFrom": [
+          "brand.name",
+          "seo.business.category",
+          "modules.location.address.city"
+         ],
+         "updatedAt": "<ISO>",
+         "decisionReason": "Marca y categoría reales; falta ciudad.",
+         "candidates": [
+          "LÚMINA | Restaurante mediterráneo",
+          "LÚMINA"
+         ]
+        },
+        "description": {
+         "mode": "auto",
+         "value": "LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.",
+         "templateId": "restaurant.home.description.v2.es",
+         "derivedFrom": [
+          "brand.name",
+          "hero.body",
+          "seo.business.category",
+          "modules.location.address.city",
+          "visit.bookingUrl"
+         ],
+         "updatedAt": "<ISO>",
+         "decisionReason": "Descripción honesta sin CTA: falta URL pública de reserva."
+        },
+        "h1": {
+         "mode": "auto",
+         "value": "LÚMINA · Mediterránea",
+         "templateId": "restaurant.home.h1.v2.es",
+         "derivedFrom": [
+          "brand.name",
+          "seo.business.cuisine",
+          "modules.location.address.city"
+         ],
+         "updatedAt": "<ISO>",
+         "decisionReason": "Alineado con especialidad real y contenido visible."
+        }
+       }
+      }
+     },
+     "integrations": {
+      "openseo": {
+       "status": "NOT_CONFIGURED",
+       "endpoint": "",
+       "lastSyncAt": "",
+       "lastSuccessfulSyncAt": "",
+       "error": ""
+      },
+      "searchConsole": {
+       "status": "NOT_CONNECTED",
+       "property": "",
+       "dateRange": "28d",
+       "lastSyncAt": "",
+       "lastSuccessfulSyncAt": "",
+       "error": ""
+      },
+      "dataForSEO": {
+       "status": "NOT_MEASURED",
+       "enabled": false,
+       "lastSyncAt": "",
+       "lastSuccessfulSyncAt": "",
+       "error": "",
+       "lastFetchedAt": "",
+       "costWarning": false
+      }
+     },
+     "intelligence": {
+      "snapshots": [],
+      "issues": [],
+      "opportunities": [],
+      "queries": [],
+      "pages": [],
+      "competitors": [],
+      "keywords": [],
+      "serps": [],
+      "backlinks": [],
+      "insights": [],
+      "history": []
+     },
+     "geo": {
+      "entityReadiness": {},
+      "citationReadiness": {
+       "label": "HEURISTIC",
+       "strengths": [],
+       "weaknesses": [],
+       "recommendations": []
+      },
+      "crawlerAccess": {},
+      "factualCoverage": {},
+      "sourceSignals": {},
+      "aiSearchAudit": {
+       "status": "NOT_MEASURED",
+       "observations": []
+      },
+      "history": []
+     }
+    },
+    "adapter": {
+     "id": "restaurant",
+     "label": "Restauración",
+     "schemaType": "Restaurant",
+     "entityId": "restaurant",
+     "registered": 7
+    },
+    "source": {
+     "language": "es",
+     "name": "LÚMINA",
+     "description": "Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.",
+     "category": "Restaurante mediterráneo",
+     "cuisine": [
+      "Mediterránea"
+     ],
+     "legalName": "",
+     "priceRange": "",
+     "city": "",
+     "address": {
+      "streetAddress": "Muelle 08 · Alicante"
+     },
+     "locationVisible": false,
+     "phone": "",
+     "email": "hello@lumina.demo",
+     "reservationUrl": "",
+     "actionUrl": "",
+     "hoursLabel": "19:30 — 00:30",
+     "maps": null,
+     "dishes": [
+      {
+       "id": "dish-01",
+       "name": "Wild Red Prawn",
+       "origin": "Lonja de Santa Pola · Alicante",
+       "ingredients": "Red prawn · smoked almond · citrus · sea fennel",
+       "mediaRef": "dish-01"
+      },
+      {
+       "id": "dish-02",
+       "name": "Bluefin / Blood Orange",
+       "origin": "Western Mediterranean",
+       "ingredients": "Bluefin tuna · blood orange · ponzu · caper leaf",
+       "mediaRef": "dish-02"
+      },
+      {
+       "id": "dish-03",
+       "name": "Charred Artichoke",
+       "origin": "Vega Baja · Alicante",
+       "ingredients": "Artichoke · egg yolk · hazelnut · parsley oil",
+       "mediaRef": "dish-03"
+      },
+      {
+       "id": "dish-04",
+       "name": "Wild Sea Bass",
+       "origin": "Calpe coast · Alicante",
+       "ingredients": "Sea bass · saffron · leek · fennel",
+       "mediaRef": "dish-04"
+      },
+      {
+       "id": "dish-05",
+       "name": "Iberian Presa",
+       "origin": "Extremadura · Spain",
+       "ingredients": "Iberian pork · aubergine · PX · spring onion",
+       "mediaRef": "dish-05"
+      },
+      {
+       "id": "dish-06",
+       "name": "Burnt Honey Citrus",
+       "origin": "Alicante citrus & local honey",
+       "ingredients": "Burnt honey · citrus · olive oil · almond",
+       "mediaRef": "dish-06"
+      }
+     ],
+     "offerings": [
+      {
+       "id": "dish-01",
+       "name": "Wild Red Prawn",
+       "origin": "Lonja de Santa Pola · Alicante",
+       "ingredients": "Red prawn · smoked almond · citrus · sea fennel",
+       "mediaRef": "dish-01",
+       "description": ""
+      },
+      {
+       "id": "dish-02",
+       "name": "Bluefin / Blood Orange",
+       "origin": "Western Mediterranean",
+       "ingredients": "Bluefin tuna · blood orange · ponzu · caper leaf",
+       "mediaRef": "dish-02",
+       "description": ""
+      },
+      {
+       "id": "dish-03",
+       "name": "Charred Artichoke",
+       "origin": "Vega Baja · Alicante",
+       "ingredients": "Artichoke · egg yolk · hazelnut · parsley oil",
+       "mediaRef": "dish-03",
+       "description": ""
+      },
+      {
+       "id": "dish-04",
+       "name": "Wild Sea Bass",
+       "origin": "Calpe coast · Alicante",
+       "ingredients": "Sea bass · saffron · leek · fennel",
+       "mediaRef": "dish-04",
+       "description": ""
+      },
+      {
+       "id": "dish-05",
+       "name": "Iberian Presa",
+       "origin": "Extremadura · Spain",
+       "ingredients": "Iberian pork · aubergine · PX · spring onion",
+       "mediaRef": "dish-05",
+       "description": ""
+      },
+      {
+       "id": "dish-06",
+       "name": "Burnt Honey Citrus",
+       "origin": "Alicante citrus & local honey",
+       "ingredients": "Burnt honey · citrus · olive oil · almond",
+       "mediaRef": "dish-06",
+       "description": ""
+      }
+     ],
+     "media": [
+      {
+       "ref": "hero",
+       "type": "image"
+      },
+      {
+       "ref": "origin",
+       "type": "image"
+      },
+      {
+       "ref": "atmosphere",
+       "type": "image"
+      },
+      {
+       "ref": "chef",
+       "type": "image"
+      }
+     ],
+     "paths": {
+      "name": "brand.name",
+      "description": "hero.body",
+      "category": "seo.business.category",
+      "city": "modules.location.address.city|visit.address",
+      "legacyAddress": "visit.address",
+      "phone": "modules.location.phone",
+      "email": "visit.contact",
+      "hours": "modules.location.hours|visit.service"
+     },
+     "adapterId": "restaurant",
+     "entityType": "Restaurant"
+    },
+    "home": {
+     "id": "home",
+     "path": "/",
+     "type": "home",
+     "indexable": true,
+     "canonicalMode": "auto",
+     "seo": {
+      "title": {
+       "mode": "auto",
+       "value": "LÚMINA | Restaurante mediterráneo",
+       "templateId": "restaurant.home.title.v2.es",
+       "derivedFrom": [
+        "brand.name",
+        "seo.business.category",
+        "modules.location.address.city"
+       ],
+       "updatedAt": "<ISO>",
+       "decisionReason": "Marca y categoría reales; falta ciudad.",
+       "candidates": [
+        "LÚMINA | Restaurante mediterráneo",
+        "LÚMINA"
+       ]
+      },
+      "description": {
+       "mode": "auto",
+       "value": "LÚMINA es restaurante mediterráneo de Mediterránea. Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.",
+       "templateId": "restaurant.home.description.v2.es",
+       "derivedFrom": [
+        "brand.name",
+        "hero.body",
+        "seo.business.category",
+        "modules.location.address.city",
+        "visit.bookingUrl"
+       ],
+       "updatedAt": "<ISO>",
+       "decisionReason": "Descripción honesta sin CTA: falta URL pública de reserva."
+      },
+      "h1": {
+       "mode": "auto",
+       "value": "LÚMINA · Mediterránea",
+       "templateId": "restaurant.home.h1.v2.es",
+       "derivedFrom": [
+        "brand.name",
+        "seo.business.cuisine",
+        "modules.location.address.city"
+       ],
+       "updatedAt": "<ISO>",
+       "decisionReason": "Alineado con especialidad real y contenido visible."
+      }
+     }
+    },
+    "canonical": "https://restaurant.example.test/",
+    "schema": {
+     "@context": "https://schema.org",
+     "@graph": [
+      {
+       "@type": "WebSite",
+       "name": "LÚMINA",
+       "@id": "https://restaurant.example.test/#website",
+       "url": "https://restaurant.example.test/"
+      },
+      {
+       "@type": "WebPage",
+       "name": "LÚMINA | Restaurante mediterráneo",
+       "@id": "https://restaurant.example.test/#webpage",
+       "url": "https://restaurant.example.test/",
+       "isPartOf": {
+        "@id": "https://restaurant.example.test/#website"
+       },
+       "about": {
+        "@id": "https://restaurant.example.test/#restaurant"
+       }
+      },
+      {
+       "@type": "Restaurant",
+       "name": "LÚMINA",
+       "@id": "https://restaurant.example.test/#restaurant",
+       "description": "Producto mediterráneo, fuego y precisión. Una carta que no se desplaza: orbita.",
+       "url": "https://restaurant.example.test/",
+       "servesCuisine": [
+        "Mediterránea"
+       ]
+      }
+     ]
+    },
+    "checks": [
+     {
+      "id": "adapter",
+      "severity": "PASS",
+      "message": "Adapter Restauración (Restaurant) activo sobre el Core compartido."
+     },
+     {
+      "id": "name",
+      "severity": "PASS",
+      "message": "Nombre heredado de la fuente canónica del host."
+     },
+     {
+      "id": "title",
+      "severity": "PASS",
+      "message": "Salida generada."
+     },
+     {
+      "id": "description",
+      "severity": "PASS",
+      "message": "Salida generada."
+     },
+     {
+      "id": "h1",
+      "severity": "PASS",
+      "message": "Salida generada."
+     },
+     {
+      "id": "canonical",
+      "severity": "PASS",
+      "message": "URL HTTPS productiva válida."
+     },
+     {
+      "id": "specificity",
+      "severity": "PASS",
+      "message": "Categoría confirmada."
+     },
+     {
+      "id": "local",
+      "severity": "WARNING",
+      "message": "Falta ciudad estructurada → afecta Local SEO, schema y title/meta AUTO."
+     },
+     {
+      "id": "differential",
+      "severity": "PASS",
+      "message": "Señal diferencial real disponible."
+     },
+     {
+      "id": "schema",
+      "severity": "PASS",
+      "message": "Grafo WebSite → WebPage → Restaurant sin ratings/reviews inventados."
+     },
+     {
+      "id": "deferred",
+      "severity": "DEFERRED",
+      "message": "Multidioma continúa como deuda explícita; proveedores externos sólo aportan medición real cuando están conectados."
+     },
+     {
+      "id": "publisher",
+      "severity": "PASS",
+      "message": "Publisher listo para producción."
+     }
+    ],
+    "policy": {
+     "preview": "noindex",
+     "production": "index",
+     "applied": false
+    },
+    "measurements": {
+     "dataForSEO": "NOT MEASURED",
+     "searchConsole": "NOT CONNECTED",
+     "openSEO": "NOT CONNECTED",
+     "aiVisibility": "NOT MEASURED"
+    }
+   }
+  },
+  "realEstate:production": {
+   "seo": {
+    "schemaVersion": 3,
+    "adapterId": "real-estate",
+    "site": {
+     "baseUrl": "https://casa-norte.example.test/",
+     "defaultLanguage": "es",
+     "supportedLanguages": [
+      "es"
+     ],
+     "defaultSocialImageRef": ""
+    },
+    "business": {
+     "businessType": "real-estate",
+     "schemaType": "RealEstateAgent",
+     "category": "Buyer Agent",
+     "cuisine": [],
+     "legalName": "",
+     "priceRange": "",
+     "publicDataConfirmed": false,
+     "confirmationSignature": ""
+    },
+    "visibility": {
+     "address": "private",
+     "phone": "private",
+     "email": "private"
+    },
+    "pages": {
+     "home": {
+      "id": "home",
+      "path": "/",
+      "type": "home",
+      "indexable": true,
+      "canonicalMode": "auto",
+      "seo": {
+       "title": {
+        "mode": "auto",
+        "value": "Casa Norte | Buyer Agent en Alicante",
+        "templateId": "real-estate.home.title.v1.es",
+        "derivedFrom": [
+         "brand.name",
+         "seo.business.category",
+         "modules.location.address.city"
+        ],
+        "updatedAt": "<ISO>",
+        "decisionReason": "Marca, categoría y ciudad reales; intención local de Home.",
+        "candidates": [
+         "Casa Norte | Buyer Agent en Alicante",
+         "Casa Norte | Buyer Agent",
+         "Casa Norte"
+        ]
+       },
+       "description": {
+        "mode": "auto",
+        "value": "Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.",
+        "templateId": "real-estate.home.description.v1.es",
+        "derivedFrom": [
+         "brand.name",
+         "hero.body",
+         "seo.business.category",
+         "modules.location.address.city"
+        ],
+        "updatedAt": "<ISO>",
+        "decisionReason": "Descripción honesta construida sólo con fuentes disponibles."
+       },
+       "h1": {
+        "mode": "auto",
+        "value": "Casa Norte en Alicante",
+        "templateId": "real-estate.home.h1.v1.es",
+        "derivedFrom": [
+         "brand.name",
+         "modules.location.address.city"
+        ],
+        "updatedAt": "<ISO>",
+        "decisionReason": "Alineado con marca visible y ubicación real cuando existe."
+       }
+      }
+     }
+    },
+    "integrations": {
+     "openseo": {
+      "status": "NOT_CONFIGURED",
+      "endpoint": "",
+      "lastSyncAt": "",
+      "lastSuccessfulSyncAt": "",
+      "error": ""
+     },
+     "searchConsole": {
+      "status": "NOT_CONNECTED",
+      "property": "",
+      "dateRange": "28d",
+      "lastSyncAt": "",
+      "lastSuccessfulSyncAt": "",
+      "error": ""
+     },
+     "dataForSEO": {
+      "status": "NOT_MEASURED",
+      "enabled": false,
+      "lastSyncAt": "",
+      "lastSuccessfulSyncAt": "",
+      "error": "",
+      "lastFetchedAt": "",
+      "costWarning": false
+     }
+    },
+    "intelligence": {
+     "snapshots": [],
+     "issues": [],
+     "opportunities": [],
+     "queries": [],
+     "pages": [],
+     "competitors": [],
+     "keywords": [],
+     "serps": [],
+     "backlinks": [],
+     "insights": [],
+     "history": []
+    },
+    "geo": {
+     "entityReadiness": {},
+     "citationReadiness": {
+      "label": "HEURISTIC",
+      "strengths": [],
+      "weaknesses": [],
+      "recommendations": []
+     },
+     "crawlerAccess": {},
+     "factualCoverage": {},
+     "sourceSignals": {},
+     "aiSearchAudit": {
+      "status": "NOT_MEASURED",
+      "observations": []
+     },
+     "history": []
+    }
+   },
+   "publisher": {
+    "environment": "production",
+    "indexable": true,
+    "canonical": "https://casa-norte.example.test/",
+    "robots": "index,follow",
+    "head": "<title data-rubik-seo=\"title\">Casa Norte | Buyer Agent en Alicante</title>\n<meta name=\"description\" content=\"Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.\" data-rubik-seo=\"description\">\n<meta name=\"robots\" content=\"index,follow\" data-rubik-seo=\"robots\">\n<link rel=\"canonical\" href=\"https://casa-norte.example.test/\" data-rubik-seo=\"canonical\">\n<meta property=\"og:type\" content=\"website\" data-rubik-seo=\"og-type\">\n<meta property=\"og:title\" content=\"Casa Norte | Buyer Agent en Alicante\" data-rubik-seo=\"og-title\">\n<meta property=\"og:description\" content=\"Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.\" data-rubik-seo=\"og-description\">\n<meta property=\"og:url\" content=\"https://casa-norte.example.test/\" data-rubik-seo=\"og-url\">\n<meta name=\"twitter:card\" content=\"summary_large_image\" data-rubik-seo=\"twitter-card\">\n<meta name=\"twitter:title\" content=\"Casa Norte | Buyer Agent en Alicante\" data-rubik-seo=\"twitter-title\">\n<meta name=\"twitter:description\" content=\"Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.\" data-rubik-seo=\"twitter-description\">\n<script type=\"application/ld+json\" data-rubik-seo=\"schema\">{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"WebSite\",\"name\":\"Casa Norte\",\"@id\":\"https://casa-norte.example.test/#website\",\"url\":\"https://casa-norte.example.test/\"},{\"@type\":\"WebPage\",\"name\":\"Casa Norte | Buyer Agent en Alicante\",\"@id\":\"https://casa-norte.example.test/#webpage\",\"url\":\"https://casa-norte.example.test/\",\"isPartOf\":{\"@id\":\"https://casa-norte.example.test/#website\"},\"about\":{\"@id\":\"https://casa-norte.example.test/#business\"}},{\"@type\":\"RealEstateAgent\",\"name\":\"Casa Norte\",\"@id\":\"https://casa-norte.example.test/#business\",\"description\":\"Asesoría de compra independiente.\",\"url\":\"https://casa-norte.example.test/\"}]}</script>",
+    "schema": {
+     "@context": "https://schema.org",
+     "@graph": [
+      {
+       "@type": "WebSite",
+       "name": "Casa Norte",
+       "@id": "https://casa-norte.example.test/#website",
+       "url": "https://casa-norte.example.test/"
+      },
+      {
+       "@type": "WebPage",
+       "name": "Casa Norte | Buyer Agent en Alicante",
+       "@id": "https://casa-norte.example.test/#webpage",
+       "url": "https://casa-norte.example.test/",
+       "isPartOf": {
+        "@id": "https://casa-norte.example.test/#website"
+       },
+       "about": {
+        "@id": "https://casa-norte.example.test/#business"
+       }
+      },
+      {
+       "@type": "RealEstateAgent",
+       "name": "Casa Norte",
+       "@id": "https://casa-norte.example.test/#business",
+       "description": "Asesoría de compra independiente.",
+       "url": "https://casa-norte.example.test/"
+      }
+     ]
+    },
+    "sitemap": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://casa-norte.example.test</loc></url></urlset>",
+    "robotsTxt": "User-agent: *\nAllow: /\nSitemap: https://casa-norte.example.test/sitemap.xml\n",
+    "pages": {
+     "/": "<!doctype html><html lang=\"es\"><head><title data-rubik-seo=\"title\">Casa Norte | Buyer Agent en Alicante</title>\n<meta name=\"description\" content=\"Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.\" data-rubik-seo=\"description\">\n<meta name=\"robots\" content=\"index,follow\" data-rubik-seo=\"robots\">\n<link rel=\"canonical\" href=\"https://casa-norte.example.test/\" data-rubik-seo=\"canonical\">\n<meta property=\"og:type\" content=\"website\" data-rubik-seo=\"og-type\">\n<meta property=\"og:title\" content=\"Casa Norte | Buyer Agent en Alicante\" data-rubik-seo=\"og-title\">\n<meta property=\"og:description\" content=\"Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.\" data-rubik-seo=\"og-description\">\n<meta property=\"og:url\" content=\"https://casa-norte.example.test/\" data-rubik-seo=\"og-url\">\n<meta name=\"twitter:card\" content=\"summary_large_image\" data-rubik-seo=\"twitter-card\">\n<meta name=\"twitter:title\" content=\"Casa Norte | Buyer Agent en Alicante\" data-rubik-seo=\"twitter-title\">\n<meta name=\"twitter:description\" content=\"Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.\" data-rubik-seo=\"twitter-description\">\n<script type=\"application/ld+json\" data-rubik-seo=\"schema\">{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"WebSite\",\"name\":\"Casa Norte\",\"@id\":\"https://casa-norte.example.test/#website\",\"url\":\"https://casa-norte.example.test/\"},{\"@type\":\"WebPage\",\"name\":\"Casa Norte | Buyer Agent en Alicante\",\"@id\":\"https://casa-norte.example.test/#webpage\",\"url\":\"https://casa-norte.example.test/\",\"isPartOf\":{\"@id\":\"https://casa-norte.example.test/#website\"},\"about\":{\"@id\":\"https://casa-norte.example.test/#business\"}},{\"@type\":\"RealEstateAgent\",\"name\":\"Casa Norte\",\"@id\":\"https://casa-norte.example.test/#business\",\"description\":\"Asesoría de compra independiente.\",\"url\":\"https://casa-norte.example.test/\"}]}</script></head><body><main data-rubik-page=\"home\"><h1>Casa Norte en Alicante</h1></main></body></html>"
+    },
+    "redirects": [],
+    "adapter": {
+     "id": "real-estate",
+     "label": "Inmobiliaria / Buyer Agent",
+     "schemaType": "RealEstateAgent",
+     "entityId": "business",
+     "registered": 7
+    }
+   },
+   "preview": {
+    "seo": {
+     "schemaVersion": 3,
+     "adapterId": "real-estate",
+     "site": {
+      "baseUrl": "https://casa-norte.example.test/",
+      "defaultLanguage": "es",
+      "supportedLanguages": [
+       "es"
+      ],
+      "defaultSocialImageRef": ""
+     },
+     "business": {
+      "businessType": "real-estate",
+      "schemaType": "RealEstateAgent",
+      "category": "Buyer Agent",
+      "cuisine": [],
+      "legalName": "",
+      "priceRange": "",
+      "publicDataConfirmed": false,
+      "confirmationSignature": ""
+     },
+     "visibility": {
+      "address": "private",
+      "phone": "private",
+      "email": "private"
+     },
+     "pages": {
+      "home": {
+       "id": "home",
+       "path": "/",
+       "type": "home",
+       "indexable": true,
+       "canonicalMode": "auto",
+       "seo": {
+        "title": {
+         "mode": "auto",
+         "value": "Casa Norte | Buyer Agent en Alicante",
+         "templateId": "real-estate.home.title.v1.es",
+         "derivedFrom": [
+          "brand.name",
+          "seo.business.category",
+          "modules.location.address.city"
+         ],
+         "updatedAt": "<ISO>",
+         "decisionReason": "Marca, categoría y ciudad reales; intención local de Home.",
+         "candidates": [
+          "Casa Norte | Buyer Agent en Alicante",
+          "Casa Norte | Buyer Agent",
+          "Casa Norte"
+         ]
+        },
+        "description": {
+         "mode": "auto",
+         "value": "Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.",
+         "templateId": "real-estate.home.description.v1.es",
+         "derivedFrom": [
+          "brand.name",
+          "hero.body",
+          "seo.business.category",
+          "modules.location.address.city"
+         ],
+         "updatedAt": "<ISO>",
+         "decisionReason": "Descripción honesta construida sólo con fuentes disponibles."
+        },
+        "h1": {
+         "mode": "auto",
+         "value": "Casa Norte en Alicante",
+         "templateId": "real-estate.home.h1.v1.es",
+         "derivedFrom": [
+          "brand.name",
+          "modules.location.address.city"
+         ],
+         "updatedAt": "<ISO>",
+         "decisionReason": "Alineado con marca visible y ubicación real cuando existe."
+        }
+       }
+      }
+     },
+     "integrations": {
+      "openseo": {
+       "status": "NOT_CONFIGURED",
+       "endpoint": "",
+       "lastSyncAt": "",
+       "lastSuccessfulSyncAt": "",
+       "error": ""
+      },
+      "searchConsole": {
+       "status": "NOT_CONNECTED",
+       "property": "",
+       "dateRange": "28d",
+       "lastSyncAt": "",
+       "lastSuccessfulSyncAt": "",
+       "error": ""
+      },
+      "dataForSEO": {
+       "status": "NOT_MEASURED",
+       "enabled": false,
+       "lastSyncAt": "",
+       "lastSuccessfulSyncAt": "",
+       "error": "",
+       "lastFetchedAt": "",
+       "costWarning": false
+      }
+     },
+     "intelligence": {
+      "snapshots": [],
+      "issues": [],
+      "opportunities": [],
+      "queries": [],
+      "pages": [],
+      "competitors": [],
+      "keywords": [],
+      "serps": [],
+      "backlinks": [],
+      "insights": [],
+      "history": []
+     },
+     "geo": {
+      "entityReadiness": {},
+      "citationReadiness": {
+       "label": "HEURISTIC",
+       "strengths": [],
+       "weaknesses": [],
+       "recommendations": []
+      },
+      "crawlerAccess": {},
+      "factualCoverage": {},
+      "sourceSignals": {},
+      "aiSearchAudit": {
+       "status": "NOT_MEASURED",
+       "observations": []
+      },
+      "history": []
+     }
+    },
+    "adapter": {
+     "id": "real-estate",
+     "label": "Inmobiliaria / Buyer Agent",
+     "schemaType": "RealEstateAgent",
+     "entityId": "business",
+     "registered": 7
+    },
+    "source": {
+     "language": "es",
+     "name": "Casa Norte",
+     "description": "Asesoría de compra independiente.",
+     "category": "Buyer Agent",
+     "cuisine": [],
+     "legalName": "",
+     "priceRange": "",
+     "city": "Alicante",
+     "address": {
+      "addressLocality": "Alicante",
+      "addressCountry": "ES"
+     },
+     "locationVisible": false,
+     "phone": "",
+     "email": "",
+     "actionUrl": "",
+     "reservationUrl": "",
+     "hoursLabel": "",
+     "maps": null,
+     "offerings": [
+      {
+       "id": "s1",
+       "name": "Búsqueda de vivienda",
+       "description": "Representación del comprador.",
+       "origin": "",
+       "ingredients": "",
+       "mediaRef": "s1"
+      }
+     ],
+     "dishes": [
+      {
+       "id": "s1",
+       "name": "Búsqueda de vivienda",
+       "description": "Representación del comprador.",
+       "origin": "",
+       "ingredients": "",
+       "mediaRef": "s1"
+      }
+     ],
+     "media": [],
+     "paths": {
+      "name": "brand.name|business.name",
+      "description": "hero.body|business.description",
+      "category": "seo.business.category|business.category",
+      "city": "modules.location.address.city|business.address.city|visit.address",
+      "legacyAddress": "visit.address",
+      "phone": "modules.location.phone|business.phone",
+      "email": "visit.contact|business.email",
+      "hours": "modules.location.hours|visit.service|business.hours"
+     },
+     "adapterId": "real-estate",
+     "entityType": "RealEstateAgent"
+    },
+    "home": {
+     "id": "home",
+     "path": "/",
+     "type": "home",
+     "indexable": true,
+     "canonicalMode": "auto",
+     "seo": {
+      "title": {
+       "mode": "auto",
+       "value": "Casa Norte | Buyer Agent en Alicante",
+       "templateId": "real-estate.home.title.v1.es",
+       "derivedFrom": [
+        "brand.name",
+        "seo.business.category",
+        "modules.location.address.city"
+       ],
+       "updatedAt": "<ISO>",
+       "decisionReason": "Marca, categoría y ciudad reales; intención local de Home.",
+       "candidates": [
+        "Casa Norte | Buyer Agent en Alicante",
+        "Casa Norte | Buyer Agent",
+        "Casa Norte"
+       ]
+      },
+      "description": {
+       "mode": "auto",
+       "value": "Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.",
+       "templateId": "real-estate.home.description.v1.es",
+       "derivedFrom": [
+        "brand.name",
+        "hero.body",
+        "seo.business.category",
+        "modules.location.address.city"
+       ],
+       "updatedAt": "<ISO>",
+       "decisionReason": "Descripción honesta construida sólo con fuentes disponibles."
+      },
+      "h1": {
+       "mode": "auto",
+       "value": "Casa Norte en Alicante",
+       "templateId": "real-estate.home.h1.v1.es",
+       "derivedFrom": [
+        "brand.name",
+        "modules.location.address.city"
+       ],
+       "updatedAt": "<ISO>",
+       "decisionReason": "Alineado con marca visible y ubicación real cuando existe."
+      }
+     }
+    },
+    "canonical": "https://casa-norte.example.test/",
+    "schema": {
+     "@context": "https://schema.org",
+     "@graph": [
+      {
+       "@type": "WebSite",
+       "name": "Casa Norte",
+       "@id": "https://casa-norte.example.test/#website",
+       "url": "https://casa-norte.example.test/"
+      },
+      {
+       "@type": "WebPage",
+       "name": "Casa Norte | Buyer Agent en Alicante",
+       "@id": "https://casa-norte.example.test/#webpage",
+       "url": "https://casa-norte.example.test/",
+       "isPartOf": {
+        "@id": "https://casa-norte.example.test/#website"
+       },
+       "about": {
+        "@id": "https://casa-norte.example.test/#business"
+       }
+      },
+      {
+       "@type": "RealEstateAgent",
+       "name": "Casa Norte",
+       "@id": "https://casa-norte.example.test/#business",
+       "description": "Asesoría de compra independiente.",
+       "url": "https://casa-norte.example.test/"
+      }
+     ]
+    },
+    "checks": [
+     {
+      "id": "adapter",
+      "severity": "PASS",
+      "message": "Adapter Inmobiliaria / Buyer Agent (RealEstateAgent) activo sobre el Core compartido."
+     },
+     {
+      "id": "name",
+      "severity": "PASS",
+      "message": "Nombre heredado de la fuente canónica del host."
+     },
+     {
+      "id": "title",
+      "severity": "PASS",
+      "message": "Salida generada."
+     },
+     {
+      "id": "description",
+      "severity": "PASS",
+      "message": "Salida generada."
+     },
+     {
+      "id": "h1",
+      "severity": "PASS",
+      "message": "Salida generada."
+     },
+     {
+      "id": "canonical",
+      "severity": "PASS",
+      "message": "URL HTTPS productiva válida."
+     },
+     {
+      "id": "specificity",
+      "severity": "PASS",
+      "message": "Categoría confirmada."
+     },
+     {
+      "id": "local",
+      "severity": "PASS",
+      "message": "Ciudad real disponible."
+     },
+     {
+      "id": "differential",
+      "severity": "PASS",
+      "message": "Señal diferencial real disponible."
+     },
+     {
+      "id": "schema",
+      "severity": "PASS",
+      "message": "Grafo WebSite → WebPage → RealEstateAgent sin ratings/reviews inventados."
+     },
+     {
+      "id": "deferred",
+      "severity": "DEFERRED",
+      "message": "Multidioma continúa como deuda explícita; proveedores externos sólo aportan medición real cuando están conectados."
+     },
+     {
+      "id": "publisher",
+      "severity": "PASS",
+      "message": "Publisher listo para producción."
+     }
+    ],
+    "policy": {
+     "preview": "noindex",
+     "production": "index",
+     "applied": false
+    },
+    "measurements": {
+     "dataForSEO": "NOT MEASURED",
+     "searchConsole": "NOT CONNECTED",
+     "openSEO": "NOT CONNECTED",
+     "aiVisibility": "NOT MEASURED"
+    }
+   }
+  },
+  "realEstate:preview": {
+   "seo": {
+    "schemaVersion": 3,
+    "adapterId": "real-estate",
+    "site": {
+     "baseUrl": "https://casa-norte.example.test/",
+     "defaultLanguage": "es",
+     "supportedLanguages": [
+      "es"
+     ],
+     "defaultSocialImageRef": ""
+    },
+    "business": {
+     "businessType": "real-estate",
+     "schemaType": "RealEstateAgent",
+     "category": "Buyer Agent",
+     "cuisine": [],
+     "legalName": "",
+     "priceRange": "",
+     "publicDataConfirmed": false,
+     "confirmationSignature": ""
+    },
+    "visibility": {
+     "address": "private",
+     "phone": "private",
+     "email": "private"
+    },
+    "pages": {
+     "home": {
+      "id": "home",
+      "path": "/",
+      "type": "home",
+      "indexable": true,
+      "canonicalMode": "auto",
+      "seo": {
+       "title": {
+        "mode": "auto",
+        "value": "Casa Norte | Buyer Agent en Alicante",
+        "templateId": "real-estate.home.title.v1.es",
+        "derivedFrom": [
+         "brand.name",
+         "seo.business.category",
+         "modules.location.address.city"
+        ],
+        "updatedAt": "<ISO>",
+        "decisionReason": "Marca, categoría y ciudad reales; intención local de Home.",
+        "candidates": [
+         "Casa Norte | Buyer Agent en Alicante",
+         "Casa Norte | Buyer Agent",
+         "Casa Norte"
+        ]
+       },
+       "description": {
+        "mode": "auto",
+        "value": "Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.",
+        "templateId": "real-estate.home.description.v1.es",
+        "derivedFrom": [
+         "brand.name",
+         "hero.body",
+         "seo.business.category",
+         "modules.location.address.city"
+        ],
+        "updatedAt": "<ISO>",
+        "decisionReason": "Descripción honesta construida sólo con fuentes disponibles."
+       },
+       "h1": {
+        "mode": "auto",
+        "value": "Casa Norte en Alicante",
+        "templateId": "real-estate.home.h1.v1.es",
+        "derivedFrom": [
+         "brand.name",
+         "modules.location.address.city"
+        ],
+        "updatedAt": "<ISO>",
+        "decisionReason": "Alineado con marca visible y ubicación real cuando existe."
+       }
+      }
+     }
+    },
+    "integrations": {
+     "openseo": {
+      "status": "NOT_CONFIGURED",
+      "endpoint": "",
+      "lastSyncAt": "",
+      "lastSuccessfulSyncAt": "",
+      "error": ""
+     },
+     "searchConsole": {
+      "status": "NOT_CONNECTED",
+      "property": "",
+      "dateRange": "28d",
+      "lastSyncAt": "",
+      "lastSuccessfulSyncAt": "",
+      "error": ""
+     },
+     "dataForSEO": {
+      "status": "NOT_MEASURED",
+      "enabled": false,
+      "lastSyncAt": "",
+      "lastSuccessfulSyncAt": "",
+      "error": "",
+      "lastFetchedAt": "",
+      "costWarning": false
+     }
+    },
+    "intelligence": {
+     "snapshots": [],
+     "issues": [],
+     "opportunities": [],
+     "queries": [],
+     "pages": [],
+     "competitors": [],
+     "keywords": [],
+     "serps": [],
+     "backlinks": [],
+     "insights": [],
+     "history": []
+    },
+    "geo": {
+     "entityReadiness": {},
+     "citationReadiness": {
+      "label": "HEURISTIC",
+      "strengths": [],
+      "weaknesses": [],
+      "recommendations": []
+     },
+     "crawlerAccess": {},
+     "factualCoverage": {},
+     "sourceSignals": {},
+     "aiSearchAudit": {
+      "status": "NOT_MEASURED",
+      "observations": []
+     },
+     "history": []
+    }
+   },
+   "publisher": {
+    "environment": "preview",
+    "indexable": false,
+    "canonical": "",
+    "robots": "noindex,nofollow",
+    "head": "<title data-rubik-seo=\"title\">Casa Norte | Buyer Agent en Alicante</title>\n<meta name=\"description\" content=\"Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.\" data-rubik-seo=\"description\">\n<meta name=\"robots\" content=\"noindex,nofollow\" data-rubik-seo=\"robots\">\n<meta property=\"og:type\" content=\"website\" data-rubik-seo=\"og-type\">\n<meta property=\"og:title\" content=\"Casa Norte | Buyer Agent en Alicante\" data-rubik-seo=\"og-title\">\n<meta property=\"og:description\" content=\"Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.\" data-rubik-seo=\"og-description\">\n<meta property=\"og:url\" content=\"\" data-rubik-seo=\"og-url\">\n<meta name=\"twitter:card\" content=\"summary_large_image\" data-rubik-seo=\"twitter-card\">\n<meta name=\"twitter:title\" content=\"Casa Norte | Buyer Agent en Alicante\" data-rubik-seo=\"twitter-title\">\n<meta name=\"twitter:description\" content=\"Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.\" data-rubik-seo=\"twitter-description\">\n<script type=\"application/ld+json\" data-rubik-seo=\"schema\">{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"WebSite\",\"name\":\"Casa Norte\",\"@id\":\"https://casa-norte.example.test/#website\",\"url\":\"https://casa-norte.example.test/\"},{\"@type\":\"WebPage\",\"name\":\"Casa Norte | Buyer Agent en Alicante\",\"@id\":\"https://casa-norte.example.test/#webpage\",\"url\":\"https://casa-norte.example.test/\",\"isPartOf\":{\"@id\":\"https://casa-norte.example.test/#website\"},\"about\":{\"@id\":\"https://casa-norte.example.test/#business\"}},{\"@type\":\"RealEstateAgent\",\"name\":\"Casa Norte\",\"@id\":\"https://casa-norte.example.test/#business\",\"description\":\"Asesoría de compra independiente.\",\"url\":\"https://casa-norte.example.test/\"}]}</script>",
+    "schema": {
+     "@context": "https://schema.org",
+     "@graph": [
+      {
+       "@type": "WebSite",
+       "name": "Casa Norte",
+       "@id": "https://casa-norte.example.test/#website",
+       "url": "https://casa-norte.example.test/"
+      },
+      {
+       "@type": "WebPage",
+       "name": "Casa Norte | Buyer Agent en Alicante",
+       "@id": "https://casa-norte.example.test/#webpage",
+       "url": "https://casa-norte.example.test/",
+       "isPartOf": {
+        "@id": "https://casa-norte.example.test/#website"
+       },
+       "about": {
+        "@id": "https://casa-norte.example.test/#business"
+       }
+      },
+      {
+       "@type": "RealEstateAgent",
+       "name": "Casa Norte",
+       "@id": "https://casa-norte.example.test/#business",
+       "description": "Asesoría de compra independiente.",
+       "url": "https://casa-norte.example.test/"
+      }
+     ]
+    },
+    "sitemap": "",
+    "robotsTxt": "User-agent: *\nDisallow: /\n",
+    "pages": {
+     "/": "<!doctype html><html lang=\"es\"><head><title data-rubik-seo=\"title\">Casa Norte | Buyer Agent en Alicante</title>\n<meta name=\"description\" content=\"Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.\" data-rubik-seo=\"description\">\n<meta name=\"robots\" content=\"noindex,nofollow\" data-rubik-seo=\"robots\">\n<meta property=\"og:type\" content=\"website\" data-rubik-seo=\"og-type\">\n<meta property=\"og:title\" content=\"Casa Norte | Buyer Agent en Alicante\" data-rubik-seo=\"og-title\">\n<meta property=\"og:description\" content=\"Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.\" data-rubik-seo=\"og-description\">\n<meta property=\"og:url\" content=\"\" data-rubik-seo=\"og-url\">\n<meta name=\"twitter:card\" content=\"summary_large_image\" data-rubik-seo=\"twitter-card\">\n<meta name=\"twitter:title\" content=\"Casa Norte | Buyer Agent en Alicante\" data-rubik-seo=\"twitter-title\">\n<meta name=\"twitter:description\" content=\"Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.\" data-rubik-seo=\"twitter-description\">\n<script type=\"application/ld+json\" data-rubik-seo=\"schema\">{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"WebSite\",\"name\":\"Casa Norte\",\"@id\":\"https://casa-norte.example.test/#website\",\"url\":\"https://casa-norte.example.test/\"},{\"@type\":\"WebPage\",\"name\":\"Casa Norte | Buyer Agent en Alicante\",\"@id\":\"https://casa-norte.example.test/#webpage\",\"url\":\"https://casa-norte.example.test/\",\"isPartOf\":{\"@id\":\"https://casa-norte.example.test/#website\"},\"about\":{\"@id\":\"https://casa-norte.example.test/#business\"}},{\"@type\":\"RealEstateAgent\",\"name\":\"Casa Norte\",\"@id\":\"https://casa-norte.example.test/#business\",\"description\":\"Asesoría de compra independiente.\",\"url\":\"https://casa-norte.example.test/\"}]}</script></head><body><main data-rubik-page=\"home\"><h1>Casa Norte en Alicante</h1></main></body></html>"
+    },
+    "redirects": [],
+    "adapter": {
+     "id": "real-estate",
+     "label": "Inmobiliaria / Buyer Agent",
+     "schemaType": "RealEstateAgent",
+     "entityId": "business",
+     "registered": 7
+    }
+   },
+   "preview": {
+    "seo": {
+     "schemaVersion": 3,
+     "adapterId": "real-estate",
+     "site": {
+      "baseUrl": "https://casa-norte.example.test/",
+      "defaultLanguage": "es",
+      "supportedLanguages": [
+       "es"
+      ],
+      "defaultSocialImageRef": ""
+     },
+     "business": {
+      "businessType": "real-estate",
+      "schemaType": "RealEstateAgent",
+      "category": "Buyer Agent",
+      "cuisine": [],
+      "legalName": "",
+      "priceRange": "",
+      "publicDataConfirmed": false,
+      "confirmationSignature": ""
+     },
+     "visibility": {
+      "address": "private",
+      "phone": "private",
+      "email": "private"
+     },
+     "pages": {
+      "home": {
+       "id": "home",
+       "path": "/",
+       "type": "home",
+       "indexable": true,
+       "canonicalMode": "auto",
+       "seo": {
+        "title": {
+         "mode": "auto",
+         "value": "Casa Norte | Buyer Agent en Alicante",
+         "templateId": "real-estate.home.title.v1.es",
+         "derivedFrom": [
+          "brand.name",
+          "seo.business.category",
+          "modules.location.address.city"
+         ],
+         "updatedAt": "<ISO>",
+         "decisionReason": "Marca, categoría y ciudad reales; intención local de Home.",
+         "candidates": [
+          "Casa Norte | Buyer Agent en Alicante",
+          "Casa Norte | Buyer Agent",
+          "Casa Norte"
+         ]
+        },
+        "description": {
+         "mode": "auto",
+         "value": "Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.",
+         "templateId": "real-estate.home.description.v1.es",
+         "derivedFrom": [
+          "brand.name",
+          "hero.body",
+          "seo.business.category",
+          "modules.location.address.city"
+         ],
+         "updatedAt": "<ISO>",
+         "decisionReason": "Descripción honesta construida sólo con fuentes disponibles."
+        },
+        "h1": {
+         "mode": "auto",
+         "value": "Casa Norte en Alicante",
+         "templateId": "real-estate.home.h1.v1.es",
+         "derivedFrom": [
+          "brand.name",
+          "modules.location.address.city"
+         ],
+         "updatedAt": "<ISO>",
+         "decisionReason": "Alineado con marca visible y ubicación real cuando existe."
+        }
+       }
+      }
+     },
+     "integrations": {
+      "openseo": {
+       "status": "NOT_CONFIGURED",
+       "endpoint": "",
+       "lastSyncAt": "",
+       "lastSuccessfulSyncAt": "",
+       "error": ""
+      },
+      "searchConsole": {
+       "status": "NOT_CONNECTED",
+       "property": "",
+       "dateRange": "28d",
+       "lastSyncAt": "",
+       "lastSuccessfulSyncAt": "",
+       "error": ""
+      },
+      "dataForSEO": {
+       "status": "NOT_MEASURED",
+       "enabled": false,
+       "lastSyncAt": "",
+       "lastSuccessfulSyncAt": "",
+       "error": "",
+       "lastFetchedAt": "",
+       "costWarning": false
+      }
+     },
+     "intelligence": {
+      "snapshots": [],
+      "issues": [],
+      "opportunities": [],
+      "queries": [],
+      "pages": [],
+      "competitors": [],
+      "keywords": [],
+      "serps": [],
+      "backlinks": [],
+      "insights": [],
+      "history": []
+     },
+     "geo": {
+      "entityReadiness": {},
+      "citationReadiness": {
+       "label": "HEURISTIC",
+       "strengths": [],
+       "weaknesses": [],
+       "recommendations": []
+      },
+      "crawlerAccess": {},
+      "factualCoverage": {},
+      "sourceSignals": {},
+      "aiSearchAudit": {
+       "status": "NOT_MEASURED",
+       "observations": []
+      },
+      "history": []
+     }
+    },
+    "adapter": {
+     "id": "real-estate",
+     "label": "Inmobiliaria / Buyer Agent",
+     "schemaType": "RealEstateAgent",
+     "entityId": "business",
+     "registered": 7
+    },
+    "source": {
+     "language": "es",
+     "name": "Casa Norte",
+     "description": "Asesoría de compra independiente.",
+     "category": "Buyer Agent",
+     "cuisine": [],
+     "legalName": "",
+     "priceRange": "",
+     "city": "Alicante",
+     "address": {
+      "addressLocality": "Alicante",
+      "addressCountry": "ES"
+     },
+     "locationVisible": false,
+     "phone": "",
+     "email": "",
+     "actionUrl": "",
+     "reservationUrl": "",
+     "hoursLabel": "",
+     "maps": null,
+     "offerings": [
+      {
+       "id": "s1",
+       "name": "Búsqueda de vivienda",
+       "description": "Representación del comprador.",
+       "origin": "",
+       "ingredients": "",
+       "mediaRef": "s1"
+      }
+     ],
+     "dishes": [
+      {
+       "id": "s1",
+       "name": "Búsqueda de vivienda",
+       "description": "Representación del comprador.",
+       "origin": "",
+       "ingredients": "",
+       "mediaRef": "s1"
+      }
+     ],
+     "media": [],
+     "paths": {
+      "name": "brand.name|business.name",
+      "description": "hero.body|business.description",
+      "category": "seo.business.category|business.category",
+      "city": "modules.location.address.city|business.address.city|visit.address",
+      "legacyAddress": "visit.address",
+      "phone": "modules.location.phone|business.phone",
+      "email": "visit.contact|business.email",
+      "hours": "modules.location.hours|visit.service|business.hours"
+     },
+     "adapterId": "real-estate",
+     "entityType": "RealEstateAgent"
+    },
+    "home": {
+     "id": "home",
+     "path": "/",
+     "type": "home",
+     "indexable": true,
+     "canonicalMode": "auto",
+     "seo": {
+      "title": {
+       "mode": "auto",
+       "value": "Casa Norte | Buyer Agent en Alicante",
+       "templateId": "real-estate.home.title.v1.es",
+       "derivedFrom": [
+        "brand.name",
+        "seo.business.category",
+        "modules.location.address.city"
+       ],
+       "updatedAt": "<ISO>",
+       "decisionReason": "Marca, categoría y ciudad reales; intención local de Home.",
+       "candidates": [
+        "Casa Norte | Buyer Agent en Alicante",
+        "Casa Norte | Buyer Agent",
+        "Casa Norte"
+       ]
+      },
+      "description": {
+       "mode": "auto",
+       "value": "Casa Norte es buyer agent en Alicante. Asesoría de compra independiente.",
+       "templateId": "real-estate.home.description.v1.es",
+       "derivedFrom": [
+        "brand.name",
+        "hero.body",
+        "seo.business.category",
+        "modules.location.address.city"
+       ],
+       "updatedAt": "<ISO>",
+       "decisionReason": "Descripción honesta construida sólo con fuentes disponibles."
+      },
+      "h1": {
+       "mode": "auto",
+       "value": "Casa Norte en Alicante",
+       "templateId": "real-estate.home.h1.v1.es",
+       "derivedFrom": [
+        "brand.name",
+        "modules.location.address.city"
+       ],
+       "updatedAt": "<ISO>",
+       "decisionReason": "Alineado con marca visible y ubicación real cuando existe."
+      }
+     }
+    },
+    "canonical": "https://casa-norte.example.test/",
+    "schema": {
+     "@context": "https://schema.org",
+     "@graph": [
+      {
+       "@type": "WebSite",
+       "name": "Casa Norte",
+       "@id": "https://casa-norte.example.test/#website",
+       "url": "https://casa-norte.example.test/"
+      },
+      {
+       "@type": "WebPage",
+       "name": "Casa Norte | Buyer Agent en Alicante",
+       "@id": "https://casa-norte.example.test/#webpage",
+       "url": "https://casa-norte.example.test/",
+       "isPartOf": {
+        "@id": "https://casa-norte.example.test/#website"
+       },
+       "about": {
+        "@id": "https://casa-norte.example.test/#business"
+       }
+      },
+      {
+       "@type": "RealEstateAgent",
+       "name": "Casa Norte",
+       "@id": "https://casa-norte.example.test/#business",
+       "description": "Asesoría de compra independiente.",
+       "url": "https://casa-norte.example.test/"
+      }
+     ]
+    },
+    "checks": [
+     {
+      "id": "adapter",
+      "severity": "PASS",
+      "message": "Adapter Inmobiliaria / Buyer Agent (RealEstateAgent) activo sobre el Core compartido."
+     },
+     {
+      "id": "name",
+      "severity": "PASS",
+      "message": "Nombre heredado de la fuente canónica del host."
+     },
+     {
+      "id": "title",
+      "severity": "PASS",
+      "message": "Salida generada."
+     },
+     {
+      "id": "description",
+      "severity": "PASS",
+      "message": "Salida generada."
+     },
+     {
+      "id": "h1",
+      "severity": "PASS",
+      "message": "Salida generada."
+     },
+     {
+      "id": "canonical",
+      "severity": "PASS",
+      "message": "URL HTTPS productiva válida."
+     },
+     {
+      "id": "specificity",
+      "severity": "PASS",
+      "message": "Categoría confirmada."
+     },
+     {
+      "id": "local",
+      "severity": "PASS",
+      "message": "Ciudad real disponible."
+     },
+     {
+      "id": "differential",
+      "severity": "PASS",
+      "message": "Señal diferencial real disponible."
+     },
+     {
+      "id": "schema",
+      "severity": "PASS",
+      "message": "Grafo WebSite → WebPage → RealEstateAgent sin ratings/reviews inventados."
+     },
+     {
+      "id": "deferred",
+      "severity": "DEFERRED",
+      "message": "Multidioma continúa como deuda explícita; proveedores externos sólo aportan medición real cuando están conectados."
+     },
+     {
+      "id": "publisher",
+      "severity": "PASS",
+      "message": "Publisher listo para producción."
+     }
+    ],
+    "policy": {
+     "preview": "noindex",
+     "production": "index",
+     "applied": false
+    },
+    "measurements": {
+     "dataForSEO": "NOT MEASURED",
+     "searchConsole": "NOT CONNECTED",
+     "openSEO": "NOT CONNECTED",
+     "aiVisibility": "NOT MEASURED"
+    }
+   }
+  }
+ }
+}
