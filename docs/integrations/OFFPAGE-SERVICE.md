@@ -196,7 +196,7 @@ Estos patrones inspiran las reglas (sin cuotas, «no vistos» frente a perdidos,
 
 ## 6. CORE-8.1 · operación off-page continua asistida por IA (alcance aprobado)
 
-**Estado:** aprobado el 25/09/2026 (D-24); preparado para implementación después de cerrar CORE-8. La continuidad a largo plazo es propia del servicio off-page; no se exige que cada periodo invente acciones nuevas. Seguimiento, verificación, aprendizaje, informe o «sin cambios relevantes» con mediciones comparables son trabajo válido.
+**Estado:** aprobado el 25/09/2026 (D-24). Implementado en `src/rubik-seo-geo-offpage-ops.js` en la rama `feat/core-8-1-offpage-operations` (PR apilado sobre #12, pendiente de CI y revisión), apilada sobre PR #12. No está cerrado ni fusionado. La continuidad a largo plazo es propia del servicio off-page; no se exige que cada periodo invente acciones nuevas. Seguimiento, verificación, aprendizaje, informe o «sin cambios relevantes» con mediciones comparables son trabajo válido.
 
 ### 6.1 Capacidades que debe habilitar el Core
 
@@ -216,3 +216,19 @@ Estos patrones inspiran las reglas (sin cuotas, «no vistos» frente a perdidos,
 - CORE-8.1 en este repo define contratos, validaciones, provenance y mocks. No introduce credenciales, llamadas reales a modelos/proveedores, envío externo ni storage. Debe probar más de un vertical y datos faltantes/contradictorios.
 - Al iniciar CORE-8.1, Claude debe convertir este alcance en entregables pequeños y criterios verificables antes de codificar; no ampliar ni sustituir estas decisiones sin registrar una decisión y pedir autorización cuando cambie el alcance.
 
+### 6.3 Entregables y criterios comprobables (antes de codificar)
+
+**Módulo:** `src/rubik-seo-geo-offpage-ops.js` (`./offpage-ops`, global `RubikSEOGeoOffpageOps`). Recibe `offpage` (CORE-8) por inyección y reutiliza sus contratos: acciones y aprobación humana, cierre de periodo, comparación GEO, minimización y comprobación de afirmaciones. Sin red, reloj, storage ni modelos.
+
+| # | Entregable | Contrato | Criterios comprobables |
+|---|---|---|---|
+| 1 | **Información aprobada** | `approvedFact`, `factBook` | Un dato solo es utilizable si tiene `approvedBy`, `approvedAt`, fuente y alcance. Sin aprobación queda `PENDING_APPROVAL`; caducado, `EXPIRED`. Dos datos aprobados incompatibles en el mismo contexto se marcan `CONFLICT` y no se pueden citar como hechos. Los datos personales se minimizan. |
+| 2 | **Continuidad entre periodos** | `periodLedger` | El libro se construye a partir de `offpage.closePeriod`. Cada campaña y acción abierta pasa al periodo siguiente con motivo y siguiente paso, o queda marcada. El historial solo crece (no se reescribe). La agenda del periodo siguiente admite seguimiento, verificación o remedición sin acciones nuevas (`newActionsRequired:false`). |
+| 3 | **Mediciones GEO repetidas** | `geoMeasurementPlan`, `geoSeries` | El plan enumera las ejecuciones por consulta, motor, superficie, modelo, idioma y mercado, sin ejecutar nada ni permitir scraping. La serie compara cada periodo con el anterior mediante `offpage.compareGeo` y marca las rupturas (`NOT_COMPARABLE` con motivo) sin encadenar tendencias a través de ellas. |
+| 4 | **Artículos, guías y adaptaciones por canal** | `contentBrief`, `validateDraft` | Cada bloque factual cita datos aprobados y utilizables. Una cifra o URL que no esté en esos datos se rechaza. Lo que no tiene respaldo queda `UNKNOWN`. Una adaptación por canal solo usa los datos de su borrador padre. Sin promesas. Resultado: `publishable:false`, `requiresHumanApproval:true` y `semanticReview:'PENDING_HUMAN'`. |
+| 5 | **Estudios, casos e infografías** | `studyProposal` | Requieren datos aprobados de tipo dato o resultado con periodo, metodología, fuente y permiso de publicación. Un caso de éxito requiere además permiso de atribución. Si faltan, el estado es `BLOCKED` con motivos. Las afirmaciones causales solo pueden ser hipótesis. |
+| 6 | **PR, colaboraciones, periodistas y outreach** | `prIdea`, `journalistResponse`, `outreachDraft`, `outreachBatchCheck` | Un destinatario por borrador, con una vía de contacto pública y con URL de origen (el Core no guarda direcciones). Personalización obligatoria respaldada por evidencia. Se detecta el mismo texto repetido en varios borradores (`TEMPLATED_MASS`). La acción asociada es una propuesta de `offpage.action` externa que exige aprobación humana. Las citas de experto requieren un dato aprobado con permiso de atribución. |
+| 7 | **Reseñas** | `reviewResponseDraft`, `reviewRequestDraft` | Respuestas neutrales, sin datos personales del autor, sin pedir que se cambie o retire una reseña y sin compensación a cambio. Solicitudes dirigidas a toda la clientela elegible: se rechazan segmentación por satisfacción, incentivos y lenguaje de filtrado. Siempre borradores no enviables. |
+| 8 | **Informe periódico** | `operationsReport` | Secciones de lo observado, lo ejecutado, lo no verificado y lo siguiente. Cada afirmación lleva referencias o el estado `UNKNOWN`. Se listan las fuentes. Sin promesas. Admite «sin cambios relevantes» solo con datos comparables (herencia de CORE-8). |
+
+**Negativos obligatorios en las pruebas:** datos ausentes, no aprobados, caducados y contradictorios; outreach masivo; incentivos o filtrado de reseñas; causalidad no demostrada; tres verticales (restaurant, real-estate, professional-service).

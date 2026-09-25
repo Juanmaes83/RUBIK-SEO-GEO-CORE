@@ -82,6 +82,7 @@ El Core no incluye UI. Un Studio anfitrión (el de Restaurantes sirve de referen
 | `src/rubik-seo-geo-publisher.js` (`./publisher`) | `RubikSEOGeoPublisher` | `publish(config,env)`, `renderPage`, `rawHtmlContract`, `renderPagesSitemap`, `renderRobots`, `renderRedirects`, `apply(config,env,doc)` (solo navegador y **solo portada**: inyecta el `<head>` del HOME, siempre en el idioma por defecto, y fija `<html lang>` a ese idioma; **no** aplica páginas localizadas, que se generan con `renderPage`/`materializeSite`, D-19) |
 | `src/rubik-seo-geo-intelligence.js` (`./intelligence`) | `RubikSEOGeoIntelligence` | `SearchConsoleAdapter`, `DataForSEOAdapter` (clientes inyectados), `OpenSEOAdapter` (`connectivity()` por `/api/health`, nunca `CONNECTED` sin puente; `crawl()` con el contrato HTTP heredado, **no** compatible con el OpenSEO real; ver [`integrations/OPENSEO.md`](integrations/OPENSEO.md)), `makeSnapshot`, `diff`, `triage`, `crawlerAudit`, `geoReadiness`, `entityGraph(config,{releaseB,core})`: `business`/`location`/`products` desde `source(config)` del adapter activo (`location` en claves de schema.org, solo valores públicos); sin `core`, `''`/`{}`/`[]` (D-18). `products(config,{core})` (D-17). `geoReadiness(config,{schemaGraph,publicHtml,core})`: señales HEURISTIC desde el adapter; sin `core`, `adapterSource:'NOT_PROVIDED'` y señales `null` (D-18), `pages(config,{releaseB})` (Release B **inyectado**; sin él devuelve `[]`, D-13), `insight` |
 | `src/rubik-seo-geo-providers.js` (`./providers`) | `RubikSEOGeoProviders` | `catalog`, `describe`, `runProviderRequest`, `openseoConnectivity`, `markStale`, `toReleaseC`, `toReleaseE`, `normalizeBacklinks`, `redact`, `isTrustedResult`, `RESULT_STATUSES`, `COST_MODELS` (D-21, §5.1; `isTrustedResult` desde la revisión de CORE-8, D-23) |
+| `src/rubik-seo-geo-offpage-ops.js` (`./offpage-ops`) | `RubikSEOGeoOffpageOps` | `approvedFact`, `factBook`, `periodLedger`, `geoMeasurementPlan`, `geoSeries`, `contentBrief`, `validateDraft`, `studyProposal`, `prIdea`, `journalistResponse`, `outreachDraft`, `outreachBatchCheck`, `reviewResponseDraft`, `reviewRequestDraft`, `operationsReport` (D-24, §5.3) |
 | `src/rubik-seo-geo-offpage.js` (`./offpage`) | `RubikSEOGeoOffpage` | `profile`, `snapshot`, `compareSnapshots`, `mention`, `citationConsistency`, `querySet`, `geoRun`, `summarizeGeo`, `compareGeo`, `aiCrawlerAccess`, `opportunity`, `prioritize`, `action`, `transition`, `campaign`, `campaignProgress`, `closePeriod`, `monthlyReport`, `validateReport`, `evidenceItem`, `prepareEvidence`, `compareEvidence`, `findConflicts`, `aiRequest`, `validateAiOutput`, `runAiTask` (D-23, §5.2) |
 | `src/rubik-seo-geo-release-e.js` (`./authority`) | `RubikSEOGeoReleaseE` | E1–E4: `provenance`, `normalizeIndexationRecord`, `normalizePresenceRecord(input,{adapter})`, `normalizeMentionRecord`, `normalizeCitationObservation(input,{adapter})`, `indexNowResult`, `record(state,kind,value,{adapter})`, `summarize`. `adapter` = descriptor del adapter activo (`core.adapter(config)`): `vertical`/`entityType` se derivan de él y, sin él, quedan `UNKNOWN` (D-13) |
 | `src/rubik-seo-geo-materialize.cjs` (`./materialize`, bin) | — (Node) | `materializeSite({state,template,outputDir,environment,baseUrl,renderHomeBody})` |
@@ -123,6 +124,21 @@ El Core no incluye UI. Un Studio anfitrión (el de Restaurantes sirve de referen
   - convertir `null` en `0`;
   - mezclar tráfico de referencia con visibilidad observada o con resultado de negocio;
   - mostrar la puntuación como una señal de Google.
+
+## 5.3 Operación off-page continua (CORE-8.1, D-24)
+
+`src/rubik-seo-geo-offpage-ops.js` (`./offpage-ops`, global `RubikSEOGeoOffpageOps`) prepara borradores y propuestas sobre CORE-8. Detalle en [`integrations/OFFPAGE-SERVICE.md`](integrations/OFFPAGE-SERVICE.md) §6.
+
+- **El host aporta:**
+  - la información del cliente con su aprobación (`approvedBy`, `approvedAt`), fuente, vigencia y permisos de publicación o atribución;
+  - las fechas (`at`) y el módulo `offpage` inyectado.
+- **El host persiste:** el `factBook`, el `periodLedger` (su historial solo crece), los borradores y las propuestas de acción.
+- **El host publica o envía** solo después de una aprobación humana vigente sobre la acción propuesta (`offpage.transition`), y a través de su propio CMS o canal. Las direcciones de contacto no pasan por el Core; el host las resuelve a partir de la vía pública registrada.
+- **Qué no hacer:**
+  - tratar una candidata estructural como contenido verificado;
+  - reutilizar un borrador de outreach para varios destinatarios;
+  - pedir reseñas solo a clientes satisfechos, o con incentivos;
+  - publicar estudios o casos sin datos reales y permisos.
 
 ## 6. Publicación
 

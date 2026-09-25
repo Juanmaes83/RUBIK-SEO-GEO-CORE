@@ -751,6 +751,22 @@ function validateAiOutput(output,{task,evidence}={}){
   return freeze({...base,status});
 }
 
+/* claimIssues(claim, citedEvidence): the structural checks of validateAiOutput for one
+   piece of text, reused by CORE-8.1 drafts: no promise, no personal data or secret, and
+   every number and URL present in the cited evidence. An empty list is not a semantic
+   verification. */
+function claimIssues(claim,cited){
+  const c=text(claim),items=arr(cited).map(x=>x&&x.id&&'method' in x?x:evidenceItem(x)).filter(Boolean),issues=[];
+  if(hasPromise(c))issues.push('PROMISE_NOT_ALLOWED');
+  if(hasPersonalData(c))issues.push('PERSONAL_DATA_OR_SECRET');
+  const corpus=items.map(e=>[e.text,e.value].filter(x=>x!=null).join(' ')).join(' ');
+  const allowed=new Set(numbersIn(corpus));
+  if(numbersIn(c).some(n=>!allowed.has(n)))issues.push('UNSUPPORTED_NUMBER');
+  const urls=items.map(e=>e.url).filter(Boolean).concat((corpus.match(URLS)||[]).map(u=>cleanUrl(u.replace(/[.,;:!?]+$/,''))));
+  if((c.match(URLS)||[]).some(u=>!urls.includes(cleanUrl(u.replace(/[.,;:!?]+$/,'')))))issues.push('UNSUPPORTED_URL');
+  return issues;
+}
+
 /* runAiTask({task, evidence, transport, clock, budget, confirmCost}, {providers}):
    routes the request through CORE-7 runProviderRequest (provider 'ai-assist'), so
    secrets in the input are refused, paid use needs confirmation and a finite budget,
@@ -776,6 +792,6 @@ return Object.freeze({
   profile,measurement,mention,citationConsistency,snapshot,compareSnapshots,
   querySet,geoRun,summarizeGeo,compareGeo,aiCrawlerAccess,
   opportunity,prioritize,action,transition,campaign,campaignProgress,closePeriod,
-  monthlyReport,validateReport,evidenceItem,prepareEvidence,compareEvidence,findConflicts,aiRequest,validateAiOutput,runAiTask,minimize
+  monthlyReport,validateReport,evidenceItem,prepareEvidence,compareEvidence,findConflicts,aiRequest,validateAiOutput,claimIssues,runAiTask,minimize
 });
 });
