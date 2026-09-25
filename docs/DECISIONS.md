@@ -349,3 +349,5 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
   - `tests/core-6-multilingual.test.cjs` (19 pruebas, 15 de ellas fallan con el `src/` de `main`);
   - comparación byte a byte con `main` de `publish`, `preview`, `audit` y los HTML materializados para tres configuraciones monolingües: 0 diferencias;
   - golden (blob `5aa93a3`) y fixtures sin cambios.
+
+- **`apply()` (revisión del PR #9):** está limitado a la portada por diseño. Inyecta `publish().publisher.head`, que es el `<head>` del HOME, y el HOME solo existe en el idioma por defecto (`home-requires-default-locale`). `<html lang>` se toma ahora de `seo.site.defaultLanguage` reconciliado en lugar del literal `'es'`; el valor es el mismo, `es`. No acepta ni resuelve una página localizada, y un argumento extra se ignora. Las páginas localizadas obtienen su `lang` real con `renderPage` (`publish().publisher.pages` y el materializer). Las pruebas fijan ambos casos.

@@ -13,7 +13,7 @@ Los blob ids de git son independientes de los finales de línea. «idéntico» s
 |---|---|---|---|---|
 | `src/rubik-seo-geo-core.js` | `rubik-seo-geo-core.js` | `dd7c1d415059` | `6c053577d2e4` | derivado en CORE-6 (D-19: `normalizeLocale`, `languageSettings`, `inLanguage` multidioma). Idéntico hasta `main@3ad7b13` |
 | `src/rubik-seo-geo-adapters.js` | `rubik-seo-geo-adapters.js` | `142d41303c38` | `142d41303c38` | idéntico |
-| `src/rubik-seo-geo-publisher.js` | `rubik-seo-geo-publisher.js` | `0d791f828366` | `e9dd33a61efd` | derivado en CORE-6 (D-19: hreflang, `lang` e `inLanguage` por página). Idéntico hasta `main@3ad7b13` |
+| `src/rubik-seo-geo-publisher.js` | `rubik-seo-geo-publisher.js` | `0d791f828366` | `97834c8524a6` | derivado en CORE-6 (D-19: hreflang, `lang` e `inLanguage` por página; `apply()` limitado a la portada con `lang` del idioma por defecto). Idéntico hasta `main@3ad7b13` |
 | `src/rubik-seo-geo-release-b.js` | `rubik-seo-geo-release-b.js` | `f7432eb72699` | `5ca6d711ede8` | derivado en CORE-3 (D-15: validación de rutas) y CORE-6 (D-19: locale, `translationKey`, `alternates`). Idéntico hasta `main@995207f` |
 | `src/rubik-seo-geo-media.js` | `rubik-seo-geo-media.js` | `07422b3b6b05` | `07422b3b6b05` | idéntico |
 | `src/rubik-seo-geo-intelligence.js` | `rubik-seo-geo-intelligence.js` | `a72162b4ba48` | `65e16b388b9a` | derivado en CORE-3 (D-13: `pages` inyectado; D-14: health), CORE-3.1 (D-17: `products` desde el adapter) y CORE-3.2 (D-18: `geoReadiness`/`entityGraph` desde el adapter). Idéntico hasta `main@995207f` |

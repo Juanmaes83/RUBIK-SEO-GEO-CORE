@@ -26,6 +26,10 @@
   function renderRedirects(config){return (b?.redirects?b.redirects(config):[]).map(r=>({source:r.from,destination:r.to,permanent:true,status:r.status}));}
   function publishPages(config,env='preview'){const pages=b?.registry?b.registry(config):[homePage(config)],out={};for(const p of pages)out[p.path]=renderPage(config,p,env);return out;}
   function publish(config,env='preview'){const seo=core.reconcile(config),state={...config,seo},p=core.preview(state),home=b?.page?b.page(state,'home'):homePage(state),meta=headForPage(state,home,env),indexable=meta.live,canonical=meta.url,base=env==='production'?core.baseUrl(seo.site.baseUrl):'',routeUrls=base?(b?.sitemapEntries?b.sitemapEntries(state,base):(indexable?[base]:[])):[],siteIndexable=env==='production'&&!!base&&routeUrls.length>0,sitemap=b?renderPagesSitemap(state,env):renderSitemap(canonical,indexable);return {seo,publisher:{environment:env,indexable,canonical,robots:meta.robots,head:meta.head,schema:p.schema,sitemap,robotsTxt:renderRobots(base,siteIndexable),pages:publishPages(state,env),redirects:renderRedirects(state),adapter:p.adapter}};}
-  function apply(config,env='preview',doc=document){const out=publish(config,env),head=doc.head;head.querySelectorAll('[data-rubik-seo]').forEach(e=>e.remove());head.insertAdjacentHTML('beforeend',out.publisher.head);doc.documentElement.lang='es';return out;}
+  /* HOME only, by design: it injects publish().publisher.head, which is the HOME head, and
+     the HOME is always in the default language (D-19: home-requires-default-locale). It does
+     not render localized pages; use renderPage()/materializeSite() for those. lang comes from
+     the reconciled default language ('es' today), not from a hardcoded value. */
+  function apply(config,env='preview',doc=document){const out=publish(config,env),head=doc.head;head.querySelectorAll('[data-rubik-seo]').forEach(e=>e.remove());head.insertAdjacentHTML('beforeend',out.publisher.head);doc.documentElement.lang=out.seo.site.defaultLanguage;return out;}
   return Object.freeze({publish,apply,renderSitemap,renderRobots,renderPage,renderPagesSitemap,renderRedirects,publishPages,graphForPage,rawHtmlContract});
 });

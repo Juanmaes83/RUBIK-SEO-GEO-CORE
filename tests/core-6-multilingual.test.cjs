@@ -217,6 +217,44 @@ test('home pages are default-language only',()=>{
   assert.ok(b.page(d,'landingEn').contract.blockers.includes('home-requires-default-locale'));
 });
 
+// ── apply(): HOME-only by design ─────────────────────────────────────────────
+
+function fakeDocument(lang='xx'){
+  const removed=[];
+  const doc={documentElement:{lang},head:{html:'',querySelectorAll:()=>[{remove:()=>removed.push(1)}],insertAdjacentHTML(position,html){assert.equal(position,'beforeend');this.html+=html;}}};
+  return {doc,removed};
+}
+
+test('apply(): single-es site sets lang="es" and injects the HOME head',()=>{
+  const c=site('real-estate',['es']);
+  const {doc,removed}=fakeDocument();
+  const out=pub.apply(c,'production',doc);
+  assert.equal(doc.documentElement.lang,'es');
+  assert.equal(doc.head.html,out.publisher.head);
+  assert.equal(doc.head.html,pub.publish(c,'production').publisher.head);
+  assert.equal(removed.length,1,'previous data-rubik-seo tags are removed');
+});
+
+test('apply(): on a multilingual site it still applies only the default-language HOME',()=>{
+  const c=trio();
+  c.seo.pages.home={translationKey:'home'};
+  c.seo.pages.homeEn=page('homeEn','/en/',{locale:'en',key:'home',title:'Casa Norte EN'});
+  const {doc}=fakeDocument();
+  pub.apply(c,'production',doc);
+  assert.equal(doc.documentElement.lang,'es','HOME is always the default language (D-19)');
+  assert.equal(doc.head.html,pub.publish(c,'production').publisher.head);
+  assert.match(doc.head.html,new RegExp(`rel="canonical" href="${BASE}"`),'the HOME canonical, not the localized page');
+  assert.deepEqual(hreflangs(doc.head.html),[['en',BASE+'en/'],['es',BASE]]);
+  // No page parameter exists: an extra argument does not select a localized page.
+  const {doc:doc2}=fakeDocument();
+  pub.apply(c,'production',doc2,'homeEn');
+  assert.equal(doc2.documentElement.lang,'es');
+  assert.doesNotMatch(doc2.head.html,/Casa Norte EN/);
+  // Localized pages get their real language through renderPage (used by publish/materialize).
+  assert.match(pageHtml(c,'homeEn'),/^<!doctype html><html lang="en">/);
+  assert.match(pageHtml(c,'about'),/^<!doctype html><html lang="es">/);
+});
+
 // ── Materializer ─────────────────────────────────────────────────────────────
 
 test('materializer writes each published locale route with its hreflang and nothing outside outputDir',t=>{

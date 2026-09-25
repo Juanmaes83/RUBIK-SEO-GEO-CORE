@@ -166,3 +166,10 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 **Bloqueo de CI:** los jobs del [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9) no arrancan: *«The job was not started because an Actions budget is preventing further use»* ([run 36113779831](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36113779831), reintentado con el mismo resultado). Es un límite de facturación de la cuenta, no un fallo de pruebas. Evidencia local complementaria: Node 20.20.2 y 22.23.3 dan 172 (170 pasan, 2 se omiten); los pasos del CLI de la CI también pasan en local.
 
 **Pendiente:** CI Node 20/22 del [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9), revisión humana y merge. Se prevén conflictos solo documentales con el PR #8 (README, ROADMAP, HANDOFF). Sin merge ni deploy.
+
+## Sesión 13 — revisión del PR #9 (25/09/2026)
+
+1. ** limitado a la portada por diseño:** inyecta el  del HOME (), que siempre está en el idioma por defecto (D-19).  se toma ahora de  reconciliado (sigue siendo ). No aplica páginas localizadas: su  real viene de . Queda documentado en el contrato de host y en D-19, y lo fijan 2 pruebas nuevas (monolingüe y multidioma).
+2. **PR #8 integrado** en la rama del PR #9 (merge ) conservando ambos cambios: el cierre de CORE-3.2 y la secuencia de CORE-6 del PR #8 (con su criterio de CORE-6 literal), y el estado «en progreso» de CORE-6, su deuda, la sesión 12 y el bloqueo de CI del PR #9. Solo se descartaron las líneas obsoletas de CORE-3.2 «en revisión».
+3. **Validación local:**  y los checks con Node 24, 20.20.2 y 22.23.3 dan 174 (172 pasan, 2 se omiten en Windows). Monolingüe idéntico a  (0 diferencias) y golden sin cambios.
+4. **CI de GitHub:** sigue sin poder arrancar por el presupuesto de Actions (ver la sesión 12). No se declara aprobada.
