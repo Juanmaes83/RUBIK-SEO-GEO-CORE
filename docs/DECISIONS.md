@@ -97,3 +97,18 @@ El gate de encoding se adapta: aplica la misma regla contra mojibake, pero sobre
 - **Compatibilidad:** las rutas legítimas no cambian. La materialización con el `index.html` real y el estado LÚMINA sigue dando 0 diferencias contra el script fuente, y el golden de `publish()` no cambia. Los módulos `release-b` y `publisher` siguen idénticos al fuente: la defensa está en la frontera de escritura.
 - **Prueba:** `tests/core-materialize-path-safety.test.cjs`. Con el código de `007bb2e` falla 4/4 y con la corrección pasa 4/4.
 - **Pendiente:** que el Page Registry rechace `..` al crear la página (`release-b.createPage` / `pathOf`) es una mejora de UX, no de seguridad. Cambiaría la salida del módulo copiado del fuente, así que se deja para CORE-3 con una decisión propia.
+- **Seguimiento de la revisión (D-11b):**
+  1. **La contención era solo léxica.** `writeFile` seguía enlaces ya presentes dentro de `outputDir`. Reproducido: un enlace `out/blog` apuntando fuera (una junction en Windows) y una página `/blog/post/` escribían fuera de `outputDir`. Corrección:
+     - `assertNoLinkInside` hace `lstat` de cada componente existente entre `outputDir` (exclusive) y el destino. Rechaza enlaces simbólicos o junctions, componentes que no son directorio y destinos que no son un fichero regular.
+     - La comprobación se aplica en la validación previa, **antes de la primera escritura**, a todas las rutas publicables **y** a los ficheros fijos (sitemap, robots, 404 y manifiesto). También se aplica de nuevo en cada `writeFile`.
+     - `writeFile` crea los directorios nivel a nivel, volviendo a comprobarlos, en lugar de `mkdir` recursivo. Abre el fichero con `O_NOFOLLOW` donde existe; en Windows no existe y la barrera son las comprobaciones `lstat`.
+     - `outputDir` puede ser un enlace: se trata como la raíz elegida por quien lanza la build.
+     - Límite conocido: sigue existiendo una ventana TOCTOU si otro proceso crea un enlace entre la comprobación y la escritura, y los hardlinks no se detectan. Es aceptable para una herramienta de build que escribe en un directorio controlado por el operador.
+  2. **Falsos positivos léxicos.** `isInside` usaba `rel.startsWith('..')` y rechazaba nombres válidos como `/..foo/` o `/.../`. Ahora solo rechaza `rel === '..'`, un prefijo `'..' + path.sep`, rutas absolutas y la propia raíz.
+  - **Pruebas añadidas** (en el mismo fichero):
+    - `isInside` unitario;
+    - `routeFile` acepta `/..foo/`, `/.../` y `/a..b/`, y rechaza `/../x/` y `/a/../../x/`;
+    - en preview y en production: páginas `/..foo/` y `/.../` materializadas dentro de `outputDir`; enlace de directorio hacia fuera rechazado sin salida parcial; symlink de fichero en `sitemap.xml` rechazado sin tocar su destino;
+    - un `outputDir` que es a su vez un enlace sigue funcionando.
+    - Si la plataforma no permite crear un tipo de enlace, esa prueba se omite indicando el motivo. En Windows sin privilegio, los symlinks de fichero dan EPERM y los de directorio se prueban con junction.
+  - **Compatibilidad:** la paridad Restaurant sigue en 0 diferencias y los fixtures y el golden no cambian.

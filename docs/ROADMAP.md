@@ -28,11 +28,11 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 |---|---|---|
 | EX-1 | Copiar los 7 módulos Core sin modificar | ✅ |
 | EX-2 | Separar el materializer en Core + hook de host Restaurant | ✅ paridad 0 diferencias |
-| EX-3 | Tests A–E + Hardening A/B ejecutables sin el repo de Restaurantes | ✅ 77/77 en local (Node 24), incluida la prueba de seguridad D-11; 73/73 en CI hasta `007bb2e` |
+| EX-3 | Tests A–E + Hardening A/B ejecutables sin el repo de Restaurantes | ✅ 86 en local (84 pasan y 2 se omiten en Windows), incluidas las pruebas de seguridad D-11; 73/73 en CI hasta `007bb2e` |
 | EX-4 | CI propio (`core-ci.yml`, Node 20 y 22) | ✅ verde en GitHub: `8486054` ([run 36101061645](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36101061645)) y `007bb2e` ([run 36101151706](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36101151706)), en Node 20.20.2 y 22.23.2, 73/73, docs y smoke del CLI. La CI del commit D-11 se verifica en el PR |
 | EX-5 | Contratos canónicos copiados con estados reconciliados | ✅ `docs/upstream/` |
 | EX-6 | README, arquitectura, contrato de host, decisiones, procedencia, handoff | ✅ |
-| EX-8 | Corrección de path traversal en el materializer (D-11) + prueba negativa | ✅ en local (77/77, paridad 0 diferencias) · CI en el PR |
+| EX-8 | Materializer: path traversal y enlaces dentro de `outputDir` (D-11, D-11b) + regresiones | ✅ en local (paridad 0 diferencias, golden sin cambios) · CI en el PR |
 | EX-7 | Auditoría documental: índice de autoridad (`docs/README.md`), `check:docs`, OpenSEO documentado | ✅ |
 
 ## 3. Siguiente trabajo del Core (en orden)

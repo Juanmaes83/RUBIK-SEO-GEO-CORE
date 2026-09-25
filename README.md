@@ -38,11 +38,11 @@ Todo eso lo aporta cada producto anfitrión ([`docs/HOST-INTEGRATION-CONTRACT.md
 | Releases A–D | ✅ implementadas (fuente: PRs #44, #45, #46, #50) |
 | Hardening A–B | ✅ implementados en el Core (#53, #54) · Hardening C pertenece al host (#55) |
 | Release E | ✅ contrato base E1–E4 (#56) · ⏳ conexiones externas pendientes de backend |
-| Independencia | ✅ 77/77 tests desde este repositorio, sin el repo de Restaurantes (local, Node 24; 73/73 en CI Node 20 y 22 hasta `007bb2e`) |
+| Independencia | ✅ 86 tests desde este repositorio, sin el repo de Restaurantes: 84 pasan y 2 se omiten en Windows local (symlinks de fichero sin privilegio); 73/73 en CI Node 20 y 22 hasta `007bb2e` |
 | Compatibilidad Restaurant | ✅ módulos Core con blob idéntico al fuente · golden de `publish()` · materialización con 0 diferencias |
 | Extracción | ⏳ en revisión: [PR #1](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/1) desde `feat/seo-geo-core-extraction`, sin fusionar. `core-ci` en verde en Node 20.20.2 y 22.23.2 sobre `8486054` ([run 36101061645](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36101061645)) y sobre `007bb2e` ([run 36101151706](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36101151706)). La CI de la corrección de seguridad D-11 (commit posterior) se verifica en el PR |
 | Acoplamientos al host pendientes | ⏳ bootstrap navegador de `core.js`, `intelligence.pages()` vía global, vertical por defecto de Release E ([`docs/DECISIONS.md`](docs/DECISIONS.md) D-07) |
-| Seguridad del materializer | ✅ corregido path traversal por rutas `..` del Page Registry ([`docs/DECISIONS.md`](docs/DECISIONS.md) D-11), con prueba negativa |
+| Seguridad del materializer | ✅ path traversal por rutas `..` y escritura a través de enlaces dentro de `outputDir` bloqueados ([`docs/DECISIONS.md`](docs/DECISIONS.md) D-11), con regresiones |
 | OpenSEO | 📝 integración documentada y bloqueada: el contrato heredado **no es compatible** con el OpenSEO real ([`docs/integrations/OPENSEO.md`](docs/integrations/OPENSEO.md)) |
 
 Estado operativo y siguientes pasos: [`docs/ROADMAP.md`](docs/ROADMAP.md) · Handoff: [`docs/HANDOFF.md`](docs/HANDOFF.md)

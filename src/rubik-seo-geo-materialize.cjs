@@ -54,10 +54,39 @@ function unsafeRoute(route,reason){
   return new Error('Unsafe route path rejected ('+reason+'): '+JSON.stringify(route));
 }
 
+/* Lexical containment: only '..' itself or a '..<sep>' prefix escapes; names such as
+   '..foo' or '...' are ordinary children. */
 function isInside(root,file){
   const rel=path.relative(root,file);
-  return rel!==''&&!rel.startsWith('..')&&!path.isAbsolute(rel);
+  return rel!==''&&rel!=='..'&&!rel.startsWith('..'+path.sep)&&!path.isAbsolute(rel);
 }
+
+/* Physical containment: every existing component between outputDir (exclusive) and
+   the target must be a real directory, and an existing target a regular file.
+   A symbolic link or junction anywhere inside outputDir could redirect the write
+   outside it, so it is refused. outputDir itself may be a link. Inspects only; never
+   writes. */
+function assertNoLinkInside(root,file){
+  const parts=path.relative(root,file).split(path.sep);
+  let current=root;
+  for(let i=0;i<parts.length;i++){
+    current=path.join(current,parts[i]);
+    let stat;
+    try{stat=fs.lstatSync(current);}
+    catch(error){if(error.code==='ENOENT')return;throw error;}
+    if(stat.isSymbolicLink())throw new Error('Refusing to write through a symbolic link inside outputDir: '+current);
+    const last=i===parts.length-1;
+    if(!last&&!stat.isDirectory())throw new Error('Refusing to write: path component is not a directory: '+current);
+    if(last&&!stat.isFile())throw new Error('Refusing to overwrite a non-regular file: '+current);
+  }
+}
+
+function assertWritable(root,file){
+  if(!isInside(root,file))throw new Error('Refusing to write outside outputDir: '+file);
+  assertNoLinkInside(root,file);
+}
+
+const WRITE_FLAGS=fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_TRUNC|(fs.constants.O_NOFOLLOW||0);
 
 function routeFile(outputDir,route){
   const root=path.resolve(outputDir);
@@ -74,10 +103,24 @@ function routeFile(outputDir,route){
   return file;
 }
 
+/* Every materializer write goes through here. Directories are created one level at a
+   time and re-checked, so a link cannot be followed by a recursive mkdir; the final open
+   uses O_NOFOLLOW where the platform provides it (not on Windows, where the lstat checks
+   are the barrier). */
 function writeFile(root,file,body){
-  if(!isInside(root,file)) throw new Error('Refusing to write outside outputDir: '+file);
-  fs.mkdirSync(path.dirname(file),{recursive:true});
-  fs.writeFileSync(file,body,'utf8');
+  assertWritable(root,file);
+  fs.mkdirSync(root,{recursive:true});
+  const parts=path.relative(root,file).split(path.sep).slice(0,-1);
+  let current=root;
+  for(const part of parts){
+    current=path.join(current,part);
+    try{fs.mkdirSync(current);}catch(error){if(error.code!=='EEXIST')throw error;}
+    const stat=fs.lstatSync(current);
+    if(stat.isSymbolicLink()||!stat.isDirectory())throw new Error('Refusing to write through a symbolic link inside outputDir: '+current);
+  }
+  assertNoLinkInside(root,file);
+  const fd=fs.openSync(file,WRITE_FLAGS,0o666);
+  try{fs.writeFileSync(fd,body,'utf8');}finally{fs.closeSync(fd);}
 }
 
 function normalizeState(input,{baseUrl=''}={}){
@@ -104,9 +147,12 @@ function materializeSite({state,template,outputDir,environment='preview',baseUrl
   const homeGate=publisher.rawHtmlContract(working,homePage,home.html,environment);
   if(environment==='production'&&!homeGate.ok)throw new Error('HOME raw HTML contract failed: '+homeGate.blockers.join(','));
 
-  /* Validate every publishable route before the first write: an unsafe path fails
+  /* Validate every publishable route and every output file (lexically and against
+     links already present in outputDir) before the first write: an unsafe path fails
      the whole build with no partial output. */
   const routes=registry.filter(page=>page.path!=='/'&&releaseB.canPublish(working,page)).map(page=>({page,file:routeFile(root,page.path)}));
+  const fixedFiles=['sitemap.xml','robots.txt','404.html','seo-geo-routes.json'].map(name=>path.join(root,name));
+  for(const file of [routeFile(root,'/'),...routes.map(r=>r.file),...fixedFiles])assertWritable(root,file);
 
   writeFile(root,routeFile(root,'/'),home.html);
 
@@ -174,5 +220,6 @@ module.exports=Object.freeze({
   normalizeState,
   stripCanonicalSeoHead,
   identityHomeBody,
-  routeFile
+  routeFile,
+  isInside
 });
