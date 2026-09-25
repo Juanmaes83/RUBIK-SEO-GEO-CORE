@@ -501,7 +501,7 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
 
 ## D-23 · Servicio off-page & Authority Core-only (CORE-8)
 
-**Estado:** implementada en la rama `feat/core-8-offpage-authority`, pendiente de PR, CI y revisión. **CORE-8 no se da por cerrada** hasta completar las tres cosas. No activa ninguna conexión, modelo ni persistencia real: eso es CORE-9 (D-20).
+**Estado (25/09/2026):** PR #12 abierto en `feat/core-8-offpage-authority`, HEAD `42d213d`; CI run `36129957035` verde en Node 20/22 (262/262 por job), pendiente de revisión y correcciones. **CORE-8 no está cerrada ni fusionada.** Hallazgos actuales y orden de resolución: [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS-CONTINUATION.md). No activa ninguna conexión, modelo ni persistencia real: eso es CORE-9 (D-20).
 
 - **Investigación previa:** en [`integrations/OFFPAGE-SERVICE.md` §5](integrations/OFFPAGE-SERVICE.md#5-fuentes-consultadas-25092026) y [`ECOSYSTEM-REFERENCES.md`](ECOSYSTEM-REFERENCES.md#core-8--investigación-off-page-25092026), consultada el 25/09/2026.
   - Cubre: políticas oficiales de Google (spam, funciones de IA, enlaces salientes, rastreadores), OpenAI, Bing y Perplexity; datasets y artículos de Hugging Face/arXiv con sus licencias; repositorios propios y externos en solo lectura; y foros, tratados como anecdóticos.
@@ -558,3 +558,17 @@ Con `supportedLanguages:['es']` (la configuración actual), `publish()`, `previe
   - Las cifras numéricas de la IA se validan contra el texto o valor de la evidencia citada, no semánticamente.
   - La detección de promesas es conservadora: también marca negaciones como «no garantizamos».
   - La consistencia NAP compara cadenas normalizadas, no geocodifica.
+
+
+## D-24 · CORE-8.1 y continuidad autónoma por fases
+
+**Estado:** aprobado por producto el 25/09/2026; alcance registrado antes de iniciar la implementación. CORE-8.1 cubre la operación off-page continua apoyada por IA, con seguimiento entre periodos, campañas/acciones, mediciones GEO repetidas, producción asistida de contenidos y borradores basados en evidencia, informes periódicos y aprobación humana de toda acción externa. No obliga a crear una acción artificial en cada mes.
+
+- La IA usa solo información aprobada y fuentes identificables. Cada hecho conserva evidencia; si falta evidencia, se marca como desconocido o hipótesis. No inventa datos, casos, testimonios ni resultados.
+- Artículos, guías y adaptaciones por canal son borradores revisables. Estudios, casos de éxito e infografías requieren datos reales. Ideas de PR, respuestas a periodistas, colaboraciones y contacto se preparan de manera específica e individual, sin envíos masivos.
+- Respuestas y solicitudes de reseñas deben ser neutrales; no se permiten reseñas falsas, incentivos, filtrado de reseñas ni afirmaciones de resultados garantizados.
+- CORE-8.1 se implementa primero como contratos y capacidades Core-only; persistencia e integraciones reales pertenecen a CORE-9.
+- Trabajo autónomo en Claude Code: completar cada fase con ramas/PR separadas, pruebas y handoff persistente. No merge, deploy, gasto real, proveedores live ni cambios/lecturas de otros repositorios sin autorización expresa.
+- CORE-9 puede avanzar en este repositorio mediante diseño, arquitectura, contratos, mocks y documentación revisables. La aplicación de la plataforma en otro proyecto y cualquier conexión real se detienen hasta contar con autorización y destino explícitos.
+
+La guía operativa reanudable está en [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS-CONTINUATION.md); el estado único y autoritativo permanece en `ROADMAP.md`.
