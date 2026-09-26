@@ -635,7 +635,7 @@ La guía operativa reanudable está en [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS
 
 ## D-25 · Preparación de CORE-9 dentro del Core: especificación, contratos y mocks
 
-**Estado (26/09/2026):** rama `docs/core-9-platform-spec`, apilada sobre CORE-8.1 (PR #13), que a su vez depende de PR #12. Pendiente de PR, CI y revisión. **CORE-9 no está implementada:** en este repositorio solo se autoriza preparar artefactos revisables (D-24, etapa 3 de AUTONOMOUS-CONTINUATION).
+**Estado (26/09/2026):** rama `docs/core-9-platform-spec`, apilada sobre CORE-8.1 (PR #13), que a su vez depende de PR #12. [PR #14](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/14); CI run [36203720653](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36203720653) del HEAD `eabd93c` verde en Node 20.20.2/22, 296/296 por job, 0 omitidas; pendiente de revisión humana. **CORE-9 no está implementada:** en este repositorio solo se autoriza preparar artefactos revisables (D-24, etapa 3 de AUTONOMOUS-CONTINUATION).
 
 - **Especificación:** [`core-9/PLATFORM-SPEC.md`](core-9/PLATFORM-SPEC.md). Cubre requisitos, arquitectura de referencia, límites de datos y propiedad, retención propuesta, matriz de permisos, threat model, esquema lógico (solo documentación, sin migraciones), plan por etapas con criterios de aceptación, costes y riesgos, y las **preguntas bloqueantes** para el propietario.
 - **Contratos y mocks:** `src/rubik-seo-geo-platform-contracts.js` (`./platform-contracts`), puro y sin red, secretos, storage, reloj ni programación.

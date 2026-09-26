@@ -356,6 +356,7 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
   - 9 pruebas en `tests/core-9-platform-contracts.test.cjs`;
   - export `./platform-contracts`;
   - D-25, ROADMAP, README, ARCHITECTURE, HOST y PROVENANCE, y el índice `docs/README.md`.
-- **Pruebas:** una mutación de 16 guardas mata las 16.
+- **Pruebas:** una mutación de 16 guardas mata las 16. `npm run verify`: 296 (294 pasan, 2 se omiten en Windows); igual con Node 20.20.2/22.23.3 en local.
+- **PR y CI:** [PR #14](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/14), apilado sobre #13; CI run [36203720653](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36203720653) del HEAD `eabd93c` verde en Node 20.20.2/22, 296/296 por job, 0 omitidas; pendiente de revisión humana.
 - **Bloqueado (requiere al propietario):** PLATFORM-SPEC §10, es decir, proyecto destino, infraestructura, proveedores y presupuestos, modelo de IA, legal/DPA y primer host. No se implementa la plataforma, no se crea ni toca otro repositorio, no se usan secretos ni se conectan servicios.
 - **Siguiente paso concreto:** revisión humana de PR #12 → #13 → CORE-9. Tras las respuestas de §10, etapa 1 del plan de PLATFORM-SPEC §8 en el proyecto destino autorizado.
