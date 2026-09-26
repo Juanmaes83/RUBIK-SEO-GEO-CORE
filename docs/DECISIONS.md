@@ -608,7 +608,7 @@ La guía operativa reanudable está en [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS
 
 ### Implementación de CORE-8.1 (sesión 22, 25/09/2026)
 
-**Estado:** implementada en la rama `feat/core-8-1-offpage-operations`, apilada sobre el HEAD corregido de CORE-8 (`4e64f48`, PR #12). PR propio pendiente de CI y revisión; **no está cerrada ni fusionada** y depende de que PR #12 se fusione primero.
+**Estado:** implementada en la rama `feat/core-8-1-offpage-operations`, apilada sobre el HEAD corregido de CORE-8 (`4e64f48`, PR #12). [PR #13](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/13); CI run [36203308792](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36203308792) del HEAD `a0f59fa` verde en Node 20.20.2/22, 287/287 por job, 0 omitidas; pendiente de revisión humana; **no está cerrada ni fusionada** y depende de que PR #12 se fusione primero.
 
 - **Entregables y criterios:** [`OFFPAGE-SERVICE.md` §6.3](integrations/OFFPAGE-SERVICE.md#63-entregables-y-criterios-comprobables-antes-de-codificar), fijados antes de codificar.
 - **Módulo:** `src/rubik-seo-geo-offpage-ops.js` (`./offpage-ops`, global `RubikSEOGeoOffpageOps`).

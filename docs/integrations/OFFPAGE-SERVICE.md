@@ -196,7 +196,7 @@ Estos patrones inspiran las reglas (sin cuotas, «no vistos» frente a perdidos,
 
 ## 6. CORE-8.1 · operación off-page continua asistida por IA (alcance aprobado)
 
-**Estado:** aprobado el 25/09/2026 (D-24). Implementado en `src/rubik-seo-geo-offpage-ops.js` en la rama `feat/core-8-1-offpage-operations` (PR apilado sobre #12, pendiente de CI y revisión), apilada sobre PR #12. No está cerrado ni fusionado. La continuidad a largo plazo es propia del servicio off-page; no se exige que cada periodo invente acciones nuevas. Seguimiento, verificación, aprendizaje, informe o «sin cambios relevantes» con mediciones comparables son trabajo válido.
+**Estado:** aprobado el 25/09/2026 (D-24). Implementado en `src/rubik-seo-geo-offpage-ops.js` en la rama `feat/core-8-1-offpage-operations` ([PR #13](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/13), apilado sobre #12; CI run [36203308792](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36203308792) del HEAD `a0f59fa` verde en Node 20.20.2/22, 287/287 por job, 0 omitidas; pendiente de revisión humana), apilada sobre PR #12. No está cerrado ni fusionado. La continuidad a largo plazo es propia del servicio off-page; no se exige que cada periodo invente acciones nuevas. Seguimiento, verificación, aprendizaje, informe o «sin cambios relevantes» con mediciones comparables son trabajo válido.
 
 ### 6.1 Capacidades que debe habilitar el Core
 

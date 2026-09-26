@@ -342,5 +342,6 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
   - 13 pruebas en `tests/core-8-1-offpage-operations.test.cjs`;
   - export `./offpage-ops`;
   - documentación: D-24 (implementación), OFFPAGE-SERVICE §6, ROADMAP, README, ARCHITECTURE, HOST §5.3 y PROVENANCE.
-- **Pruebas locales:** una mutación de 20 guardas mata las 20. Resultados de `npm run verify` y de Node 20/22 en el registro de la PR.
-- **Siguiente paso:** CI del PR de CORE-8.1. Después, CORE-9 en la rama `docs/core-9-platform-spec`, que solo prepara especificación, arquitectura, límites de datos, threat model, contratos y mocks dentro de este repositorio.
+- **Pruebas locales:** una mutación de 20 guardas mata las 20. `npm run verify`: 287 (285 pasan, 2 se omiten en Windows); igual con Node 20.20.2/22.23.3 en local.
+- **PR y CI:** [PR #13](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/13), apilado sobre #12; CI run [36203308792](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36203308792) del HEAD `a0f59fa` verde en Node 20.20.2/22, 287/287 por job, 0 omitidas; pendiente de revisión humana.
+- **Siguiente paso:** CORE-9 en la rama `docs/core-9-platform-spec`, que solo prepara especificación, arquitectura, límites de datos, threat model, contratos y mocks dentro de este repositorio.
