@@ -60,6 +60,8 @@ git hash-object --path=src/rubik-seo-geo-core.js src/rubik-seo-geo-core.js
 | `src/rubik-seo-geo-providers.js` | Nuevo en CORE-7 (D-21): contratos neutrales de proveedor para Release C/E. Sin equivalente en el fuente. CORE-8 añade la entrada de catálogo `ai-assist` (D-23). |
 | `src/rubik-seo-geo-offpage.js` | Nuevo en CORE-8 (D-23): contratos del servicio off-page & Authority. Sin equivalente en el fuente. Patrones inspirados (no copiados) en los repositorios y fuentes listados en [ECOSYSTEM-REFERENCES.md](ECOSYSTEM-REFERENCES.md) y [OFFPAGE-SERVICE.md](integrations/OFFPAGE-SERVICE.md). |
 | `tests/core-8-offpage-authority.test.cjs` | CORE-8: servicio off-page con datos manuales, importados y mock; periodos, GEO, aprobación humana y validación de IA (D-23). |
+| `src/rubik-seo-geo-offpage-ops.js` | Nuevo en CORE-8.1 (D-24): operación off-page continua sobre CORE-8. Sin equivalente en el fuente. |
+| `tests/core-8-1-offpage-operations.test.cjs` | CORE-8.1: borradores, continuidad, GEO repetido, outreach individual y reseñas neutrales en tres verticales (D-24). |
 | `tests/core-8-review-regressions.test.cjs` | Revisión de CORE-8 (D-23, sesión 21): regresiones de los seis hallazgos de la auditoría del PR #12. |
 | `tests/core-7-1-openseo-bridge.test.cjs` | CORE-7.1: puente OpenSEO/MCP con cliente inyectado y mocks (D-22). |
 | `tests/core-7-provider-contracts.test.cjs` | CORE-7: sobre de resultado, provenance, errores, datos parciales, coste/presupuesto/caché y mapeo C/E con mocks (D-21). |
