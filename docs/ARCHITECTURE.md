@@ -36,6 +36,7 @@ El Core es una **capacidad transversal**. No es un plugin, ni una segunda aplica
 │               + puente OpenSEO/MCP con cliente inyectado (D-22, sin conexión real)   │
 │ offpage       servicio off-page: snapshots · GEO · oportunidades · acciones (D-23)   │
 │ offpage-ops   operación continua: datos aprobados · periodos · borradores (D-24)     │
+│ platform-contracts  CORE-9: scope · permisos · auditoría · gasto · mocks (D-25)     │
 │ materialize   rutas físicas · gates raw-HTML · 404 · manifiesto (Node)                │
 └──────────────────────────────────────────────────────────────────────────────────────┘
   * Contrato HTTP heredado, no compatible con el OpenSEO real (MCP): ver integrations/OPENSEO.md

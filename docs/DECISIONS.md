@@ -631,3 +631,23 @@ La guía operativa reanudable está en [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS
   - La detección de incentivos, filtrado y causalidad usa patrones de texto en español e inglés: es una ayuda, no una garantía.
   - La correspondencia semántica la valida siempre una persona.
   - La persistencia del historial, el envío y la publicación son de CORE-9 o del host.
+
+
+## D-25 · Preparación de CORE-9 dentro del Core: especificación, contratos y mocks
+
+**Estado (26/09/2026):** rama `docs/core-9-platform-spec`, apilada sobre CORE-8.1 (PR #13), que a su vez depende de PR #12. Pendiente de PR, CI y revisión. **CORE-9 no está implementada:** en este repositorio solo se autoriza preparar artefactos revisables (D-24, etapa 3 de AUTONOMOUS-CONTINUATION).
+
+- **Especificación:** [`core-9/PLATFORM-SPEC.md`](core-9/PLATFORM-SPEC.md). Cubre requisitos, arquitectura de referencia, límites de datos y propiedad, retención propuesta, matriz de permisos, threat model, esquema lógico (solo documentación, sin migraciones), plan por etapas con criterios de aceptación, costes y riesgos, y las **preguntas bloqueantes** para el propietario.
+- **Contratos y mocks:** `src/rubik-seo-geo-platform-contracts.js` (`./platform-contracts`), puro y sin red, secretos, storage, reloj ni programación.
+  - `scope` y `authorize`: pertenencia al tenant o proyecto. La IA solo redacta y propone. `system` ejecuta solo con una aprobación humana del mismo scope.
+  - `secretRef`: solo nombres; rechaza cualquier campo con forma de valor.
+  - `auditEvent` y `verifyAuditChain`: append-only, redactado mediante `providers.redact`, encadenado por hash inyectable.
+  - `spendPolicy`, `spendCheck`, `toProviderBudget` y `recordSpend`: límites finitos por tenant, proveedor y mes que alimentan el `budget` de CORE-7.
+  - `consentRecord` y `hasConsent`: por finalidad y scope, caducables y revocables.
+  - `CONNECTORS`: catálogo de diseño enlazado con operaciones reales de CORE-7, todos `NOT_IMPLEMENTED` y con preguntas abiertas.
+  - `signProvenance` y `verifyProvenance`: solo se firman resultados emitidos por CORE-7 (`isTrustedResult`); la verificación sobrevive a la serialización y detecta datos alterados. El firmante es inyectado.
+  - `REPOSITORY_PORTS` y `createMemoryRepository`: un **mock** en memoria solo para pruebas, con aislamiento entre tenants y puertos append-only.
+  - `jobSpec`: los trabajos solo observan, miden o redactan; nada que envíe, publique o pague es programable.
+- **No criptográfico:** el FNV de la auditoría y el firmante de las pruebas son mocks. Producción exige SHA-256/HMAC o KMS en el servidor.
+- **Evidencia:** 9 pruebas en `tests/core-9-platform-contracts.test.cjs` (una usa `runProviderRequest` real con un presupuesto derivado de la política). Una mutación de 16 guardas mata las 16.
+- **Bloqueo explícito:** construir la plataforma exige responder [PLATFORM-SPEC §10](core-9/PLATFORM-SPEC.md#10-bloqueos-preguntas-para-el-propietario): proyecto destino, infraestructura, proveedores y presupuestos, modelo de IA y retención, legal/DPA y primer host. Sin esas respuestas no se crea otro repositorio, no se conectan servicios ni se usan secretos.

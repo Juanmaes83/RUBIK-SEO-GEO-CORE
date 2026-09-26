@@ -345,3 +345,17 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - **Pruebas locales:** una mutación de 20 guardas mata las 20. `npm run verify`: 287 (285 pasan, 2 se omiten en Windows); igual con Node 20.20.2/22.23.3 en local.
 - **PR y CI:** [PR #13](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/13), apilado sobre #12; CI run [36203308792](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36203308792) del HEAD `a0f59fa` verde en Node 20.20.2/22, 287/287 por job, 0 omitidas; pendiente de revisión humana.
 - **Siguiente paso:** CORE-9 en la rama `docs/core-9-platform-spec`, que solo prepara especificación, arquitectura, límites de datos, threat model, contratos y mocks dentro de este repositorio.
+
+## Sesión 23 — preparación de CORE-9 dentro del Core (26/09/2026)
+
+- **Reanudación tras la pausa por créditos:** comprobado el estado remoto. `a0f59fa` estaba pusheado, pero faltaba el PR, así que se abrió el PR #13 (base `feat/core-8-offpage-authority`). CI run `36203308792` verde (287/287 por job). `5f60000` registra el PR y el CI en la documentación.
+- **Rama:** `docs/core-9-platform-spec`, desde `5f60000`. **Orden de fusión:** #12, luego #13 (cambiar su base a `main`) y después el PR de CORE-9.
+- **Hecho:**
+  - `docs/core-9/PLATFORM-SPEC.md`;
+  - `src/rubik-seo-geo-platform-contracts.js`;
+  - 9 pruebas en `tests/core-9-platform-contracts.test.cjs`;
+  - export `./platform-contracts`;
+  - D-25, ROADMAP, README, ARCHITECTURE, HOST y PROVENANCE, y el índice `docs/README.md`.
+- **Pruebas:** una mutación de 16 guardas mata las 16.
+- **Bloqueado (requiere al propietario):** PLATFORM-SPEC §10, es decir, proyecto destino, infraestructura, proveedores y presupuestos, modelo de IA, legal/DPA y primer host. No se implementa la plataforma, no se crea ni toca otro repositorio, no se usan secretos ni se conectan servicios.
+- **Siguiente paso concreto:** revisión humana de PR #12 → #13 → CORE-9. Tras las respuestas de §10, etapa 1 del plan de PLATFORM-SPEC §8 en el proyecto destino autorizado.
