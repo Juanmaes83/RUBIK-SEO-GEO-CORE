@@ -1,6 +1,6 @@
 # Handoff — extracción de Rubik SEO/GEO Core
 
-**Última sesión:** 28/09/2026 · **Estado:** CORE-8, CORE-8.1 y preparación CORE-9 fusionadas en main@5e90362 · **Siguiente:** resolver decisiones bloqueantes de PLATFORM-SPEC §10 antes de implementar la plataforma · **Alcance:** solo Juanmaes83/RUBIK-SEO-GEO-CORE
+**Última sesión:** 28/09/2026 · **Estado:** CORE-8, CORE-8.1 y preparación CORE-9 fusionadas en main@2e6ebc4 · **Siguiente:** resolver decisiones bloqueantes de PLATFORM-SPEC §10 antes de implementar la plataforma · **Alcance:** solo Juanmaes83/RUBIK-SEO-GEO-CORE
 
 > Este documento resume la última sesión. El estado con autoridad está en [`ROADMAP.md`](ROADMAP.md).
 
@@ -415,3 +415,12 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - **Bloqueo vigente:** responder [PLATFORM-SPEC.md §10](core-9/PLATFORM-SPEC.md): destino/proyecto, hosting e infraestructura, proveedores y presupuestos, modelo/retención IA, base legal/DPA y primer host. Las credenciales futuras deben residir en un gestor server-side de secretos; nunca en el Core, navegador o repositorio.
 - **CORE-2/4/5:** siguen dependiendo de adopción/validación en un host y quedan fuera de este trabajo Core-only.
 - **Ramas:** PR #12–#14 están fusionados. GitHub conserva referencias históricas de ramas asociadas a PRs fusionados; borrar solo tras comprobar que no contienen commits únicos.
+
+
+## Sesión 28 — decisión de conservar ramas remotas (28/09/2026)
+
+- El propietario indicó: **no borrar todavía ninguna rama remota**. No ejecutar limpieza ni eliminación hasta recibir una nueva instrucción explícita.
+- Estado comprobado: `main@2e6ebc4598789ac2918ea93fe31fa724ecb0c4a9`; CI post-merge verde en Node 20/22, run [36403467612](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36403467612). CORE-8, CORE-8.1 y preparación de CORE-9 siguen cerradas/fusionadas; implementación real de CORE-9 bloqueada por PLATFORM-SPEC §10.
+- Inventario GitHub: 16 ramas remotas además de main. Se conservan todas; 15 están contenidas en main y `docs/ecosystem-reference-review` tiene 7 commits únicos según la comparación observada. Ninguna rama se eliminó.
+- Los nombres completos y la regla de retención están en ROADMAP §7. Revisar el inventario actual antes de actuar en una sesión futura.
+- Siguiente paso: responder las decisiones pendientes de PLATFORM-SPEC §10 si se quiere iniciar la implementación real de CORE-9. No borrar ramas como parte de ese trabajo.

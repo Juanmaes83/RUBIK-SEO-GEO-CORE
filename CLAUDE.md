@@ -28,3 +28,9 @@
 - No usar secretos, llamadas reales de red, cuentas de clientes ni datos inventados. No afirmar CI verde sin run completado.
 - No tocar ni consultar repositorios ajenos, ni siquiera como referencia, salvo autorización nueva, concreta y expresa.
 - No convertir el Core en plugin vertical ni duplicar Studio, Project State, Media Library o Page Registry del host.
+
+
+## Retención de ramas
+
+- El propietario ha indicado que las ramas remotas se conservan por ahora. No borrar ni limpiar ninguna referencia de rama, aunque su PR esté fusionado, hasta recibir una nueva instrucción explícita.
+- Consultar el inventario fechado de ROADMAP §7; es una fotografía, no una lista garantizada de refs actuales. No cambiar bases ni usar una rama antigua para nuevo trabajo sin comprobar primero su relación con main.
