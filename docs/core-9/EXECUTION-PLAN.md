@@ -26,6 +26,7 @@ El desarrollo de la aplicación pertenece al repo designado de plataforma. Los c
 | DNS/CDN | Cloudflare se contempla para DNS/CDN/proxy cuando se configure; no es backend, base de datos ni almacén de secretos |
 | Dominio | Comprar/configurar cuando producto y hosting estén listos y revisados |
 | Primer proyecto real | SARAHKARENINA.COM después de terminar sus cambios y migración; trabajo separado del alcance actual |
+| Dirección UX (D-27) | Rubik premium, equipo Rubik y clientes como usuarios, mobile-first responsive; sin inventar assets de marca. Wireframe y capturas móvil/escritorio para aprobación humana |
 | Orden de proveedores | (1) importación manual, (2) Search Console read-only, (3) Bing Webmaster REST read-only, (4) IndexNow con aprobación humana por cada envío |
 | Retención producto | Se aprueba como base la propuesta §4.3 de PLATFORM-SPEC; sujeta a validación legal antes de producción |
 | IA | El propietario informa tener tokens de Gemini, ChatGPT y Claude. No se ha comprobado que sean API keys ni sus límites, modelos, términos, regiones, uso de datos o costes |
@@ -64,11 +65,11 @@ Cada etapa se entrega en PR independiente o PRs cortos y ordenados. Ninguna etap
 
 ### CORE-9.0 · Descubrimiento y base de aplicación
 
-**Tareas de Claude:** inspeccionar únicamente el repo designado de plataforma; preservar archivos; determinar framework y versión por el estado real del repo; documentar arquitectura y ADR; definir una forma fijada y reproducible de consumir el Core (hoy paquete privado/no publicado, sin copiar módulos); proponer contratos de entorno sin valores secretos; levantar app local y CI.
+**Tareas de Claude:** inspeccionar únicamente el repo designado de plataforma; preservar archivos; determinar framework y versión por el estado real del repo; documentar arquitectura y ADR; definir una forma fijada y reproducible de consumir el Core (hoy paquete privado/no publicado, sin copiar módulos); proponer contratos de entorno sin valores secretos; levantar app local y CI. Aplicar D-27: primero wireframe/estructura mobile-first de 360 px y adaptación a tablet/escritorio, para el espacio interno Rubik y la vista acotada del cliente. No inventar logo/paleta/activos; usar tokens neutros reemplazables. Usar solo estados vacíos o fixtures rotulados; no simular métricas reales. Incluir accesibilidad básica y capturas móvil/escritorio.
 
-**Criterios:** decisión técnica explicada; dependencia del Core fijada a versión/SHA o mecanismo equivalente reproducible; build, lint/typecheck y pruebas pasan; no hay claves, datos reales, despliegue ni cambios en Core salvo autorización separada.
+**Criterios:** decisión técnica explicada; dependencia del Core fijada a versión/SHA o mecanismo equivalente reproducible; build, lint/typecheck y pruebas pasan; wireframe/pantalla legible a 360 px, tablet y escritorio, sin overflow horizontal, navegación y controles utilizables, empty state honesto y fixtures rotulados; capturas presentadas para revisión visual humana. No hay claves, datos reales, despliegue ni cambios en Core salvo autorización separada.
 
-**Decide el propietario:** cualquier compra, cambio de plan, dominio o servicio de pago. Puede revisar el aspecto visual después de la primera pantalla local.
+**Decide el propietario:** cualquier compra, cambio de plan, dominio o servicio de pago; aprueba dirección visual e identidad de marca antes de fijarlas. Puede revisar capturas locales de móvil y escritorio al completar el wireframe.
 
 ### CORE-9.1 · Identidad, organizaciones y aislamiento
 

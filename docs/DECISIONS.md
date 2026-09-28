@@ -732,3 +732,18 @@ La guía operativa reanudable está en [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS
 - **Autorización acotada:** esta aprobación permite planificar e iniciar desarrollo local/mock en el destino nombrado; no implica autorización de llamadas reales, datos de clientes, gasto, publicaciones, contacto a terceros, dominio o despliegue. Los gates y sus responsables constan en [EXECUTION-PLAN.md](core-9/EXECUTION-PLAN.md).
 - **Plan autoritativo:** [PLATFORM-SPEC.md](core-9/PLATFORM-SPEC.md) define requisitos; [EXECUTION-PLAN.md](core-9/EXECUTION-PLAN.md) define fases, criterios y responsables; ROADMAP define estado; HANDOFF el último checkpoint.
 
+
+
+## D-27 · Dirección inicial de experiencia de usuario para la plataforma CORE-9
+
+**Estado:** aprobada por el propietario el 28/09/2026 para orientar CORE-9.0. Define el enfoque UX, no un diseño visual final ni autorización para publicar.
+
+- **Estilo de producto:** Rubik premium: interfaz profesional, sobria, clara y propia de un servicio B2B. No se inventan logo, paleta oficial, tipografías de marca ni recursos gráficos. Mientras no se entreguen, usar tokens visuales neutros y fácilmente reemplazables; registrar propuestas como propuestas.
+- **Usuarios iniciales:** equipo de Rubik y clientes. La arquitectura UX contempla espacio de trabajo interno multi-proyecto y acceso de cliente limitado a su proyecto, informes, evidencias, borradores y aprobaciones. El backend debe hacer cumplir permisos/scope; ocultar controles visualmente no es autorización.
+- **Diseño:** mobile-first y responsive. Diseñar y probar primero a 360 px de ancho; adaptar jerarquía y densidad a tablet/escritorio. Métricas densas se convierten en resúmenes/tarjetas legibles en móvil y pueden mostrarse en tablas comparables en escritorio; evitar scroll horizontal como solución por defecto.
+- **Primera pantalla CORE-9.0:** estructura de navegación y wireframe funcional. El dashboard prioriza proyectos, actividad/pendientes de aprobación y fecha/estado de la última observación. Si no hay datos, mostrar estados vacíos honestos; cualquier fixture debe estar identificado claramente como demo/mock.
+- **Capacidades futuras visibles en la arquitectura de navegación:** resumen por proyecto; mediciones SEO/off-page/GEO y fuentes/fechas; acciones/campañas; biblioteca de borradores e informes; bandeja de revisión/aprobación; conectores; miembros, roles, permisos y configuración. CORE-9.0 puede dejar elementos no implementados como rutas/estados claramente no disponibles; no simular funcionalidad.
+- **Honestidad y accesibilidad:** mostrar fecha, fuente, estado de medición y comparabilidad cuando existan; distinguir observado, estimado, no verificado y desconocido. Interfaz en español inicialmente. Estructura semántica, navegación por teclado, contraste suficiente y controles táctiles cómodos; verificar ausencia de overflow y formularios usables en móvil.
+- **Revisión humana:** Claude entrega capturas o vista previa local en anchos móvil y escritorio. El propietario aprueba dirección visual antes de fijar marca, densidad final o ampliar pantallas. Codex revisa la coherencia de estados, responsive y claims con los contratos del Core.
+
+La implementación debe seguir estos límites incluso si una librería de componentes sugiere un patrón distinto. Cualquier elección visual concreta no indicada aquí se documenta como decisión técnica reversible o se deja como propuesta para revisión.
