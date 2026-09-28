@@ -1,6 +1,6 @@
 # Handoff — extracción de Rubik SEO/GEO Core
 
-**Última sesión:** 28/09/2026 · **Estado:** CORE-8, CORE-8.1 y preparación CORE-9 fusionadas en main@2e6ebc4 · **Siguiente:** resolver decisiones bloqueantes de PLATFORM-SPEC §10 antes de implementar la plataforma · **Alcance:** solo Juanmaes83/RUBIK-SEO-GEO-CORE
+**Última sesión:** 28/09/2026 · **Estado:** CORE-8, CORE-8.1 y preparación CORE-9 fusionadas en main@88d299b38fcff26696492976ca6bac104eaa9987 · **Siguiente:** resolver decisiones bloqueantes de PLATFORM-SPEC §10 antes de implementar la plataforma · **Alcance:** solo Juanmaes83/RUBIK-SEO-GEO-CORE
 
 > Este documento resume la última sesión. El estado con autoridad está en [`ROADMAP.md`](ROADMAP.md).
 
@@ -424,3 +424,16 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - Inventario GitHub: 16 ramas remotas además de main. Se conservan todas; 15 están contenidas en main y `docs/ecosystem-reference-review` tiene 7 commits únicos según la comparación observada. Ninguna rama se eliminó.
 - Los nombres completos y la regla de retención están en ROADMAP §7. Revisar el inventario actual antes de actuar en una sesión futura.
 - Siguiente paso: responder las decisiones pendientes de PLATFORM-SPEC §10 si se quiere iniciar la implementación real de CORE-9. No borrar ramas como parte de ese trabajo.
+
+
+## Sesión 29 — decisiones de inicio y plan de ejecución de CORE-9 (28/09/2026)
+
+- Base verificada: main@88d299b38fcff26696492976ca6bac104eaa9987; CI post-merge de main run 36405231516, Node 20/22 verde.
+- El propietario designó Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO como repositorio de aplicación; confirmó Supabase Auth; autorizó Vercel gratuito como preferencia inicial de validación, sujeto a términos y límites vigentes; Cloudflare se contempla para DNS/CDN. Dominio y hosting comercial se posponen hasta estar listo.
+- Orden aprobado: importación manual → Google Search Console read-only → Bing Webmaster REST read-only → IndexNow con aprobación humana por envío.
+- SARAHKARENINA.COM será primer piloto cuando el propietario complete la nueva web y migración. Es trabajo separado; no acceder al sitio/repo desde aquí.
+- La base de retención §4.3 de PLATFORM-SPEC queda aprobada como política de producto, no como revisión legal ni DPA.
+- El propietario informa tener tokens Gemini, ChatGPT y Claude; no se comprobó que sean API credentials ni cuotas, billing, modelos, retención o límites. No se inspeccionaron secretos; nunca pegarlos en chat/repositorio.
+- D-26 y docs/core-9/EXECUTION-PLAN.md registran acuerdos, fases, criterios y reparto Claude/Codex/humano. La aplicación aún no está implementada; no hay integración live, gasto o despliegue autorizado por esta documentación.
+- Pendiente de decisión técnica: framework y forma reproducible de consumir el paquete Core, región/plan/configuración Supabase, términos Vercel, APIs/modelos y presupuesto exacto, revisión legal/DPA y validación de provenance productiva.
+- Próximo paso: Claude inicia CORE-9.0 en el repo de plataforma designado, primero verificando que no haya cambios que sobrescribir y fijando una ADR para framework/dependencia Core; scaffold local y mocks, sin servicios hosted ni datos reales. Codex revisa PR/documentación; el propietario hace tareas de consola/legal/visual y da autorizaciones.
