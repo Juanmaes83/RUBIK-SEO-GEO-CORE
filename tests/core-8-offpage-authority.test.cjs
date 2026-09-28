@@ -162,7 +162,7 @@ test('no relevant changes is stated only when data is comparable; otherwise it s
   assert.equal(closure.statement,'No hubo cambios relevantes en las dimensiones comparables.');
   const other=offpage.snapshot({profile:P,period:SEP,backlinks:bl(rows,{provider:'otro'})},{providers});
   const changed=offpage.compareSnapshots(aug,other);
-  assert.deepEqual(changed.dimensions.backlinks,{comparable:false,reason:'PROVIDER_CHANGED'});
+  assert.deepEqual(changed.dimensions.backlinks,{comparable:false,comparability:'NONE',reason:'PROVIDER_CHANGED'});
   assert.equal(changed.noRelevantChanges,null,'provider change: not comparable, never "no changes"');
   const missing=offpage.compareSnapshots(aug,offpage.snapshot({profile:P,period:SEP,backlinks:{status:'ERROR',provider:'dataforseo'}},{providers}));
   assert.equal(missing.dimensions.backlinks.reason,'NOT_MEASURED_CURRENT');

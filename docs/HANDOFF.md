@@ -345,3 +345,15 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - **Pruebas locales:** una mutación de 20 guardas mata las 20. `npm run verify`: 287 (285 pasan, 2 se omiten en Windows); igual con Node 20.20.2/22.23.3 en local.
 - **PR y CI:** [PR #13](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/13), apilado sobre #12; CI run [36203308792](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36203308792) del HEAD `a0f59fa` verde en Node 20.20.2/22, 287/287 por job, 0 omitidas; pendiente de revisión humana.
 - **Siguiente paso:** CORE-9 en la rama `docs/core-9-platform-spec`, que solo prepara especificación, arquitectura, límites de datos, threat model, contratos y mocks dentro de este repositorio.
+
+## Sesión 24 — segunda revisión de PR #12, CORE-8 (28/09/2026)
+
+- **Estado remoto verificado al empezar:** #12 `4e64f48`, #13 `5f60000` y #14 `82ec81b`, abiertos, con CI verde y sin cambios nuevos.
+- **Hecho en `feat/core-8-offpage-authority`:** comparabilidad GEO propagada (`comparability`, `seriesBreaks` y estado del informe) y resultados de CORE-7 vinculados a su operación (`DIMENSION_TARGETS`, `GEO_OBSERVATION_OPERATIONS` vacío, `bindsGeoObservation`). Detalle en D-23, «Segunda revisión».
+- **Pruebas:**
+  - 7 regresiones en `tests/core-8-review-2-regressions.test.cjs`, que fallan contra `4e64f48`;
+  - 4 aserciones previas ajustadas al contrato nuevo;
+  - una mutación de 11 guardas mata las 11;
+  - `npm run verify`: 281 (279 pasan, 2 se omiten en Windows).
+- **CI:** run [36400572277](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36400572277) del HEAD `971e8ff` verde en Node 20.20.2/22, 281/281 por job, 0 omitidas.
+- **Siguiente paso:** fusionar `feat/core-8-offpage-authority` en `feat/core-8-1-offpage-operations` (merge, sin force push) y corregir los hallazgos 3 y 4 de PR #13.

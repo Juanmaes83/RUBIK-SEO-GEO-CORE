@@ -31,7 +31,8 @@ No hay que forzar acciones nuevas cada mes. El seguimiento, la verificación y e
 - **«Sin cambios relevantes» solo con datos comparables.** Si el proveedor cambió o falta una medición, el resultado es `null` («no se sabe»), nunca `true`.
 - **La verificación viene de una frontera confiable, no de campos de entrada.** Solo cuenta como verificado un resultado que el módulo `providers` inyectado emitió en este proceso (`providers.isTrustedResult`), con transporte `live` (`method:'api'`) y `connection:'VERIFIED'`.
   - Un objeto con la misma forma, una copia serializada o una caché externa rehidratada nunca son verificados, digan lo que digan `method` o `connection`. En `measurement()` quedan como `trust:'UNTRUSTED_ENVELOPE'` y método `import`.
-  - En `geoRun()` la ejecución solo es verificada si aporta ese resultado confiable en `providerResult`.
+  - Además, el resultado debe proceder de la operación que la dimensión necesita (`DIMENSION_TARGETS`): `backlinks` → `intelligence.backlinks`, `localCitations` → `authority.presence`. Un resultado real de otra operación queda `NOT_MEASURED`/`OPERATION_MISMATCH`. `mentions` y `referrals` no tienen operación en CORE-7: solo se declaran o importan.
+  - En `geoRun()` se exigiría un resultado de una operación de observación generativa cuya fila coincida con la consulta, el motor, la superficie, el modelo, la respuesta y las citas (`bindsGeoObservation`). CORE-7 no tiene esa operación (`GEO_OBSERVATION_OPERATIONS` vacío), así que **toda ejecución GEO es hoy declarada y no verificada**.
   - Lo importado, lo manual y los mocks nunca son verificados. La confianza no sobrevive a la serialización: CORE-9 deberá restablecerla en el servidor (por ejemplo, con provenance firmada).
 - **Minimización de datos personales.** Los extractos pierden correos (también codificados como `%40`), teléfonos (incluidas secuencias de 9 a 15 dígitos), credenciales, cadenas con forma de token y query strings de URL. La regla de dígitos es conservadora: puede ocultar métricas muy grandes. La consistencia NAP devuelve estados, no el teléfono ni la dirección del cliente.
 
@@ -54,6 +55,9 @@ No es una técnica oficial: es una medición de lo que responden los motores gen
   - rango entre consultas, variabilidad (consultas con resultados inconsistentes entre repeticiones), posiciones de cita y dominios más citados;
   - avisos `FEW_RUNS_PER_QUERY`, `INCOMPLETE_QUERY_COVERAGE`, `HALLUCINATED_CONTROL_MENTIONS`, `MODEL_CHANGED_WITHIN_WINDOW`, `MODEL_NOT_EXPOSED`, `MIXED_METHODS` y `UNVERIFIED_OBSERVATIONS`;
   - la confianza nunca pasa de `medium`.
+- **Propagación a los snapshots:** en `compareSnapshots`, la dimensión GEO lleva `comparability` (`FULL`, `PARTIAL` o `NONE`) y los grupos no comparables con su motivo; solo `FULL` es `comparable`.
+  - Cualquier ruptura aparece en `seriesBreaks` y hace que «sin cambios relevantes» sea `null`.
+  - El informe muestra `COMPARABLE`, `PARTIALLY_COMPARABLE` o `NOT_COMPARABLE`.
 - **Comparación** (`compareGeo`): exige el mismo hash de conjunto y el mismo grupo. La serie es `NOT_COMPARABLE`, con motivo, si cambia la superficie (`SURFACE_CHANGED`), el modelo (`MODEL_CHANGED`, o `MODEL_CHANGED_WITHIN_WINDOW` si cambia dentro de una ventana) o el método de observación (`METHOD_CHANGED`), o si no hay respuestas utilizables.
   - Solo entre series comparables hay cambio (`UP`/`DOWN`), y solo si los intervalos no se solapan; si se solapan, es `WITHIN_NOISE`.
   - Nunca se informa `UP`/`DOWN` entre series distintas.
