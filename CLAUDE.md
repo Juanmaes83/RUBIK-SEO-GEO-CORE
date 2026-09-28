@@ -5,20 +5,22 @@
 - Proyecto único: RUBIK-SEO-GEO-CORE. No leer, clonar ni modificar otros repositorios; está prohibido acceder a WEB-RESTAURACI-N-PREMIUM-DIN-MICA.
 - Antes de trabajar o reanudar, leer [docs/README.md](docs/README.md), [docs/ROADMAP.md](docs/ROADMAP.md) y [docs/AUTONOMOUS-CONTINUATION.md](docs/AUTONOMOUS-CONTINUATION.md), además del final de [docs/HANDOFF.md](docs/HANDOFF.md).
 - ROADMAP es la fuente de estado; HANDOFF conserva el checkpoint. No declarar completada una fase por tener código o pruebas locales.
-- Para CORE-8 → CORE-8.1 → preparación de CORE-9, seguir literalmente la secuencia, hallazgos, gates y límites de `docs/AUTONOMOUS-CONTINUATION.md`.
+- CORE-8, CORE-8.1 y la preparación de CORE-9 ya están fusionadas; el siguiente trabajo de plataforma está bloqueado por las decisiones de docs/core-9/PLATFORM-SPEC.md §10.
 
 ## Trabajo autónomo con Loop
 
 - Continuar de forma autónoma criterio por criterio mientras haya trabajo seguro y definido; al terminar un criterio, registrar el resultado y pasar al siguiente sin pedir confirmación por decisiones rutinarias.
 - Si se agotan los créditos o hay que pausar, guardar un checkpoint reanudable: commit pequeño si el bloque está coherente, y actualizar HANDOFF con fecha, rama/PR, HEAD, cambios, comandos y resultados exactos, CI, tareas pendientes y el siguiente paso concreto.
 - Al reanudar, comprobar primero estado, rama, HEAD remoto, PR y CI. No rehacer trabajo ya completado.
-- Trabajar con ramas y PRs separados/apilados: corregir primero PR #12 (CORE-8); después CORE-8.1 en una rama dependiente; luego CORE-9 en una rama independiente dependiente. Indicar claramente el base/PR padre y actualizar la documentación de continuidad.
+- Para cambios nuevos, usar rama y PR revisable; las ramas apiladas #12–#14 ya fueron fusionadas. No abrir otra rama hasta definir un alcance autorizado.
 
-## Gates de fase
+## Estado y gates
 
-1. **CORE-8:** resolver los seis hallazgos pendientes en la guía; añadir regresiones; ejecutar `npm run verify`; obtener CI Node 20/22 verde y dejar PR #12 abierto para revisión.
-2. **CORE-8.1:** implementar solo después de pasar el gate técnico de CORE-8. Alcance de D-24 y OFFPAGE-SERVICE §6; borradores y contratos con evidencia, sin publicación/envío ni servicios reales.
-3. **CORE-9:** avanzar en este repositorio con especificación, límites de datos, arquitectura, threat model, interfaces, contratos y mocks. Detener aplicación externa, backend real, autenticación/secrets, storage conectado, proveedores/modelos live y deploy hasta tener autorización y destino.
+- **CORE-8:** cerrada en PR #12.
+- **CORE-8.1:** cerrada en PR #13.
+- **CORE-9 preparación:** cerrada en PR #14. La implementación real sigue bloqueada por las decisiones de PLATFORM-SPEC §10.
+- No repetir fases cerradas. No crear o modificar otro repositorio, usar servicios reales ni habilitar credenciales hasta autorización explícita del propietario.
+- Las decisiones rutinarias dentro del alcance autorizado se resuelven con criterio; si falta alguna decisión bloqueante de §10, documentarla y no fingir que el sistema está integrado.
 
 ## No hacer
 
