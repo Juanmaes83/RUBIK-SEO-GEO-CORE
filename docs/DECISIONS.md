@@ -713,4 +713,4 @@ La guía operativa reanudable está en [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS
 - 2 aserciones previas ajustadas.
 - Una mutación de 15 guardas mata las 15.
 - `npm run verify` da 314 (312 pasan, 2 se omiten en Windows).
-- CI: pendiente del run de esta revisión.
+- CI: run [36401825240](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401825240) del HEAD `26c8589` verde en Node 20.20.2/22, 314/314 por job, 0 omitidas.
