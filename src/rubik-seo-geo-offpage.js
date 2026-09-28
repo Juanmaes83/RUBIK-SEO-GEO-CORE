@@ -93,12 +93,23 @@ function profile(input={},{core,config}={}){
    module says it issued it (providers.isTrustedResult). A look-alike object, a serialized
    copy or any declaration is never verified, whatever its method/connection fields say;
    an untrusted envelope is treated as an import. VERIFIED also needs a live ('api')
-   provenance and connection:'VERIFIED' on the trusted result. */
-function measurement(input,{providers}={}){
+   provenance and connection:'VERIFIED' on the trusted result.
+   Operation binding (PR #12 review): a real CORE-7 call only proves what that operation
+   returns. A trusted result is accepted for a dimension only when its catalogue target is
+   the one that dimension expects (DIMENSION_TARGETS); a trusted result of another
+   operation is refused (NOT_MEASURED/OPERATION_MISMATCH, no rows). Without a declared
+   dimension a trusted result is never verified. Dimensions with no CORE-7 operation yet
+   (mentions, referrals) can only be declared or imported. */
+const DIMENSION_TARGETS=Object.freeze({backlinks:Object.freeze(['intelligence.backlinks']),localCitations:Object.freeze(['authority.presence']),mentions:Object.freeze([]),referrals:Object.freeze([])});
+function measurement(input,{providers,dimension}={}){
   const v=input&&typeof input==='object'?input:{};
   const shaped=!!(v.provenance&&typeof v.provenance==='object'&&'connection' in v);
   const trusted=shaped&&typeof providers?.isTrustedResult==='function'&&providers.isTrustedResult(input)===true;
   const envelope=shaped;
+  const targets=dimension==null?null:DIMENSION_TARGETS[dimension];
+  if(dimension!=null&&!targets)throw new Error('unknown measurement dimension: '+dimension);
+  if(trusted&&targets&&!targets.includes(v.target))return {status:'NOT_MEASURED',reason:'OPERATION_MISMATCH',provider:text(v.provider),operation:text(v.operation)||null,
+    method:v.provenance.method==='api'?'api':'mock',trust:'CORE7_RESULT_WRONG_OPERATION',verified:false,capturedAt:isoOrNull(v.provenance.capturedAt),coverage:'NONE',rows:[]};
   const status=MEASUREMENT_STATUSES.includes(v.status)?v.status:'NOT_MEASURED';
   const capturedAt=isoOrNull(envelope?v.provenance.capturedAt:v.capturedAt);
   const usable=USABLE.includes(status)&&!!capturedAt;
@@ -108,7 +119,7 @@ function measurement(input,{providers}={}){
     provider:text(v.provider),
     method:trusted?(v.provenance.method==='api'?'api':'mock'):envelope?'import':(SOURCE_METHODS.includes(v.method)&&v.method!=='api'?v.method:'manual'),
     trust:trusted?'CORE7_RESULT':envelope?'UNTRUSTED_ENVELOPE':'DECLARED',
-    verified:trusted&&v.provenance.method==='api'&&v.connection==='VERIFIED',
+    verified:trusted&&!!targets&&v.provenance.method==='api'&&v.connection==='VERIFIED',
     capturedAt,coverage,
     rows:usable?arr(envelope?v.data:v.rows):[]
   };
@@ -158,18 +169,18 @@ function snapshot(input={},{providers,releaseE,core,config}={}){
   const period={id:text(v.period?.id),start:isoOrNull(v.period?.start),end:isoOrNull(v.period?.end)};
   if(!period.id||!period.start||!period.end||period.end<period.start)throw new Error('snapshot period requires id, start and end (end >= start)');
   const id='snap-'+text(p.id)+'-'+period.id,evidence=[],limits=[SAMPLE_LIMIT],out={id,profileId:text(p.id),period,dimensions:{}};
-  const register=(dim,m,extra={})=>{m.usable=USABLE.includes(m.status)&&!!m.capturedAt;const ref=id+':'+dim;if(m.usable)evidence.push({id:ref,dimension:dim,provider:m.provider,method:m.method,verified:m.verified,trust:m.trust,trust:m.trust,capturedAt:m.capturedAt,coverage:m.coverage,...extra});return ref;};
+  const register=(dim,m,extra={})=>{m.usable=USABLE.includes(m.status)&&!!m.capturedAt;const ref=id+':'+dim;if(m.usable)evidence.push({id:ref,dimension:dim,provider:m.provider,method:m.method,verified:m.verified,trust:m.trust,capturedAt:m.capturedAt,coverage:m.coverage,...extra});return ref;};
   // Backlinks: CORE-7 normalizeBacklinks is the only row normaliser.
   if(v.backlinks){
     if(providers==null||typeof providers.normalizeBacklinks!=='function')throw new TypeError('providers module must be injected for backlinks');
-    const m=measurement(v.backlinks,{providers}),n=providers.normalizeBacklinks(m.rows,{measuredAt:m.capturedAt,provider:m.provider});
+    const m=measurement(v.backlinks,{providers,dimension:'backlinks'}),n=providers.normalizeBacklinks(m.rows,{measuredAt:m.capturedAt,provider:m.provider});
     if(n.rejected&&m.coverage!=='NONE'){m.coverage='PARTIAL';if(m.status==='OK')m.status='PARTIAL';}
     const ref=register('backlinks',m,{rejectedRows:n.rejected}),live=n.rows.filter(r=>r.lost!==true);
-    out.dimensions.backlinks={status:m.status,provider:m.provider,method:m.method,verified:m.verified,trust:m.trust,capturedAt:m.capturedAt,coverage:m.coverage,rejectedRows:n.rejected,rows:n.rows,
+    out.dimensions.backlinks={status:m.status,reason:m.reason||null,provider:m.provider,method:m.method,verified:m.verified,trust:m.trust,capturedAt:m.capturedAt,coverage:m.coverage,rejectedRows:n.rejected,rows:n.rows,
       metrics:{backlinks:metric(live.length,m,ref),referringDomains:metric(uniq(live.map(r=>r.sourceDomain)).length,m,ref),targets:metric(uniq(live.map(r=>r.targetUrl)).length,m,ref),reportedLost:metric(n.rows.length-live.length,m,ref)}};
   }
   if(v.mentions){
-    const m=measurement(v.mentions,{providers}),records=[],rejected=[];
+    const m=measurement(v.mentions,{providers,dimension:'mentions'}),records=[],rejected=[];
     for(const row of m.rows){const r=mention({...row,provider:row?.provider||m.provider},{releaseE,profile:p});r.ok?records.push(r.record):rejected.push(r.error);}
     if(rejected.length&&m.coverage!=='NONE'){m.coverage='PARTIAL';if(m.status==='OK')m.status='PARTIAL';}
     const ref=register('mentions',m,{rejectedRows:rejected.length});
@@ -177,10 +188,10 @@ function snapshot(input={},{providers,releaseE,core,config}={}){
       metrics:{mentions:metric(records.length,m,ref),linked:metric(records.filter(r=>r.linked===true).length,m,ref),unlinked:metric(records.filter(r=>r.linked===false).length,m,ref),linkStatusUnknown:metric(records.filter(r=>r.linked===null).length,m,ref)}};
   }
   if(v.localCitations){
-    const m=measurement(v.localCitations,{providers}),c=m.status==='NOT_MEASURED'&&!m.rows.length?{status:'NOT_MEASURED',listings:[]}:citationConsistency(m.rows,{core,config});
+    const m=measurement(v.localCitations,{providers,dimension:'localCitations'}),c=m.status==='NOT_MEASURED'&&!m.rows.length?{status:'NOT_MEASURED',listings:[]}:citationConsistency(m.rows,{core,config});
     const applicable=c.status!=='NOT_APPLICABLE';if(!applicable)m.status='NOT_MEASURED';
     const ref=register('localCitations',m);
-    out.dimensions.localCitations={status:applicable?m.status:'NOT_APPLICABLE',provider:m.provider,method:m.method,capturedAt:m.capturedAt,coverage:m.coverage,listings:c.listings,
+    out.dimensions.localCitations={status:applicable?m.status:'NOT_APPLICABLE',provider:m.provider,method:m.method,verified:m.verified,trust:m.trust,capturedAt:m.capturedAt,coverage:m.coverage,listings:c.listings,
       metrics:{listings:metric(c.listings.length,m,ref),consistent:metric(c.listings.filter(l=>l.status==='CONSISTENT').length,m,ref),inconsistent:metric(c.listings.filter(l=>l.status==='INCONSISTENT').length,m,ref)}};
   }
   if(v.geo){
@@ -191,9 +202,9 @@ function snapshot(input={},{providers,releaseE,core,config}={}){
   }
   // Referral traffic is its own dimension: never merged into GEO observations or outcomes.
   if(v.referrals){
-    const m=measurement(v.referrals,{providers}),rows=m.rows.map(r=>({source:fold(r?.source),medium:fold(r?.medium),sessions:Number.isFinite(Number(r?.sessions))&&r?.sessions!==''&&r?.sessions!=null?Number(r.sessions):null,landingPage:cleanUrl(r?.landingPage)||null})).filter(r=>r.source&&r.sessions!=null);
+    const m=measurement(v.referrals,{providers,dimension:'referrals'}),rows=m.rows.map(r=>({source:fold(r?.source),medium:fold(r?.medium),sessions:Number.isFinite(Number(r?.sessions))&&r?.sessions!==''&&r?.sessions!=null?Number(r.sessions):null,landingPage:cleanUrl(r?.landingPage)||null})).filter(r=>r.source&&r.sessions!=null);
     const ref=register('referrals',m),ai=rows.filter(r=>/(^|\.)chatgpt\.com$|perplexity\.ai$|copilot\.microsoft\.com$|gemini\.google\.com$/.test(r.source));
-    out.dimensions.referrals={status:m.status,provider:m.provider,method:m.method,capturedAt:m.capturedAt,coverage:m.coverage,rows,
+    out.dimensions.referrals={status:m.status,provider:m.provider,method:m.method,verified:m.verified,trust:m.trust,capturedAt:m.capturedAt,coverage:m.coverage,rows,
       metrics:{aiReferralSessions:metric(ai.reduce((a,r)=>a+r.sessions,0),m,ref),chatgptSessions:metric(ai.filter(r=>/chatgpt\.com$/.test(r.source)).reduce((a,r)=>a+r.sessions,0),m,ref)},
       note:'ChatGPT añade utm_source=chatgpt.com a sus enlaces de referencia (FAQ de OpenAI). Es tráfico observado, no visibilidad ni resultado de negocio.'};
   }
@@ -219,8 +230,8 @@ function compareSnapshots(prev,curr){
     else if(!later)reason='SAME_OR_EARLIER_PERIOD';
     else if(d!=='geo'&&a.provider!==b.provider)reason='PROVIDER_CHANGED';
     else if(d==='geo'&&a.summary.querySet.hash!==b.summary.querySet.hash)reason='QUERY_SET_CHANGED';
-    if(reason){out.dimensions[d]={comparable:false,reason};continue;}
-    const res={comparable:true,partial:a.coverage==='PARTIAL'||b.coverage==='PARTIAL',deltas:{}};
+    if(reason){out.dimensions[d]={comparable:false,comparability:'NONE',reason};continue;}
+    const res={comparable:true,comparability:'FULL',partial:a.coverage==='PARTIAL'||b.coverage==='PARTIAL',deltas:{}};
     for(const [k,m] of Object.entries(b.metrics||{})){const pv=a.metrics?.[k]?.value,cv=m.value;res.deltas[k]=pv==null||cv==null?null:{previous:pv,current:cv,delta:cv-pv};}
     if(d==='backlinks'){
       const key=r=>r.sourceUrl+'|'+r.targetUrl,pa=new Map(a.rows.filter(r=>r.lost!==true).map(r=>[key(r),r])),cb=new Map(b.rows.map(r=>[key(r),r]));
@@ -231,14 +242,27 @@ function compareSnapshots(prev,curr){
       res.newReferringDomains=[...db].filter(x=>!da.has(x)).sort();res.referringDomainsNotSeen=[...da].filter(x=>!db.has(x)).sort();
       if(res.newLinks.length||res.lostLinks.length||res.notSeen.length)out.relevantChanges.push('backlinks');
     }else if(d==='geo'){
+      // The dimension is only as comparable as its groups (PR #12 review): FULL when every
+      // group is comparable, PARTIAL when only some are, NONE otherwise. Each group keeps
+      // its own reason; a partial or broken series is never reported as COMPARABLE.
       res.geo=compareGeo(a.summary,b.summary);
-      if(res.geo.groups.some(g=>g.change==='UP'||g.change==='DOWN'))out.relevantChanges.push('geo');
+      const groups=res.geo.groups,ok=groups.filter(g=>g.change!=='NOT_COMPARABLE');
+      res.comparability=!ok.length?'NONE':ok.length===groups.length?'FULL':'PARTIAL';
+      res.comparable=res.comparability==='FULL';
+      res.comparableGroups=ok.length;
+      res.nonComparableGroups=groups.filter(g=>g.change==='NOT_COMPARABLE').map(g=>({engine:g.engine,surface:g.surface,locale:g.locale,market:g.market,reason:g.reason}));
+      if(res.comparability==='NONE')res.reason=res.nonComparableGroups[0]?.reason||res.geo.reason||'NO_COMPARABLE_GROUPS';
+      else if(res.comparability==='PARTIAL')res.reason='SOME_GROUPS_NOT_COMPARABLE';
+      if(ok.some(g=>g.change==='UP'||g.change==='DOWN'))out.relevantChanges.push('geo');
     }else if(Object.values(res.deltas).some(x=>x&&x.delta!==0))out.relevantChanges.push(d);
     out.dimensions[d]=res;
   }
-  const comparable=Object.values(out.dimensions).filter(x=>x.comparable);
-  out.noRelevantChanges=comparable.length?out.relevantChanges.length===0:null;
-  out.limits=[SAMPLE_LIMIT,...Object.entries(out.dimensions).filter(([,x])=>!x.comparable).map(([d,x])=>`${d}: no comparable (${x.reason}).`)];
+  // Series breaks: a dimension measured in both periods that is not (fully) comparable.
+  // With a break, "no relevant changes" is unknown (null), never true.
+  out.seriesBreaks=Object.entries(out.dimensions).filter(([,x])=>!x.comparable&&!/^NOT_MEASURED/.test(x.reason||'')).map(([d,x])=>({dimension:d,comparability:x.comparability,reason:x.reason}));
+  const comparable=Object.values(out.dimensions).filter(x=>x.comparable||x.comparability==='PARTIAL');
+  out.noRelevantChanges=out.relevantChanges.length?false:comparable.length&&!out.seriesBreaks.length?true:null;
+  out.limits=[SAMPLE_LIMIT,...Object.entries(out.dimensions).filter(([,x])=>!x.comparable).map(([d,x])=>`${d}: ${x.comparability==='PARTIAL'?'comparable solo en parte':'no comparable'} (${x.reason}).`)];
   return freeze(out);
 }
 
@@ -268,9 +292,12 @@ const GEO_METHODS=Object.freeze(['manual','import','mock','api']);
    No answer shown is its own outcome (NO_ANSWER), never a zero.
    - Locale and market are those of the query: a run declaring another locale/market is
      rejected (LOCALE_MARKET_MISMATCH), so groups are exact intersections.
-   - A run is verified only when it carries a CORE-7 result the injected providers module
-     issued (providerResult), live ('api') and connection:'VERIFIED'. Declared
-     method/connection fields never make a run verified. */
+   - Verification (PR #12 review): a run could only be verified by a trusted, live,
+     VERIFIED CORE-7 result of an operation that returns generative-engine observations
+     (GEO_OBSERVATION_OPERATIONS), whose row for this query/engine/surface/model carries
+     exactly the answer and citations used here (bindsGeoObservation). The CORE-7 catalogue
+     has no such operation yet, so the list is empty and every run stays declared and
+     unverified (verification.reason says why). No operation or provider is invented. */
 function geoRun(input,{querySet:qs,profile:p,providers}={}){
   if(!qs?.hash)throw new TypeError('querySet must be injected');
   const v=input&&typeof input==='object'?input:{},reject=code=>({ok:false,error:code});
@@ -282,10 +309,10 @@ function geoRun(input,{querySet:qs,profile:p,providers}={}){
   const runAt=isoOrNull(v.runAt);
   if(!runAt)return reject('MISSING_DATE');
   if(!text(v.engine))return reject('MISSING_ENGINE');
-  const pr=v.providerResult,trusted=!!pr&&typeof providers?.isTrustedResult==='function'&&providers.isTrustedResult(pr)===true;
+  const verification=geoVerification(v.providerResult,v,q,providers);
   const base={querySetHash:qs.hash,queryId:q.id,engine:text(v.engine),surface:v.surface==='consumer-ui'?'consumer-ui':'api',model:text(v.model)||null,
     locale:q.locale,market:q.market,runAt,runIndex:Number.isInteger(v.runIndex)?v.runIndex:null,method:v.method,
-    trust:trusted?'CORE7_RESULT':'DECLARED',verified:trusted&&v.method==='api'&&pr.provenance?.method==='api'&&pr.connection==='VERIFIED'};
+    trust:verification.trust,verified:verification.verified,verification:{status:verification.verified?'VERIFIED':'DECLARED',reason:verification.reason}};
   if(v.status==='ERROR')return {ok:true,run:{...base,outcome:'ERROR',mentioned:null,detection:'NONE',controlsMentioned:[],citations:[],citationsCaptured:false,cited:null,answerExcerpt:null}};
   const answerShown=v.answerShown===false?false:v.answerShown===true||!!text(v.answerText)?true:null;
   const answer=fold(v.answerText),found=names=>namesIn(answer,names);
@@ -301,6 +328,28 @@ function geoRun(input,{querySet:qs,profile:p,providers}={}){
     citations,citationsCaptured,cited:citationsCaptured?citations.some(c=>c.own):null,
     answerExcerpt:v.answerText?minimize(v.answerText,300):null
   }};
+}
+
+/* Operations whose results are generative-engine observations. Empty on purpose: CORE-7
+   has none today (ai-assist is analysis, dataforseo.serp is a classic SERP). Adding one
+   requires a catalogue decision in CORE-7 and its own tests. */
+const GEO_OBSERVATION_OPERATIONS=Object.freeze([]);
+const citationKey=cs=>arr(cs).map(c=>cleanUrl(c?.url)+'#'+(Number.isInteger(Number(c?.position))?Number(c.position):'')).join('|');
+/* bindsGeoObservation(row, observation): the provider row is the source of the observation:
+   same query, engine, surface and model, identical answer text and identical citations. */
+function bindsGeoObservation(row,o){
+  if(!row||typeof row!=='object')return false;
+  return text(row.queryId)===text(o?.queryId)&&text(row.engine)===text(o?.engine)&&(row.surface==='consumer-ui'?'consumer-ui':'api')===(o?.surface==='consumer-ui'?'consumer-ui':'api')
+    &&text(row.model)===text(o?.model)&&text(row.answerText)===text(o?.answerText)&&citationKey(row.citations)===citationKey(o?.citations);
+}
+function geoVerification(pr,v,q,providers){
+  const no=(reason,trust='DECLARED')=>({verified:false,trust,reason});
+  if(pr==null)return no('NO_PROVIDER_RESULT');
+  if(typeof providers?.isTrustedResult!=='function'||providers.isTrustedResult(pr)!==true)return no('UNTRUSTED_RESULT');
+  if(!GEO_OBSERVATION_OPERATIONS.includes(pr.provider+'.'+pr.operation))return no('OPERATION_NOT_GEO_OBSERVATION','CORE7_RESULT_WRONG_OPERATION');
+  if(v.method!=='api'||pr.provenance?.method!=='api'||pr.connection!=='VERIFIED')return no('NOT_LIVE_VERIFIED','CORE7_RESULT');
+  if(!arr(pr.data).some(row=>bindsGeoObservation(row,{...v,queryId:q.id})))return no('UNBOUND_RESPONSE','CORE7_RESULT');
+  return {verified:true,trust:'CORE7_RESULT',reason:null};
 }
 
 /* Wilson score interval (95%) for a proportion: deterministic; runs of the same query are
@@ -586,17 +635,18 @@ const hasPromise=s=>PROMISE_PATTERNS.some(re=>re.test(fold(s)));
 function monthlyReport(input={}){
   const v=input&&typeof input==='object'?input:{},cmp=v.comparison||null,closure=v.closure||null,acts=arr(v.actions);
   const evo=d=>{const x=cmp?.dimensions?.[d];if(!x)return {status:'NOT_MEASURED',deltas:null};if(!x.comparable)return {status:/^NOT_MEASURED/.test(x.reason)?'NOT_MEASURED':'NOT_COMPARABLE',reason:x.reason,deltas:null};return {status:x.partial?'PARTIAL':'COMPARABLE',deltas:clone(x.deltas)};};
+  const geoEvo=()=>{const x=cmp?.dimensions?.geo;if(!x||!x.geo)return evo('geo');return {status:{FULL:'COMPARABLE',PARTIAL:'PARTIALLY_COMPARABLE',NONE:'NOT_COMPARABLE'}[x.comparability],reason:x.reason||null,groups:clone(x.geo.groups)};};
   const outcome=v.businessOutcome;
   const attributable=outcome&&text(outcome.attribution?.method)&&arr(outcome.attribution?.evidenceRefs).length>0;
   const focus=v.nextFocus||{};
   const report={
     profileId:text(v.profile?.id)||null,period:text(v.period)||null,
-    observedChanges:cmp?{relevant:clone(cmp.relevantChanges),noRelevantChanges:cmp.noRelevantChanges,statement:closure?.statement||null,newLinks:clone(cmp.dimensions?.backlinks?.newLinks||[]),lostLinks:clone(cmp.dimensions?.backlinks?.lostLinks||[]),notSeen:clone(cmp.dimensions?.backlinks?.notSeen||[])}:{relevant:[],noRelevantChanges:null,statement:'Sin comparación disponible.'},
+    observedChanges:cmp?{relevant:clone(cmp.relevantChanges),noRelevantChanges:cmp.noRelevantChanges,seriesBreaks:clone(cmp.seriesBreaks||[]),statement:closure?.statement||null,newLinks:clone(cmp.dimensions?.backlinks?.newLinks||[]),lostLinks:clone(cmp.dimensions?.backlinks?.lostLinks||[]),notSeen:clone(cmp.dimensions?.backlinks?.notSeen||[])}:{relevant:[],noRelevantChanges:null,statement:'Sin comparación disponible.'},
     executedActions:acts.filter(a=>DONE_STATES.includes(a.state)).map(a=>({actionId:a.id,goal:a.goal,state:ACTION_STATE_LABELS[a.state],evidence:a.executionEvidence?.ref||null,result:a.result?.summary||null,verified:!!a.result})),
     proposedActions:acts.filter(a=>['PROPOSED','REVIEWED'].includes(a.state)).map(a=>({actionId:a.id,goal:a.goal,state:ACTION_STATE_LABELS[a.state],needsHumanDecision:true})),
     pendingActions:acts.filter(a=>['APPROVED','IN_PROGRESS','AWAITING_RESPONSE'].includes(a.state)).map(a=>({actionId:a.id,goal:a.goal,state:ACTION_STATE_LABELS[a.state]})),
     blockedActions:clone(closure?.blocked||[]),
-    evolution:{backlinks:evo('backlinks'),mentions:evo('mentions'),localCitations:evo('localCitations'),aiVisibility:cmp?.dimensions?.geo?.comparable?{status:'COMPARABLE',groups:clone(cmp.dimensions.geo.geo.groups)}:evo('geo'),referrals:evo('referrals')},
+    evolution:{backlinks:evo('backlinks'),mentions:evo('mentions'),localCitations:evo('localCitations'),aiVisibility:geoEvo(),referrals:evo('referrals')},
     businessResult:attributable?{summary:minimize(outcome.summary,400),attribution:{method:text(outcome.attribution.method),evidenceRefs:arr(outcome.attribution.evidenceRefs).map(text)}}:{status:'NOT_ATTRIBUTABLE',note:'No se atribuye resultado de negocio sin un método de atribución y evidencia.'},
     nextFocus:{focus:minimize(focus.focus,300)||null,reason:minimize(focus.reason,400)||null,evidenceRefs:arr(focus.evidenceRefs).map(text).filter(Boolean)},
     learnings:clone(closure?.learnings||[]),
@@ -664,17 +714,30 @@ const ctxKey=c=>[c.period,c.provider,c.method].join('|');
 function compareEvidence(evidence){
   const groups=new Map();
   for(const e of arr(evidence).map(x=>x&&x.id&&'method' in x?x:evidenceItem(x)).filter(Boolean)){if(!e.subject||!e.field)continue;const k=e.subject+'|'+e.field;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(e);}
-  const conflicts=[],divergences=[];
+  const conflicts=[],divergences=[],ambiguities=[];
+  // Statement text normalised for an exact, deterministic comparison (case, accents,
+  // punctuation and spacing only). Rewording is NOT understood: it is ambiguous.
+  const norm=e=>fold(e.text).replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
   for(const [group,es] of groups){
     const byCtx=new Map();
     for(const e of es){const k=ctxKey(contextOf(e));if(!byCtx.has(k))byCtx.set(k,[]);byCtx.get(k).push(e);}
-    for(const [ctx,list] of byCtx)if(new Set(list.map(e=>stable(e.value))).size>1)conflicts.push({group,context:ctx,evidenceIds:list.map(e=>e.id).sort()});
+    for(const [ctx,list] of byCtx){
+      if(list.length<2)continue;
+      const ids=list.map(e=>e.id).sort();
+      if(list.every(e=>e.value!=null)){if(new Set(list.map(e=>stable(e.value))).size>1)conflicts.push({group,context:ctx,evidenceIds:ids});continue;}
+      // PR #13 review: without a structured value for every item, two statements of the same
+      // subject+field+context are consistent only if their normalised text (and any values
+      // present) are identical. Otherwise the set is AMBIGUOUS: not usable as a fact and
+      // sent to human review. It is not labelled a contradiction.
+      const vals=list.filter(e=>e.value!=null).map(e=>stable(e.value));
+      if(new Set(list.map(norm)).size>1||new Set(vals).size>1)ambiguities.push({group,context:ctx,evidenceIds:ids,reason:'UNSTRUCTURED_STATEMENTS_DIFFER',note:'Mismo sujeto, campo y contexto sin valor estructurado comparable: requiere revisión humana.'});
+    }
     if(byCtx.size>1&&new Set(es.map(e=>stable(e.value))).size>1){
       const ctxs=es.map(contextOf),differs=['period','provider','method'].filter(d=>new Set(ctxs.map(c=>c[d])).size>1);
       divergences.push({group,evidenceIds:es.map(e=>e.id).sort(),differs,note:'Valores de contextos distintos (periodo, proveedor o método): evolución o cobertura diferente, no contradicción.'});
     }
   }
-  return {conflicts,divergences};
+  return {conflicts,divergences,ambiguities};
 }
 /* findConflicts(evidence): only real contradictions (same comparable context). */
 function findConflicts(evidence){return compareEvidence(evidence).conflicts;}
@@ -710,8 +773,8 @@ function validateAiOutput(output,{task,evidence}={}){
   if(!data||typeof data!=='object'||Array.isArray(data)||!Array.isArray(data.items))return freeze({...base,status:'INVALID_OUTPUT',error:'ITEMS_ARRAY_REQUIRED'});
   if(!data.items.length)return freeze({...base,status:'EMPTY'});
   const items=prepareEvidence(evidence).items,byId=new Map(items.map(e=>[e.id,e]));
-  const {conflicts,divergences}=compareEvidence(items);
-  const conflicted=new Set(conflicts.flatMap(c=>c.evidenceIds));
+  const {conflicts,divergences,ambiguities}=compareEvidence(items);
+  const conflicted=new Set(conflicts.flatMap(c=>c.evidenceIds)),ambiguous=new Set(ambiguities.flatMap(c=>c.evidenceIds));
   const draft=DRAFT_TASKS.includes(task);
   data.items.forEach((it,index)=>{
     const reject=code=>base.rejected.push({index,code});
@@ -727,6 +790,7 @@ function validateAiOutput(output,{task,evidence}={}){
     const cited=refs.map(r=>byId.get(r));
     if(kind==='FACT'){
       if(refs.some(r=>conflicted.has(r)))return reject('CONTRADICTORY_EVIDENCE');
+      if(refs.some(r=>ambiguous.has(r)))return reject('AMBIGUOUS_EVIDENCE');
       if(cited.some(e=>!e.period&&!e.capturedAt))return reject('UNDATED_EVIDENCE_FOR_FACT');
       if(new Set(cited.filter(e=>e.subject&&e.field).map(e=>e.subject+'|'+e.field+'|'+ctxKey(contextOf(e)))).size>new Set(cited.filter(e=>e.subject&&e.field).map(e=>e.subject+'|'+e.field)).size)return reject('NON_COMPARABLE_EVIDENCE_FOR_FACT');
     }
@@ -790,7 +854,7 @@ return Object.freeze({
   USABLE,SOURCE_METHODS,DIMENSIONS,OPPORTUNITY_TYPES,NON_LINK_TYPES,PROHIBITED_TACTICS,DEFAULT_WEIGHTS,
   ACTION_STATES,ACTION_STATE_LABELS,TRANSITIONS,EXTERNAL_KINDS,INTERNAL_KINDS,AI_TASKS,DRAFT_TASKS,
   profile,measurement,mention,citationConsistency,snapshot,compareSnapshots,
-  querySet,geoRun,summarizeGeo,compareGeo,aiCrawlerAccess,
+  querySet,geoRun,bindsGeoObservation,GEO_OBSERVATION_OPERATIONS,DIMENSION_TARGETS,summarizeGeo,compareGeo,aiCrawlerAccess,
   opportunity,prioritize,action,transition,campaign,campaignProgress,closePeriod,
   monthlyReport,validateReport,evidenceItem,prepareEvidence,compareEvidence,findConflicts,aiRequest,validateAiOutput,claimIssues,runAiTask,minimize
 });

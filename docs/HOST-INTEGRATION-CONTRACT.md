@@ -113,6 +113,8 @@ El Core no incluye UI. Un Studio anfitrión (el de Restaurantes sirve de referen
   - la confirmación de competidores (`confirmedBy:'host'`).
 - **El host persiste:** perfiles, snapshots, acciones con su historial, campañas y cierres. El Core devuelve objetos congelados y no guarda nada.
 - **Verificación:** el host pasa a `snapshot`/`measurement` y a `geoRun` (`providerResult`) el **mismo objeto** que devolvió `providers.runProviderRequest`, junto con `{providers}`.
+  - Si llama a `measurement` directamente, declara la `dimension`. El resultado debe venir de la operación de esa dimensión; si no, queda `OPERATION_MISMATCH`.
+  - Las ejecuciones GEO siguen siendo declaradas mientras CORE-7 no tenga una operación de observación generativa.
   - Una copia, un objeto reconstruido desde storage o una caché serializada pierden la verificación.
   - La salida de `validateAiOutput` son candidatas estructurales pendientes de revisión semántica humana, nunca hechos verificados.
 - **Aprobación humana:**
@@ -131,7 +133,8 @@ El Core no incluye UI. Un Studio anfitrión (el de Restaurantes sirve de referen
 `src/rubik-seo-geo-offpage-ops.js` (`./offpage-ops`, global `RubikSEOGeoOffpageOps`) prepara borradores y propuestas sobre CORE-8. Detalle en [`integrations/OFFPAGE-SERVICE.md`](integrations/OFFPAGE-SERVICE.md) §6.
 
 - **El host aporta:**
-  - la información del cliente con su aprobación (`approvedBy`, `approvedAt`), fuente, vigencia y permisos de publicación o atribución;
+  - la información del cliente con su aprobación (`approvedBy`, `approvedAt`), fuente, vigencia (fecha ISO válida o ausente) y permisos de publicación o atribución;
+  - `subject`, `field` y `period` en cada dato comparable (sin ellos no se detectan contradicciones ni ambigüedades); los datos en `reviewRequired` se revisan antes de usarse;
   - las fechas (`at`) y el módulo `offpage` inyectado.
 - **El host persiste:** el `factBook`, el `periodLedger` (su historial solo crece), los borradores y las propuestas de acción.
 - **El host publica o envía** solo después de una aprobación humana vigente sobre la acción propuesta (`offpage.transition`), y a través de su propio CMS o canal. Las direcciones de contacto no pasan por el Core; el host las resuelve a partir de la vía pública registrada.

@@ -24,14 +24,15 @@ test('R1: a forged or copied envelope with method api and connection VERIFIED is
   assert.deepEqual([m.verified,m.trust,m.method],[false,'UNTRUSTED_ENVELOPE','import']);
   const real=await liveBacklinks('live');
   assert.equal(providers.isTrustedResult(real),true);
-  assert.equal(offpage.measurement(real,{providers}).verified,true,'a real live CORE-7 result stays verified');
-  assert.equal(offpage.measurement(real).verified,false,'without the injected providers boundary nothing is verified');
+  assert.equal(offpage.measurement(real,{providers,dimension:'backlinks'}).verified,true,'a real live CORE-7 backlinks result stays verified for backlinks');
+  assert.equal(offpage.measurement(real,{providers}).verified,false,'without a declared dimension the operation cannot be matched');
+  assert.equal(offpage.measurement(real,{dimension:'backlinks'}).verified,false,'without the injected providers boundary nothing is verified');
   const copy=JSON.parse(JSON.stringify(real));
   assert.equal(providers.isTrustedResult(copy),false);
-  assert.equal(offpage.measurement(copy,{providers}).verified,false,'trust does not survive serialization');
-  assert.equal(offpage.measurement({...real},{providers}).verified,false,'a spread copy is not the issued object');
+  assert.equal(offpage.measurement(copy,{providers,dimension:'backlinks'}).verified,false,'trust does not survive serialization');
+  assert.equal(offpage.measurement({...real},{providers,dimension:'backlinks'}).verified,false,'a spread copy is not the issued object');
   const mock=await liveBacklinks('mock');
-  assert.equal(offpage.measurement(mock,{providers}).verified,false,'a trusted mock result is not live');
+  assert.equal(offpage.measurement(mock,{providers,dimension:'backlinks'}).verified,false,'a trusted mock result is not live');
   const s=offpage.snapshot({profile:P,period:SEP,backlinks:{...forged,data:[{url_from:'https://a.example/1',url_to:'https://casanorte.example/'}]}},{providers});
   assert.equal(s.dimensions.backlinks.verified,false);
   assert.equal(s.dimensions.backlinks.trust,'UNTRUSTED_ENVELOPE');
@@ -59,8 +60,9 @@ test('R1: geoRun is verified only with a trusted live CORE-7 result, never from 
   const fake={provenance:{method:'api'},connection:'VERIFIED'};
   assert.equal(offpage.geoRun({...base,providerResult:fake},{querySet:qs,profile:P,providers}).run.verified,false);
   const real=await liveBacklinks('live');
-  assert.equal(offpage.geoRun({...base,providerResult:real},{querySet:qs,profile:P,providers}).run.verified,true);
-  assert.equal(offpage.geoRun({...base,method:'manual',providerResult:real},{querySet:qs,profile:P,providers}).run.verified,false);
+  // PR #12 second review: a real verified result of an unrelated operation (backlinks) never verifies a GEO run.
+  const r=offpage.geoRun({...base,providerResult:real},{querySet:qs,profile:P,providers}).run;
+  assert.deepEqual([r.verified,r.verification.reason],[false,'OPERATION_NOT_GEO_OBSERVATION']);
 });
 
 // ── 2. GEO coverage per exact locale + market ────────────────────────────────

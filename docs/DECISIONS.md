@@ -592,6 +592,27 @@ Resuelve los seis hallazgos de [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS-CONTINU
 - Una mutación de 17 guardas nuevas mata las 17.
 - `npm run verify` da 274 (272 pasan, 2 se omiten en Windows).
 - CI: run [36133453921](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36133453921) del HEAD `d65dcf1` verde en Node 20.20.2/22, 274/274 por job, 0 omitidas.
+### Segunda revisión del PR #12 (sesión 24, 28/09/2026)
+
+1. **Comparabilidad GEO propagada.** `compareSnapshots()` ya no declara GEO comparable solo porque coincidan los conjuntos de consultas; la dimensión es tan comparable como sus grupos de `compareGeo()`.
+   - `comparability` vale `FULL` si todos los grupos son comparables, `PARTIAL` si lo son algunos y `NONE` si ninguno. `comparable` es `true` solo con `FULL`.
+   - Se conservan `comparableGroups`, `nonComparableGroups` (cada grupo con su motivo) y `reason`: el del grupo si es `NONE`, o `SOME_GROUPS_NOT_COMPARABLE` si es parcial.
+   - Los cambios `UP`/`DOWN` solo cuentan dentro de los grupos comparables.
+   - **Rupturas de serie:** `seriesBreaks` lista cada dimensión medida en ambos periodos que no es totalmente comparable, ya sea por cambio de proveedor, de conjunto de consultas, de periodo o por una ruptura GEO total o parcial. Con cualquier ruptura, `noRelevantChanges` es `null` y nunca `true`.
+   - `monthlyReport()` muestra `aiVisibility.status` como `COMPARABLE`, `PARTIALLY_COMPARABLE` o `NOT_COMPARABLE`, con los grupos y sus motivos y `observedChanges.seriesBreaks`.
+2. **Resultados de CORE-7 vinculados a su operación.**
+   - `measurement(input,{providers,dimension})` acepta un resultado confiable solo si su `target` es el de la dimensión (`DIMENSION_TARGETS`: `backlinks` → `intelligence.backlinks` y `localCitations` → `authority.presence`; `mentions` y `referrals` no tienen operación).
+   - Un resultado confiable de otra operación queda `NOT_MEASURED`/`OPERATION_MISMATCH`, sin filas. Sin dimensión declarada, nunca se verifica.
+   - `snapshot()` declara la dimensión de cada medición.
+   - `geoRun()` exige un resultado confiable, live y `VERIFIED` de una operación de observación generativa (`GEO_OBSERVATION_OPERATIONS`) cuya fila para esa consulta, motor, superficie y modelo contenga exactamente la respuesta y las citas observadas (`bindsGeoObservation`).
+   - **CORE-7 no tiene todavía esa operación:** la lista está vacía y todas las ejecuciones GEO quedan declaradas y no verificadas, con `verification.reason`. No se inventó ninguna operación ni proveedor.
+   - **Cambio respecto a la sesión 21:** un resultado live de `dataforseo.backlinks` ya no verifica una ejecución GEO; la prueba anterior que lo aceptaba se corrigió.
+
+**Evidencia:**
+- 7 regresiones nuevas en `tests/core-8-review-2-regressions.test.cjs`; las 7 fallan contra `4e64f48` (comprobado en un worktree temporal).
+- Una mutación de 11 guardas nuevas mata las 11.
+- `npm run verify` da 281 (279 pasan, 2 se omiten en Windows).
+- CI: run [36400572277](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36400572277) del HEAD `971e8ff` verde en Node 20.20.2/22, 281/281 por job, 0 omitidas.
 
 ## D-24 · CORE-8.1 y continuidad autónoma por fases
 
@@ -632,6 +653,22 @@ La guía operativa reanudable está en [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS
   - La correspondencia semántica la valida siempre una persona.
   - La persistencia del historial, el envío y la publicación son de CORE-9 o del host.
 
+### Revisión del PR #13 (sesión 25, 28/09/2026)
+
+3. **Fechas de caducidad inválidas.** En `approvedFact()`, un `validUntil` presente pero malformado se rechaza (`INVALID_VALID_UNTIL`) en lugar de convertirse en `null`, que habría dejado el dato aprobado indefinidamente. Lo mismo con `approvedAt` (`INVALID_APPROVED_AT`). Si falta o está vacío, sigue siendo opcional. Los datos rechazados nunca entran en `factBook.usable`.
+4. **Datos sin valor estructurado.**
+   - `offpage.compareEvidence()` añade `ambiguities`. En un grupo con el mismo `subject`+`field`+contexto en el que algún elemento no tiene `value`, los elementos solo son coherentes si su texto normalizado (mayúsculas, acentos, puntuación y espacios) y los valores presentes coinciden. Si no, el conjunto es `AMBIGUOUS` (`UNSTRUCTURED_STATEMENTS_DIFFER`): no se etiqueta como contradicción, pero tampoco se puede usar como hecho.
+   - Con valores estructurados en todos los elementos se mantiene la regla de conflicto de CORE-8.
+   - `validateAiOutput` rechaza un FACT sobre evidencia ambigua (`AMBIGUOUS_EVIDENCE`); una INFERENCE sigue permitida.
+   - En `factBook()`, el contexto de un dato es su `period` declarado, no la fecha de aprobación, así que dos afirmaciones sin periodo sobre el mismo sujeto y campo comparten contexto. Los datos implicados pasan a `AMBIGUOUS` (no utilizables) y se listan en `reviewRequired` para revisión humana.
+   - **Regla conservadora:** una reformulación con el mismo significado también se marca ambigua; el Core no entiende semántica.
+   - **Límite:** los datos sin `subject`/`field` no se pueden comparar entre sí; el host debe aportarlos para esta protección.
+
+**Evidencia:**
+- 4 regresiones en `tests/core-8-1-review-regressions.test.cjs`, que fallan contra `5f60000` (comprobado en un worktree temporal).
+- Una mutación de 9 guardas mata las 9.
+- `npm run verify` da 298 (296 pasan, 2 se omiten en Windows).
+- CI: run [36401174099](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401174099) del HEAD `66d76dc` verde en Node 20.20.2/22, 298/298 por job, 0 omitidas.
 
 ## D-25 · Preparación de CORE-9 dentro del Core: especificación, contratos y mocks
 
