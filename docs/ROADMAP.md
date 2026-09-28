@@ -1,6 +1,6 @@
 # Roadmap operativo — Rubik SEO/GEO Core
 
-**Única fuente de estado del Core.** Estado actualizado el 28/09/2026 tras fusionar CORE-8, CORE-8.1 y la preparación de CORE-9; main@2e6ebc4. CI de main: run [36403467612](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36402558674), Node 20/22, 314/314 por job. Todo el trabajo sigue limitado a RUBIK-SEO-GEO-CORE; nunca acceder ni escribir en WEB-RESTAURACI-N-PREMIUM-DIN-MICA ni otros repositorios.
+**Única fuente de estado del Core.** Estado actualizado el 28/09/2026 tras fusionar CORE-8, CORE-8.1 y la preparación de CORE-9; main@2e6ebc4. CI de main: run [36403467612](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36403467612), Node 20/22, 314/314 por job. Todo el trabajo sigue limitado a RUBIK-SEO-GEO-CORE; nunca acceder ni escribir en WEB-RESTAURACI-N-PREMIUM-DIN-MICA ni otros repositorios.
 
 ## 1. Estado heredado (verificado)
 
