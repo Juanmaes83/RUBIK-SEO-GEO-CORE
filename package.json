@@ -15,6 +15,7 @@
     "./authority": "./src/rubik-seo-geo-release-e.js",
     "./providers": "./src/rubik-seo-geo-providers.js",
     "./offpage": "./src/rubik-seo-geo-offpage.js",
+    "./offpage-ops": "./src/rubik-seo-geo-offpage-ops.js",
     "./materialize": "./src/rubik-seo-geo-materialize.cjs",
     "./hosts/restaurant": "./hosts/restaurant/restaurant-host.cjs"
   },
