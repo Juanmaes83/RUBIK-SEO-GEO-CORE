@@ -41,6 +41,11 @@ function approvedFact(input,{offpage,at}={}){
   if(!FACT_CATEGORIES.includes(v.category))return refuse('UNKNOWN_CATEGORY');
   const statement=offpage.minimize(v.statement,600);if(!statement)return refuse('MISSING_STATEMENT');
   const source=offpage.minimize(v.source,200);if(!source)return refuse('MISSING_SOURCE');
+  // PR #13 review: a date that is present but malformed is an error, never a silent null
+  // (a null validUntil would keep the fact approved forever). Absent stays optional.
+  const present=x=>x!=null&&!(typeof x==='string'&&!x.trim());
+  if(present(v.validUntil)&&!isoOrNull(v.validUntil))return refuse('INVALID_VALID_UNTIL');
+  if(present(v.approvedAt)&&!isoOrNull(v.approvedAt))return refuse('INVALID_APPROVED_AT');
   const approvedBy=text(v.approvedBy),approvedAt=isoOrNull(v.approvedAt),validUntil=isoOrNull(v.validUntil);
   const status=!approvedBy||!approvedAt||approvedAt>now?'PENDING_APPROVAL':validUntil&&validUntil<now?'EXPIRED':'APPROVED';
   return freeze({ok:true,fact:{id,category:v.category,statement,source,sourceUrl:httpsUrl(v.sourceUrl)||null,
@@ -50,7 +55,9 @@ function approvedFact(input,{offpage,at}={}){
     permissions:{publish:v.permissions?.publish===true,attribution:v.permissions?.attribution===true},
     approvedBy:approvedBy||null,approvedAt,validUntil,status}});
 }
-const factEvidence=f=>({id:f.id,kind:'approved-fact',subject:f.subject,field:f.field,value:f.value,text:f.statement,url:f.sourceUrl,period:f.period,capturedAt:f.approvedAt,provider:'client',method:'manual'});
+/* A fact's comparability context is its declared period, not its approval date: two
+   statements about the same subject+field without a period share one context. */
+const factEvidence=f=>({id:f.id,kind:'approved-fact',subject:f.subject,field:f.field,value:f.value,text:f.statement,url:f.sourceUrl,period:f.period,capturedAt:null,provider:'client',method:'manual'});
 /* factBook(inputs, {offpage, at}): validated facts, what was refused, which are usable,
    and conflicts (approved facts that disagree inside one comparable context, which then
    stop being usable). */
@@ -59,10 +66,10 @@ function factBook(inputs,{offpage,at}={}){
   const facts=[],rejected=[],seen=new Set();
   arr(inputs).forEach((x,index)=>{const r=approvedFact(x,{offpage,at});if(!r.ok)rejected.push({index,code:r.error.code});else if(seen.has(r.fact.id))rejected.push({index,code:'DUPLICATE_ID'});else{seen.add(r.fact.id);facts.push(clone(r.fact));}});
   const approved=facts.filter(f=>f.status==='APPROVED');
-  const {conflicts,divergences}=offpage.compareEvidence(approved.map(factEvidence));
-  const conflicted=new Set(conflicts.flatMap(c=>c.evidenceIds));
-  for(const f of facts)if(conflicted.has(f.id))f.status='CONFLICT';
-  return freeze({at:isoOrNull(at),facts,rejected,conflicts,divergences,usable:facts.filter(f=>f.status==='APPROVED').map(f=>f.id)});
+  const {conflicts,divergences,ambiguities=[]}=offpage.compareEvidence(approved.map(factEvidence));
+  const conflicted=new Set(conflicts.flatMap(c=>c.evidenceIds)),ambiguous=new Set(ambiguities.flatMap(c=>c.evidenceIds));
+  for(const f of facts)if(conflicted.has(f.id))f.status='CONFLICT';else if(ambiguous.has(f.id))f.status='AMBIGUOUS';
+  return freeze({at:isoOrNull(at),facts,rejected,conflicts,divergences,ambiguities,reviewRequired:ambiguities.map(a=>a.evidenceIds),usable:facts.filter(f=>f.status==='APPROVED').map(f=>f.id)});
 }
 const factOf=(book,id)=>arr(book?.facts).find(f=>f.id===id)||null;
 const usableFact=(book,id)=>arr(book?.usable).includes(id);

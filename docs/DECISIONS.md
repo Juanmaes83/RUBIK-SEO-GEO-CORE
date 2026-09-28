@@ -652,3 +652,20 @@ La guía operativa reanudable está en [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS
   - La detección de incentivos, filtrado y causalidad usa patrones de texto en español e inglés: es una ayuda, no una garantía.
   - La correspondencia semántica la valida siempre una persona.
   - La persistencia del historial, el envío y la publicación son de CORE-9 o del host.
+
+### Revisión del PR #13 (sesión 25, 28/09/2026)
+
+3. **Fechas de caducidad inválidas.** En `approvedFact()`, un `validUntil` presente pero malformado se rechaza (`INVALID_VALID_UNTIL`) en lugar de convertirse en `null`, que habría dejado el dato aprobado indefinidamente. Lo mismo con `approvedAt` (`INVALID_APPROVED_AT`). Si falta o está vacío, sigue siendo opcional. Los datos rechazados nunca entran en `factBook.usable`.
+4. **Datos sin valor estructurado.**
+   - `offpage.compareEvidence()` añade `ambiguities`. En un grupo con el mismo `subject`+`field`+contexto en el que algún elemento no tiene `value`, los elementos solo son coherentes si su texto normalizado (mayúsculas, acentos, puntuación y espacios) y los valores presentes coinciden. Si no, el conjunto es `AMBIGUOUS` (`UNSTRUCTURED_STATEMENTS_DIFFER`): no se etiqueta como contradicción, pero tampoco se puede usar como hecho.
+   - Con valores estructurados en todos los elementos se mantiene la regla de conflicto de CORE-8.
+   - `validateAiOutput` rechaza un FACT sobre evidencia ambigua (`AMBIGUOUS_EVIDENCE`); una INFERENCE sigue permitida.
+   - En `factBook()`, el contexto de un dato es su `period` declarado, no la fecha de aprobación, así que dos afirmaciones sin periodo sobre el mismo sujeto y campo comparten contexto. Los datos implicados pasan a `AMBIGUOUS` (no utilizables) y se listan en `reviewRequired` para revisión humana.
+   - **Regla conservadora:** una reformulación con el mismo significado también se marca ambigua; el Core no entiende semántica.
+   - **Límite:** los datos sin `subject`/`field` no se pueden comparar entre sí; el host debe aportarlos para esta protección.
+
+**Evidencia:**
+- 4 regresiones en `tests/core-8-1-review-regressions.test.cjs`, que fallan contra `5f60000` (comprobado en un worktree temporal).
+- Una mutación de 9 guardas mata las 9.
+- `npm run verify` da 298 (296 pasan, 2 se omiten en Windows).
+- CI: pendiente del run de esta revisión.

@@ -357,3 +357,19 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
   - `npm run verify`: 281 (279 pasan, 2 se omiten en Windows).
 - **CI:** run [36400572277](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36400572277) del HEAD `971e8ff` verde en Node 20.20.2/22, 281/281 por job, 0 omitidas.
 - **Siguiente paso:** fusionar `feat/core-8-offpage-authority` en `feat/core-8-1-offpage-operations` (merge, sin force push) y corregir los hallazgos 3 y 4 de PR #13.
+
+## Sesión 25 — revisión de PR #13, CORE-8.1 (28/09/2026)
+
+- **Base actualizada:** merge `ba066ec` de `feat/core-8-offpage-authority` (`6e6afb1`) en `feat/core-8-1-offpage-operations`, sin force push. Conflictos solo en README, ROADMAP y HANDOFF; resueltos conservando la fila de CORE-8 de #12 y la de CORE-8.1 de esta rama.
+- **Hecho:**
+  - fechas `validUntil`/`approvedAt` malformadas rechazadas;
+  - `compareEvidence().ambiguities` y `AMBIGUOUS_EVIDENCE`;
+  - `factBook` con contexto por periodo, estado `AMBIGUOUS` y `reviewRequired`.
+
+  Detalle en D-24, «Revisión del PR #13».
+- **Pruebas:**
+  - 4 regresiones en `tests/core-8-1-review-regressions.test.cjs`, que fallan contra `5f60000`;
+  - una mutación de 9 guardas mata las 9;
+  - `npm run verify`: 298 (296 pasan, 2 se omiten en Windows).
+- **CI:** pendiente del run de esta revisión.
+- **Siguiente paso:** merge de `feat/core-8-1-offpage-operations` en `docs/core-9-platform-spec` y hallazgos 5 a 8 de PR #14.

@@ -714,17 +714,30 @@ const ctxKey=c=>[c.period,c.provider,c.method].join('|');
 function compareEvidence(evidence){
   const groups=new Map();
   for(const e of arr(evidence).map(x=>x&&x.id&&'method' in x?x:evidenceItem(x)).filter(Boolean)){if(!e.subject||!e.field)continue;const k=e.subject+'|'+e.field;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(e);}
-  const conflicts=[],divergences=[];
+  const conflicts=[],divergences=[],ambiguities=[];
+  // Statement text normalised for an exact, deterministic comparison (case, accents,
+  // punctuation and spacing only). Rewording is NOT understood: it is ambiguous.
+  const norm=e=>fold(e.text).replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
   for(const [group,es] of groups){
     const byCtx=new Map();
     for(const e of es){const k=ctxKey(contextOf(e));if(!byCtx.has(k))byCtx.set(k,[]);byCtx.get(k).push(e);}
-    for(const [ctx,list] of byCtx)if(new Set(list.map(e=>stable(e.value))).size>1)conflicts.push({group,context:ctx,evidenceIds:list.map(e=>e.id).sort()});
+    for(const [ctx,list] of byCtx){
+      if(list.length<2)continue;
+      const ids=list.map(e=>e.id).sort();
+      if(list.every(e=>e.value!=null)){if(new Set(list.map(e=>stable(e.value))).size>1)conflicts.push({group,context:ctx,evidenceIds:ids});continue;}
+      // PR #13 review: without a structured value for every item, two statements of the same
+      // subject+field+context are consistent only if their normalised text (and any values
+      // present) are identical. Otherwise the set is AMBIGUOUS: not usable as a fact and
+      // sent to human review. It is not labelled a contradiction.
+      const vals=list.filter(e=>e.value!=null).map(e=>stable(e.value));
+      if(new Set(list.map(norm)).size>1||new Set(vals).size>1)ambiguities.push({group,context:ctx,evidenceIds:ids,reason:'UNSTRUCTURED_STATEMENTS_DIFFER',note:'Mismo sujeto, campo y contexto sin valor estructurado comparable: requiere revisión humana.'});
+    }
     if(byCtx.size>1&&new Set(es.map(e=>stable(e.value))).size>1){
       const ctxs=es.map(contextOf),differs=['period','provider','method'].filter(d=>new Set(ctxs.map(c=>c[d])).size>1);
       divergences.push({group,evidenceIds:es.map(e=>e.id).sort(),differs,note:'Valores de contextos distintos (periodo, proveedor o método): evolución o cobertura diferente, no contradicción.'});
     }
   }
-  return {conflicts,divergences};
+  return {conflicts,divergences,ambiguities};
 }
 /* findConflicts(evidence): only real contradictions (same comparable context). */
 function findConflicts(evidence){return compareEvidence(evidence).conflicts;}
@@ -760,8 +773,8 @@ function validateAiOutput(output,{task,evidence}={}){
   if(!data||typeof data!=='object'||Array.isArray(data)||!Array.isArray(data.items))return freeze({...base,status:'INVALID_OUTPUT',error:'ITEMS_ARRAY_REQUIRED'});
   if(!data.items.length)return freeze({...base,status:'EMPTY'});
   const items=prepareEvidence(evidence).items,byId=new Map(items.map(e=>[e.id,e]));
-  const {conflicts,divergences}=compareEvidence(items);
-  const conflicted=new Set(conflicts.flatMap(c=>c.evidenceIds));
+  const {conflicts,divergences,ambiguities}=compareEvidence(items);
+  const conflicted=new Set(conflicts.flatMap(c=>c.evidenceIds)),ambiguous=new Set(ambiguities.flatMap(c=>c.evidenceIds));
   const draft=DRAFT_TASKS.includes(task);
   data.items.forEach((it,index)=>{
     const reject=code=>base.rejected.push({index,code});
@@ -777,6 +790,7 @@ function validateAiOutput(output,{task,evidence}={}){
     const cited=refs.map(r=>byId.get(r));
     if(kind==='FACT'){
       if(refs.some(r=>conflicted.has(r)))return reject('CONTRADICTORY_EVIDENCE');
+      if(refs.some(r=>ambiguous.has(r)))return reject('AMBIGUOUS_EVIDENCE');
       if(cited.some(e=>!e.period&&!e.capturedAt))return reject('UNDATED_EVIDENCE_FOR_FACT');
       if(new Set(cited.filter(e=>e.subject&&e.field).map(e=>e.subject+'|'+e.field+'|'+ctxKey(contextOf(e)))).size>new Set(cited.filter(e=>e.subject&&e.field).map(e=>e.subject+'|'+e.field)).size)return reject('NON_COMPARABLE_EVIDENCE_FOR_FACT');
     }
