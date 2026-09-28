@@ -2,15 +2,14 @@
 
 **Fecha:** 26/09/2026 · **Decisión:** [D-25](../DECISIONS.md) · **Contratos y mocks:** `src/rubik-seo-geo-platform-contracts.js` (`./platform-contracts`) · **Pruebas:** `tests/core-9-platform-contracts.test.cjs`
 
-**Estado:** preparación dentro de RUBIK-SEO-GEO-CORE, sin plataforma funcional. Según D-24 y [`AUTONOMOUS-CONTINUATION.md`](../AUTONOMOUS-CONTINUATION.md) etapa 3, este documento y sus contratos son artefactos para revisar.
+**Estado (28/09/2026):** preparación documental y contractual cerrada en RUBIK-SEO-GEO-CORE. La aplicación se implementará exclusivamente en `Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO`. Las decisiones aprobadas y las puertas abiertas están en [EXECUTION-PLAN.md](EXECUTION-PLAN.md).
 
-**Queda fuera:**
+**Límite de repositorio y ejecución:**
 
-- crear o modificar otro repositorio;
-- backend real, autenticación, secretos o storage conectado;
-- proveedores o modelos live, programación real y despliegue.
-
-Todo eso exige autorización y un proyecto destino explícitos (§10).
+- Este documento y los contratos/mocks de `RUBIK-SEO-GEO-CORE` no son la aplicación.
+- La aplicación se construirá en el repositorio expresamente designado `Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO`; este cambio documental no modifica ese repo.
+- La designación no autoriza por sí sola a añadir credenciales, incurrir en gasto, conceder OAuth, conectar datos de clientes ni desplegar en producción.
+- No acceder ni modificar `WEB-RESTAURACI-N-PREMIUM-DIN-MICA` ni ningún otro repositorio. SARAHKARENINA.COM será piloto cuando el propietario confirme que terminó cambios y migración.
 
 ## 1. Objetivo
 
@@ -55,7 +54,7 @@ CORE-9 es el plano de control multi-proyecto que ejecuta en servidor lo que el C
 └───────────────┬──────────────────────────────┬───────────────┘
                 │ API autenticada (server)      │ canal propio de publicación
 ┌───────────────▼──────────────────────────────▼───────────────┐
-│ CORE-9 Platform (proyecto destino por decidir)                │
+│ CORE-9 Platform (Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO)                │
 │  Auth/roles ── authorize()      Aprobaciones ── offpage.transition │
 │  Job runner ── jobSpec()        Pasarela de salida (solo aprobado) │
 │  Conectores ── transport/mcp ── Secret store/KMS (secretRef)   │
@@ -93,13 +92,15 @@ CORE-9 es el plano de control multi-proyecto que ejecuta en servidor lo que el C
 
 `client-analytics` (GSC, Bing, GA4) · `third-party-estimates` (métricas de proveedores de pago; siempre etiquetadas como estimación) · `crawl-results` · `public-urls` · `minimised-evidence` (lo único que llega a un modelo).
 
-### 4.3 Retención propuesta (por confirmar con el propietario)
+### 4.3 Retención base aprobada como política de producto (pendiente de validación legal)
 
 - **Auditoría y consumo:** mientras exista el tenant, más el plazo legal.
 - **Snapshots y series:** mientras dure el servicio del proyecto.
 - **Borradores rechazados o caducados:** 90 días.
 - **Evidencia enviada a modelos:** no se conserva más allá de la respuesta, salvo en el registro de auditoría minimizado.
 - **Cuando termina el servicio:** exportación completa y borrado a petición del cliente.
+
+El propietario aprueba esta base como decisión de producto. No equivale a asesoramiento jurídico, determinación de base legal, DPA firmado ni validación de plazos obligatorios. Antes del uso comercial, validar obligaciones aplicables, excepciones de conservación y procedimiento de borrado.
 
 ## 5. Permisos
 
@@ -151,15 +152,17 @@ La matriz exacta es `MATRIX` en el módulo de contratos y está cubierta por pru
 
 Todas las tablas llevan `tenant_id`, directamente o a través de `project_id`, con row-level security.
 
-## 8. Plan de implementación (cuando exista autorización)
+## 8. Plan de implementación
 
-1. **Proyecto destino y decisiones de base (§10):** repositorio, hosting, autenticación, base de datos y gestor de secretos. *Aceptación:* decisión registrada y threat model revisado.
-2. **Esqueleto server-side:** autenticación, `scope`/`authorize` en cada endpoint y auditoría. *Aceptación:* pruebas de aislamiento entre tenants y de auditoría.
-3. **Repositorios** que implementen `REPOSITORY_PORTS` con append-only real. *Aceptación:* las pruebas de contrato del mock pasan contra la base de datos real en un entorno aislado.
-4. **Un primer conector de solo lectura y gratuito**, con secretos en el gestor y provenance firmada. *Aceptación:* `CONNECTED` solo con verificación real. Candidatos: Search Console o el puente OpenSEO, que antes debe validar `whoami`, `statusVocabulary` y `get_audit_pages` contra su instancia.
-5. **Trabajos de medición y borrador** (`jobSpec`) con política de gasto.
-6. **Aprobaciones y pasarela de salida** para acciones externas, con registro por destinatario.
-7. **Proveedores de pago y modelo de IA:** solo tras decidir proveedor, retención de datos, tarifas y presupuesto.
+La secuencia operativa, las responsabilidades y los criterios de aceptación están en [EXECUTION-PLAN.md](EXECUTION-PLAN.md). Resumen:
+
+1. Cerrar decisiones técnicas abiertas (framework, forma de consumir el Core, región/planes concretos, límites de gasto y tratamiento de datos por IA).
+2. Crear el esqueleto en `PLATAFORMA-RUBIK-SEO-GEO`, con Supabase Auth y límites server-side; inicialmente sin proveedores ni modelos reales.
+3. Implementar aislamiento por tenant, persistencia, auditoría, consumo del Core y provenance productiva mediante criptografía del servidor.
+4. Integrar en el orden aprobado: importación manual, Search Console read-only, Bing Webmaster REST read-only e IndexNow con aprobación humana por envío.
+5. Implementar trabajos de observación/borradores y aprobaciones; añadir IA tras acordar proveedor/modelo, privacidad y presupuesto.
+6. Hacer piloto SARAHKARENINA.COM cuando el propietario confirme que la web está terminada y migrada.
+7. Revisar hosting, términos, seguridad, privacidad, backups, recuperación y costes antes de dominio y despliegue comercial. No asumir que Vercel Hobby permite el uso previsto.
 
 ## 9. Costes y riesgos
 
@@ -171,13 +174,31 @@ Todas las tablas llevan `tenant_id`, directamente o a través de `project_id`, c
   - la variabilidad de los motores generativos (la hipótesis de repeticiones necesarias sigue abierta);
   - las obligaciones RGPD al tratar datos de clientes y de terceros.
 
-## 10. Bloqueos: preguntas para el propietario
+## 10. Decisiones del propietario y cuestiones abiertas
 
-La implementación no puede continuar hasta responder:
+### 10.1 Aprobado y registrado
 
-1. **Proyecto destino:** ¿en qué repositorio o proyecto se construye la plataforma? No se creará ni se tocará ningún otro repositorio sin autorización expresa.
-2. **Infraestructura:** hosting o cloud, base de datos (con row-level security), gestor de secretos o KMS y proveedor de autenticación.
-3. **Proveedores:** cuáles se activan primero, con qué cuentas y con qué presupuesto mensual por tenant.
-4. **Modelo de IA:** proveedor, modelo, región, retención de datos y límites de gasto.
-5. **Legal:** base legal y DPA para datos de clientes y de terceros, y política de retención (§4.3).
-6. **Primer host:** qué producto anfitrión se integra primero, y quién valida su contrato (CORE-2/4/5 siguen pendientes de host).
+Las decisiones para planificar la siguiente etapa están en [EXECUTION-PLAN.md](EXECUTION-PLAN.md) y D-26:
+
+- Repositorio de aplicación: `Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO`. El trabajo de este PR se limita a RUBIK-SEO-GEO-CORE; la aplicación tendrá su propio trabajo en el repo designado.
+- Supabase Auth aprobado. Supabase/Postgres es la opción prevista para autenticación y base de datos; faltan concretar plan, región, RLS, backups y gestor de secretos.
+- Vercel: preferencia de empezar con plan gratuito para validación. No se presume que Hobby permita el uso comercial previsto; revisar términos y límites vigentes antes de publicar o comercializar. Un cambio de plan posterior es técnicamente posible, pero no elimina cuotas, pausas ni restricciones previas.
+- Cloudflare se contempla para DNS/CDN/proxy cuando se configure; no sustituye backend, base de datos ni gestor de secretos.
+- Dominio y hosting comercial se posponen hasta que la aplicación esté lista y revisada.
+- Primer piloto: SARAHKARENINA.COM, después de que el propietario termine cambios y migración en su trabajo separado.
+- Orden inicial: importación manual; Search Console read-only; Bing Webmaster REST read-only; IndexNow al final, con aprobación humana por envío.
+- Retención §4.3 aprobada como base de producto, pendiente de revisión jurídica antes de producción.
+- El propietario informa tener tokens de Gemini, ChatGPT y Claude. No se ha verificado que sean API keys ni planes, cuotas, facturación, disponibilidad de modelos, retención o presupuesto. Una suscripción de chat no demuestra acceso API.
+
+### 10.2 Decisiones e intervenciones aún pendientes
+
+- Framework/lenguaje y arquitectura UI/server; no se presume Next.js ni otra opción.
+- Cómo consumir `@rubik/seo-geo-core`, que hoy no está publicado: referencia Git fijada a SHA, workspace u otra distribución mantenible sin duplicar lógica.
+- Organización/proyecto y región/planes concretos de Supabase/Vercel; RLS, backups, límites y almacén de secretos/KMS. No se han inspeccionado dashboards.
+- Modelos/API habilitados, región, retención y límites de Gemini/OpenAI/Anthropic; revisar las consolas sin compartir secretos.
+- OAuth y permisos para propiedades de Search Console/Bing cuando toque; IndexNow key y endpoint al implementar esa integración.
+- Revisión jurídica de base legal, DPA, privacidad de terceros, retención final, exportación y borrado.
+- Validación de OpenSEO/MCP y del host Sarah solo cuando estén disponibles y el propietario autorice cuentas y pruebas.
+- Sustituir mocks por serialización canónica, SHA-256 y KMS/HMAC con rotación; decidir cómo `offpage.measurement()` aceptará provenance firmada antes de confiar en mediciones persistidas (D-25 §8).
+
+Esto no bloquea estructura, interfaz local ni pruebas mock. Sí bloquea credenciales reales, datos de clientes, IA con información real, acciones externas, uso comercial y producción hasta cerrar los gates respectivos.
