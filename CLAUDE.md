@@ -2,10 +2,10 @@
 
 ## Fuente de estado y alcance
 
-- Proyecto único: RUBIK-SEO-GEO-CORE. No leer, clonar ni modificar otros repositorios; está prohibido acceder a WEB-RESTAURACI-N-PREMIUM-DIN-MICA.
+- Repositorio de contratos Core: RUBIK-SEO-GEO-CORE. La aplicación CORE-9 tiene como único destino designado Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO, según D-26. No acceder ni modificar otros repositorios; está prohibido acceder a WEB-RESTAURACI-N-PREMIUM-DIN-MICA.
 - Antes de trabajar o reanudar, leer [docs/README.md](docs/README.md), [docs/ROADMAP.md](docs/ROADMAP.md) y [docs/AUTONOMOUS-CONTINUATION.md](docs/AUTONOMOUS-CONTINUATION.md), además del final de [docs/HANDOFF.md](docs/HANDOFF.md).
 - ROADMAP es la fuente de estado; HANDOFF conserva el checkpoint. No declarar completada una fase por tener código o pruebas locales.
-- CORE-8, CORE-8.1 y la preparación de CORE-9 ya están fusionadas; el siguiente trabajo de plataforma está bloqueado por las decisiones de docs/core-9/PLATFORM-SPEC.md §10.
+- CORE-8, CORE-8.1 y la preparación de CORE-9 ya están fusionadas. Las decisiones iniciales del propietario y el plan de implementación están en docs/core-9/EXECUTION-PLAN.md y D-26. La plataforma aún no está construida.
 
 ## Trabajo autónomo con Loop
 
@@ -18,9 +18,9 @@
 
 - **CORE-8:** cerrada en PR #12.
 - **CORE-8.1:** cerrada en PR #13.
-- **CORE-9 preparación:** cerrada en PR #14. La implementación real sigue bloqueada por las decisiones de PLATFORM-SPEC §10.
-- No repetir fases cerradas. No crear o modificar otro repositorio, usar servicios reales ni habilitar credenciales hasta autorización explícita del propietario.
-- Las decisiones rutinarias dentro del alcance autorizado se resuelven con criterio; si falta alguna decisión bloqueante de §10, documentarla y no fingir que el sistema está integrado.
+- **CORE-9 preparación:** cerrada en PR #14. Las decisiones de inicio y la ejecución están registradas en docs/core-9/EXECUTION-PLAN.md y D-26; la aplicación aún no está construida.
+- No repetir fases cerradas. No crear ni modificar repos distintos del Core y el destino designado PLATAFORMA-RUBIK-SEO-GEO. Servicios reales y credenciales requieren autorización humana específica.
+- Las decisiones técnicas reversibles del scaffold se documentan en ADR y se resuelven con criterio; los gates humanos de EXECUTION-PLAN §5 detienen credenciales, datos reales, gastos, acciones externas y producción.
 
 ## No hacer
 
@@ -34,3 +34,11 @@
 
 - El propietario ha indicado que las ramas remotas se conservan por ahora. No borrar ni limpiar ninguna referencia de rama, aunque su PR esté fusionado, hasta recibir una nueva instrucción explícita.
 - Consultar el inventario fechado de ROADMAP §7; es una fotografía, no una lista garantizada de refs actuales. No cambiar bases ni usar una rama antigua para nuevo trabajo sin comprobar primero su relación con main.
+
+
+## CORE-9: asignación de trabajo
+
+- Leer docs/core-9/EXECUTION-PLAN.md y docs/core-9/PLATFORM-SPEC.md antes de actuar.
+- La implementación de la aplicación va únicamente en Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO mediante prompt de tarea específico; el trabajo Core-only va en este repo.
+- Claude implementa y documenta por fases/PRs, sin secretos, llamadas live, gasto, merge ni despliegue. El propietario gestiona consolas, credenciales, permisos, legal, revisión visual y autorizaciones. Codex revisa documentación, PR/CI, seguridad y contratos, y solo mergea con instrucción expresa.
+- Vercel Hobby no debe asumirse compatible con uso comercial; no publicar/comercializar antes de verificar términos actuales y elegir plan adecuado.
