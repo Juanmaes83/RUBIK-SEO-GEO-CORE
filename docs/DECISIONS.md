@@ -612,7 +612,7 @@ Resuelve los seis hallazgos de [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS-CONTINU
 - 7 regresiones nuevas en `tests/core-8-review-2-regressions.test.cjs`; las 7 fallan contra `4e64f48` (comprobado en un worktree temporal).
 - Una mutación de 11 guardas nuevas mata las 11.
 - `npm run verify` da 281 (279 pasan, 2 se omiten en Windows).
-- CI: pendiente del run de esta revisión.
+- CI: run [36400572277](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36400572277) del HEAD `971e8ff` verde en Node 20.20.2/22, 281/281 por job, 0 omitidas.
 
 ## D-24 · CORE-8.1 y continuidad autónoma por fases
 

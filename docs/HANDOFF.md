@@ -342,5 +342,5 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
   - 4 aserciones previas ajustadas al contrato nuevo;
   - una mutación de 11 guardas mata las 11;
   - `npm run verify`: 281 (279 pasan, 2 se omiten en Windows).
-- **CI:** pendiente del run de esta revisión.
+- **CI:** run [36400572277](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36400572277) del HEAD `971e8ff` verde en Node 20.20.2/22, 281/281 por job, 0 omitidas.
 - **Siguiente paso:** fusionar `feat/core-8-offpage-authority` en `feat/core-8-1-offpage-operations` (merge, sin force push) y corregir los hallazgos 3 y 4 de PR #13.
