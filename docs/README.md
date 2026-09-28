@@ -12,6 +12,7 @@ Cada tema tiene **un solo documento con autoridad**. Si dos documentos chocan, m
 | De dónde viene cada fichero | [`PROVENANCE.md`](PROVENANCE.md) | `../SCULPT-SOURCE.md` (bootstrap histórico) |
 | Contrato de producto SEO/GEO (fórmulas, AUTO/CUSTOM, gates, GEO) | [`upstream/`](upstream/README.md) | Los estados de esos documentos no son normativos |
 | Integraciones con proveedores | [`integrations/`](integrations/) (p. ej. [`OPENSEO.md`](integrations/OPENSEO.md)) | `upstream/SEO-GEO-INTEGRATIONS.md` (contrato heredado) |
+| Plataforma CORE-9 (especificación, límites de datos, threat model, bloqueos) | [`core-9/PLATFORM-SPEC.md`](core-9/PLATFORM-SPEC.md) | [`DECISIONS.md`](DECISIONS.md) D-25 |
 | Evaluación de repositorios SEO/GEO relacionados | [`ECOSYSTEM-REFERENCES.md`](ECOSYSTEM-REFERENCES.md) | [`ROADMAP.md`](ROADMAP.md) (prioridad operativa) |
 
 ## Contratos upstream y alcance de repositorio

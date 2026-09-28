@@ -346,6 +346,21 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - **PR y CI:** [PR #13](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/13), apilado sobre #12; CI run [36203308792](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36203308792) del HEAD `a0f59fa` verde en Node 20.20.2/22, 287/287 por job, 0 omitidas; pendiente de revisión humana.
 - **Siguiente paso:** CORE-9 en la rama `docs/core-9-platform-spec`, que solo prepara especificación, arquitectura, límites de datos, threat model, contratos y mocks dentro de este repositorio.
 
+## Sesión 23 — preparación de CORE-9 dentro del Core (26/09/2026)
+
+- **Reanudación tras la pausa por créditos:** comprobado el estado remoto. `a0f59fa` estaba pusheado, pero faltaba el PR, así que se abrió el PR #13 (base `feat/core-8-offpage-authority`). CI run `36203308792` verde (287/287 por job). `5f60000` registra el PR y el CI en la documentación.
+- **Rama:** `docs/core-9-platform-spec`, desde `5f60000`. **Orden de fusión:** #12, luego #13 (cambiar su base a `main`) y después el PR de CORE-9.
+- **Hecho:**
+  - `docs/core-9/PLATFORM-SPEC.md`;
+  - `src/rubik-seo-geo-platform-contracts.js`;
+  - 9 pruebas en `tests/core-9-platform-contracts.test.cjs`;
+  - export `./platform-contracts`;
+  - D-25, ROADMAP, README, ARCHITECTURE, HOST y PROVENANCE, y el índice `docs/README.md`.
+- **Pruebas:** una mutación de 16 guardas mata las 16. `npm run verify`: 296 (294 pasan, 2 se omiten en Windows); igual con Node 20.20.2/22.23.3 en local.
+- **PR y CI:** [PR #14](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/14), apilado sobre #13; CI run [36203720653](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36203720653) del HEAD `eabd93c` verde en Node 20.20.2/22, 296/296 por job, 0 omitidas; pendiente de revisión humana.
+- **Bloqueado (requiere al propietario):** PLATFORM-SPEC §10, es decir, proyecto destino, infraestructura, proveedores y presupuestos, modelo de IA, legal/DPA y primer host. No se implementa la plataforma, no se crea ni toca otro repositorio, no se usan secretos ni se conectan servicios.
+- **Siguiente paso concreto:** revisión humana de PR #12 → #13 → CORE-9. Tras las respuestas de §10, etapa 1 del plan de PLATFORM-SPEC §8 en el proyecto destino autorizado.
+
 ## Sesión 24 — segunda revisión de PR #12, CORE-8 (28/09/2026)
 
 - **Estado remoto verificado al empezar:** #12 `4e64f48`, #13 `5f60000` y #14 `82ec81b`, abiertos, con CI verde y sin cambios nuevos.
@@ -373,3 +388,14 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
   - `npm run verify`: 298 (296 pasan, 2 se omiten en Windows).
 - **CI:** run [36401174099](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401174099) del HEAD `66d76dc` verde en Node 20.20.2/22, 298/298 por job, 0 omitidas.
 - **Siguiente paso:** merge de `feat/core-8-1-offpage-operations` en `docs/core-9-platform-spec` y hallazgos 5 a 8 de PR #14.
+
+## Sesión 26 — revisión de PR #14, preparación de CORE-9 (28/09/2026)
+
+- **Base actualizada:** merge `4ffd68e` de `feat/core-8-1-offpage-operations` (`039a92a`) en `docs/core-9-platform-spec`, sin force push. Conflictos solo en README, ROADMAP, DECISIONS y HANDOFF; resueltos manteniendo cada fila y sección de su PR y el orden de D-24 → D-25.
+- **Hecho:** hallazgos 5 a 8 (gasto, aprobador, fechas de consentimiento y provenance serializada). Detalle en D-25, «Revisión del PR #14».
+- **Pruebas:**
+  - 7 regresiones en `tests/core-9-review-regressions.test.cjs`; las 6 iniciales fallan contra `82ec81b`;
+  - una mutación de 15 guardas mata las 15;
+  - `npm run verify`: 314 (312 pasan, 2 se omiten en Windows).
+- **CI:** run [36401825240](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401825240) del HEAD `26c8589` verde en Node 20.20.2/22, 314/314 por job, 0 omitidas.
+- **Pendiente:** revisión humana de #12 → #13 → #14. CORE-9 sigue bloqueada por PLATFORM-SPEC §10. No se fusiona, no se cambian las bases ni se despliega.

@@ -669,3 +669,48 @@ La guía operativa reanudable está en [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS
 - Una mutación de 9 guardas mata las 9.
 - `npm run verify` da 298 (296 pasan, 2 se omiten en Windows).
 - CI: run [36401174099](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401174099) del HEAD `66d76dc` verde en Node 20.20.2/22, 298/298 por job, 0 omitidas.
+
+## D-25 · Preparación de CORE-9 dentro del Core: especificación, contratos y mocks
+
+**Estado (26/09/2026):** rama `docs/core-9-platform-spec`, apilada sobre CORE-8.1 (PR #13), que a su vez depende de PR #12. [PR #14](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/14); CI run [36203720653](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36203720653) del HEAD `eabd93c` verde en Node 20.20.2/22, 296/296 por job, 0 omitidas; pendiente de revisión humana. **CORE-9 no está implementada:** en este repositorio solo se autoriza preparar artefactos revisables (D-24, etapa 3 de AUTONOMOUS-CONTINUATION).
+
+- **Especificación:** [`core-9/PLATFORM-SPEC.md`](core-9/PLATFORM-SPEC.md). Cubre requisitos, arquitectura de referencia, límites de datos y propiedad, retención propuesta, matriz de permisos, threat model, esquema lógico (solo documentación, sin migraciones), plan por etapas con criterios de aceptación, costes y riesgos, y las **preguntas bloqueantes** para el propietario.
+- **Contratos y mocks:** `src/rubik-seo-geo-platform-contracts.js` (`./platform-contracts`), puro y sin red, secretos, storage, reloj ni programación.
+  - `scope` y `authorize`: pertenencia al tenant o proyecto. La IA solo redacta y propone. `system` ejecuta solo con una aprobación humana del mismo scope.
+  - `secretRef`: solo nombres; rechaza cualquier campo con forma de valor.
+  - `auditEvent` y `verifyAuditChain`: append-only, redactado mediante `providers.redact`, encadenado por hash inyectable.
+  - `spendPolicy`, `spendCheck`, `toProviderBudget` y `recordSpend`: límites finitos por tenant, proveedor y mes que alimentan el `budget` de CORE-7.
+  - `consentRecord` y `hasConsent`: por finalidad y scope, caducables y revocables.
+  - `CONNECTORS`: catálogo de diseño enlazado con operaciones reales de CORE-7, todos `NOT_IMPLEMENTED` y con preguntas abiertas.
+  - `signProvenance` y `verifyProvenance`: solo se firman resultados emitidos por CORE-7 (`isTrustedResult`); la verificación sobrevive a la serialización y detecta datos alterados. El firmante es inyectado.
+  - `REPOSITORY_PORTS` y `createMemoryRepository`: un **mock** en memoria solo para pruebas, con aislamiento entre tenants y puertos append-only.
+  - `jobSpec`: los trabajos solo observan, miden o redactan; nada que envíe, publique o pague es programable.
+- **No criptográfico:** el FNV de la auditoría y el firmante de las pruebas son mocks. Producción exige SHA-256/HMAC o KMS en el servidor.
+- **Evidencia:** 9 pruebas en `tests/core-9-platform-contracts.test.cjs` (una usa `runProviderRequest` real con un presupuesto derivado de la política). Una mutación de 16 guardas mata las 16.
+- **Bloqueo explícito:** construir la plataforma exige responder [PLATFORM-SPEC §10](core-9/PLATFORM-SPEC.md#10-bloqueos-preguntas-para-el-propietario): proyecto destino, infraestructura, proveedores y presupuestos, modelo de IA y retención, legal/DPA y primer host. Sin esas respuestas no se crea otro repositorio, no se conectan servicios ni se usan secretos.
+
+### Revisión del PR #14 (sesión 26, 28/09/2026)
+
+5. **Gasto.**
+   - `recordSpend()` exige `units` numéricos, finitos y ≥ 0 (se admiten decimales porque son unidades del llamador; 0 es una llamada gratuita o en caché) y `requests` enteros ≥ 1, y rechaza cualquier otra entrada.
+   - `toProviderBudget()` falla cerrado: si el ledger contiene una entrada inválida, el presupuesto es 0 (`invalidLedgerEntries`) y `spendCheck()` devuelve `INVALID_LEDGER`. Ningún registro puede aumentar el saldo.
+   - Un consumo por encima del límite se registra, porque ocurrió, y el saldo queda en 0. CORE-7 aplica ese presupuesto con `BUDGET_EXCEEDED`.
+6. **Aprobador.**
+   - Para `execute-approved-action`, los roles aprobadores se derivan de `MATRIX` (`APPROVER_ROLES`: los que tienen `approve-external-action`, es decir owner, account-manager y client-approver).
+   - Se exigen identidad (`APPROVER_IDENTITY_REQUIRED`), un rol aprobador (`APPROVER_ROLE_NOT_ALLOWED` para viewer, analyst, ai, system o un rol desconocido), una fecha válida (`APPROVAL_DATE_INVALID`) y el mismo scope.
+   - El módulo recibe identidades y aprobaciones **ya autenticadas por el servidor**: no es autenticación ni frontera de seguridad por sí mismo.
+7. **Consentimiento.**
+   - `consentRecord()` rechaza `grantedAt`, `expiresAt` o `revokedAt` presentes pero malformados (`INVALID_DATE`) y una caducidad anterior o igual a la concesión (`EXPIRES_BEFORE_GRANT`). Si faltan o están vacíos, siguen siendo opcionales.
+   - `hasConsent()` ignora cualquier registro con fechas no canónicas.
+8. **Provenance serializada.**
+   - La firma cubre provider, operation, release, target, status, connection, cached, `partial`, códigos de error, coste, provenance y el digest de los datos.
+   - `verifyProvenance()` exige los datos recuperados (`DATA_REQUIRED`), detecta datos alterados (`DATA_CHANGED`) y firmas inválidas (`BAD_SIGNATURE`), y compara un sobre rehidratado opcional (`ENVELOPE_CHANGED`). Si todo coincide, devuelve el sobre **reconstruido desde el payload firmado**.
+   - **Límite de integración:** `offpage.measurement()` no acepta provenance firmada; el sobre reconstruido sigue siendo `UNTRUSTED_ENVELOPE` para el Core hasta que otra decisión, con pruebas, añada esa vía.
+   - **A sustituir en producción:** `stable()` por una forma canónica especificada (por ejemplo RFC 8785 JCS), `fnv()` por SHA-256, y el firmante de prueba por KMS o HMAC en el servidor con `keyId` y rotación.
+
+**Evidencia:**
+- 7 regresiones en `tests/core-9-review-regressions.test.cjs`; las 6 iniciales fallan contra `82ec81b` (comprobado en un worktree temporal).
+- 2 aserciones previas ajustadas.
+- Una mutación de 15 guardas mata las 15.
+- `npm run verify` da 314 (312 pasan, 2 se omiten en Windows).
+- CI: run [36401825240](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401825240) del HEAD `26c8589` verde en Node 20.20.2/22, 314/314 por job, 0 omitidas.
