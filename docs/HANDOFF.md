@@ -331,3 +331,16 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
   - `npm run verify`: 274 (272 pasan, 2 se omiten en Windows).
 - **CI:** run [36133453921](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36133453921) del HEAD `d65dcf1` verde en Node 20.20.2/22, 274/274 por job, 0 omitidas. PR #12 cumple los gates técnicos de CORE-8 y sigue abierto para revisión humana.
 - **Siguiente paso:** CORE-8.1 en la rama `feat/core-8-1-offpage-operations`, apilada sobre el HEAD corregido de CORE-8. El PR #12 sigue abierto para revisión humana; sin merge.
+
+
+## Sesión 24 — segunda revisión de PR #12, CORE-8 (28/09/2026)
+
+- **Estado remoto verificado al empezar:** #12 `4e64f48`, #13 `5f60000` y #14 `82ec81b`, abiertos, con CI verde y sin cambios nuevos.
+- **Hecho en `feat/core-8-offpage-authority`:** comparabilidad GEO propagada (`comparability`, `seriesBreaks` y estado del informe) y resultados de CORE-7 vinculados a su operación (`DIMENSION_TARGETS`, `GEO_OBSERVATION_OPERATIONS` vacío, `bindsGeoObservation`). Detalle en D-23, «Segunda revisión».
+- **Pruebas:**
+  - 7 regresiones en `tests/core-8-review-2-regressions.test.cjs`, que fallan contra `4e64f48`;
+  - 4 aserciones previas ajustadas al contrato nuevo;
+  - una mutación de 11 guardas mata las 11;
+  - `npm run verify`: 281 (279 pasan, 2 se omiten en Windows).
+- **CI:** pendiente del run de esta revisión.
+- **Siguiente paso:** fusionar `feat/core-8-offpage-authority` en `feat/core-8-1-offpage-operations` (merge, sin force push) y corregir los hallazgos 3 y 4 de PR #13.

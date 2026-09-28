@@ -111,6 +111,8 @@ El Core no incluye UI. Un Studio anfitrión (el de Restaurantes sirve de referen
   - la confirmación de competidores (`confirmedBy:'host'`).
 - **El host persiste:** perfiles, snapshots, acciones con su historial, campañas y cierres. El Core devuelve objetos congelados y no guarda nada.
 - **Verificación:** el host pasa a `snapshot`/`measurement` y a `geoRun` (`providerResult`) el **mismo objeto** que devolvió `providers.runProviderRequest`, junto con `{providers}`.
+  - Si llama a `measurement` directamente, declara la `dimension`. El resultado debe venir de la operación de esa dimensión; si no, queda `OPERATION_MISMATCH`.
+  - Las ejecuciones GEO siguen siendo declaradas mientras CORE-7 no tenga una operación de observación generativa.
   - Una copia, un objeto reconstruido desde storage o una caché serializada pierden la verificación.
   - La salida de `validateAiOutput` son candidatas estructurales pendientes de revisión semántica humana, nunca hechos verificados.
 - **Aprobación humana:**
