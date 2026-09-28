@@ -22,7 +22,7 @@ El desarrollo de la aplicación pertenece al repo designado de plataforma. Los c
 | Repositorio de aplicación | **Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO**; destino expresamente designado por el propietario |
 | Autenticación | **Supabase Auth** aprobado |
 | Base de datos | Supabase/Postgres es la opción prevista; falta validar proyecto, región, RLS, backups, límites y configuración |
-| Hosting inicial | Preferencia por probar Vercel gratuito durante validación; antes de uso comercial hay que confirmar que el plan vigente lo permite. No dar por hecho que Hobby sirve para operar un servicio comercial |
+| Hosting inicial | Preferencia por probar Vercel gratuito durante validación; sus términos oficiales indican que Hobby es solo para uso personal/no comercial ([plan Hobby](https://vercel.com/docs/plans/hobby)). No alojar ni comercializar el servicio en Hobby sin verificar un cambio vigente de términos; pasar a un plan compatible antes de uso comercial |
 | DNS/CDN | Cloudflare se contempla para DNS/CDN/proxy cuando se configure; no es backend, base de datos ni almacén de secretos |
 | Dominio | Comprar/configurar cuando producto y hosting estén listos y revisados |
 | Primer proyecto real | SARAHKARENINA.COM después de terminar sus cambios y migración; trabajo separado del alcance actual |
