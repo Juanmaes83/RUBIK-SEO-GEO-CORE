@@ -1,6 +1,6 @@
 # Continuidad autónoma del Core
 
-**Estado al 28/09/2026:** CORE-8, CORE-8.1 y la preparación documental/contractual de CORE-9 ya están fusionadas en main@5e90362. Esta guía reemplaza el plan de ejecución anterior, ya completado. La única fuente de estado es [ROADMAP.md](ROADMAP.md); el último checkpoint está en [HANDOFF.md](HANDOFF.md).
+**Estado al 28/09/2026:** CORE-8, CORE-8.1 y la preparación documental/contractual de CORE-9 ya están fusionadas en main@2e6ebc4. Esta guía reemplaza el plan de ejecución anterior, ya completado. La única fuente de estado es [ROADMAP.md](ROADMAP.md); el último checkpoint está en [HANDOFF.md](HANDOFF.md).
 
 ## Fases completadas
 
@@ -32,3 +32,8 @@ Hasta tener esas decisiones y autorización, no inventar credenciales ni iniciar
 - Ejecutar npm run verify si se modifica el Core. Actualizar ROADMAP/HANDOFF con SHA, resultados y siguiente paso real.
 - Usar ramas y PRs para cambios. Claude no fusiona, despliega, publica ni envía acciones externas; espera instrucciones del propietario para esos pasos.
 - No declarar conexión o medición verificada sin evidencia real autenticada. No colocar secretos ni datos personales innecesarios en código, prompts o logs.
+
+
+## Retención de ramas remotas
+
+Decisión del propietario (28/09/2026): conservar por ahora todas las ramas remotas. No borrar ni limpiar refs, incluidas las ramas de PRs fusionados, hasta recibir una nueva instrucción explícita. El inventario de 16 ramas observado y su estado está registrado en [ROADMAP §7](ROADMAP.md#7-ramas-remotas-conservadas-por-decisión-del-propietario). Volver a verificar antes de cualquier acción futura.

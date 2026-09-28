@@ -1,6 +1,6 @@
 # Roadmap operativo — Rubik SEO/GEO Core
 
-**Única fuente de estado del Core.** Estado actualizado el 28/09/2026 tras fusionar CORE-8, CORE-8.1 y la preparación de CORE-9; main@5e90362. CI del merge final: run [36402558674](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36402558674), Node 20/22, 314/314 por job. Todo el trabajo sigue limitado a RUBIK-SEO-GEO-CORE; nunca acceder ni escribir en WEB-RESTAURACI-N-PREMIUM-DIN-MICA ni otros repositorios.
+**Única fuente de estado del Core.** Estado actualizado el 28/09/2026 tras fusionar CORE-8, CORE-8.1 y la preparación de CORE-9; main@2e6ebc4. CI de main: run [36403467612](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36403467612), Node 20/22, 314/314 por job. Todo el trabajo sigue limitado a RUBIK-SEO-GEO-CORE; nunca acceder ni escribir en WEB-RESTAURACI-N-PREMIUM-DIN-MICA ni otros repositorios.
 
 ## 1. Estado heredado (verificado)
 
@@ -83,3 +83,31 @@ Lo que sigue abierto de Release E, sin simulación: Google Search Console, Bing 
 ## 6. Continuidad autónoma
 
 El trabajo autorizado de CORE-8, CORE-8.1 y la preparación de CORE-9 ya está fusionado. No repetir esas fases. La implementación de plataforma no comienza hasta que el propietario responda PLATFORM-SPEC §10 y autorice el proyecto destino. Las instrucciones actualizadas están en [AUTONOMOUS-CONTINUATION.md](AUTONOMOUS-CONTINUATION.md) y [CLAUDE.md](../CLAUDE.md). Claude Code no fusiona ni despliega.
+
+
+## 7. Ramas remotas conservadas por decisión del propietario
+
+El 28/09/2026 el propietario indicó que **no se borren todavía las ramas remotas**. No borrar, archivar ni recrear ninguna referencia de rama por limpieza automática o porque su PR esté fusionado. La limpieza queda aplazada hasta una nueva instrucción explícita.
+
+Inventario observado en GitHub ese día: 16 ramas distintas de `main`. Quince puntas están incorporadas en `main`; `docs/ecosystem-reference-review` conserva 7 commits únicos frente a `main` según la comparación revisada y debe permanecer preservada para revisión. No se ha borrado ninguna rama.
+
+Ramas conservadas:
+
+- `docs/core3-closeout-ecosystem`
+- `docs/core-1-closeout`
+- `docs/core-3-2-closeout-core6`
+- `docs/core-8-9-closeout`
+- `docs/core-9-platform-spec`
+- `docs/ecosystem-reference-review` (commits únicos pendientes de revisar)
+- `feat/core-3-1-entity-products`
+- `feat/core-3-2-neutral-intelligence`
+- `feat/core-3-explicit-injection`
+- `feat/core-6-multilingual`
+- `feat/core-7-1-openseo-bridge`
+- `feat/core-7-provider-contracts`
+- `feat/core-8-1-offpage-operations`
+- `feat/core-8-offpage-authority`
+- `feat/seo-geo-core-extraction`
+- `sculpt/import-seo-geo-core`
+
+Este inventario es una fotografía del 28/09/2026; volver a comprobar las referencias antes de cualquier futura limpieza. Las ramas no sustituyen a `main` como fuente del producto y no deben usarse como base de trabajo sin revisar su relación con `main`.
