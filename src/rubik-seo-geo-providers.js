@@ -39,7 +39,12 @@ const CATALOG=freeze({
     siteAudit:{release:'C',costModel:'free',units:1,target:'intelligence.crawl',tool:'run_site_audit'},
     auditStatus:{release:'C',costModel:'free',units:0,target:'intelligence.crawl',tool:'get_audit_status'},
     auditIssues:{release:'C',costModel:'free',units:0,target:'intelligence.issues',tool:'get_audit_issues'},
-    auditPages:{release:'C',costModel:'free',units:0,target:'intelligence.pages',tool:'get_audit_pages'}}}
+    auditPages:{release:'C',costModel:'free',units:0,target:'intelligence.pages',tool:'get_audit_pages'}}},
+  /* CORE-8 (D-23): AI assistance for the off-page service, through an injected model
+     adapter used as transport. Treated as paid: explicit confirmation and a finite budget.
+     Release 'O' (off-page) never maps into Release C/E; output is validated by offpage. */
+  'ai-assist':{label:'Asistente IA (adaptador inyectado)',sourceType:'MANUAL',auth:'server-side',operations:{
+    offpageAnalysis:{release:'O',costModel:'paid',units:1,target:'offpage.ai'}}}
 });
 
 function describe(provider,operation){
@@ -134,7 +139,14 @@ function evidenceOf(raw,rowCount){
   return e;
 }
 
-function envelope(base,extra){return freeze({provider:base.provider,operation:base.operation,release:base.release||null,target:base.target||null,status:'ERROR',data:[],partial:null,errors:[],cost:{units:0,estimatedUsd:null,charged:false},budget:publicBudget(base.budget),cached:false,connection:'NOT_VERIFIED',provenance:null,...extra});}
+/* CORE-8 review (D-23): every result envelope is registered as issued by this module
+   instance. `isTrustedResult` lets consumers (offpage) tell a real CORE-7 result from an
+   object that merely copies its shape. Trust does not survive serialization: a copied,
+   rehydrated or externally cached object is not trusted. */
+const ISSUED=new WeakSet();
+const issue=r=>{ISSUED.add(r);return r;};
+const isTrustedResult=r=>!!r&&typeof r==='object'&&ISSUED.has(r);
+function envelope(base,extra){return issue(freeze({provider:base.provider,operation:base.operation,release:base.release||null,target:base.target||null,status:'ERROR',data:[],partial:null,errors:[],cost:{units:0,estimatedUsd:null,charged:false},budget:publicBudget(base.budget),cached:false,connection:'NOT_VERIFIED',provenance:null,...extra}));}
 
 /**
  * runProviderRequest({provider, operation, input, transport, clock, budget, cache, confirmCost, maxRows})
@@ -155,7 +167,7 @@ async function runProviderRequest(request={}){
   if(typeof transport.request!=='function')throw new TypeError('transport.request must be a function');
   if(cache!=null&&(typeof cache.get!=='function'||typeof cache.set!=='function'))throw new TypeError('cache must provide get() and set()');
   const requestedAt=iso(clock),key=provider+'|'+operation+'|'+stableKey(input);
-  if(cache&&cache.get(key)){const hit=cache.get(key);return freeze({...clone(hit),cached:true,cost:{units:0,estimatedUsd:null,charged:false},budget:publicBudget(budget)});}
+  if(cache&&cache.get(key)){const hit=cache.get(key);return issue(freeze({...clone(hit),cached:true,cost:{units:0,estimatedUsd:null,charged:false},budget:publicBudget(budget),...(isTrustedResult(hit)?{}:{connection:'NOT_VERIFIED'})}));}
   if(d.costModel==='paid'&&confirmCost!==true)return envelope(base,{status:'COST_CONFIRMATION_REQUIRED',errors:[{code:'COST_CONFIRMATION_REQUIRED',message:'Paid operation requires explicit confirmation',retryable:false}]});
   if(d.costModel!=='free'&&!finiteBudget(budget))return envelope(base,{status:'BUDGET_REQUIRED',errors:[{code:'BUDGET_REQUIRED',message:`A finite budget (maxUnits and maxRequests) is required for ${d.costModel} operations`,retryable:false}]});
   if(budget.requests+1>budget.maxRequests||budget.usedUnits+d.units>budget.maxUnits)return envelope(base,{status:'BUDGET_EXCEEDED',errors:[{code:'BUDGET_EXCEEDED',message:'Request would exceed the injected budget',retryable:false}]});
@@ -367,7 +379,7 @@ async function openseoConnectivity({health,mcp,clock,whoamiAuthenticated}={}){
 function markStale(result,{maxAgeMs,clock}={}){
   if(!result||!result.provenance?.capturedAt||!Number.isFinite(Number(maxAgeMs)))return result;
   const age=Date.parse(iso(clock))-Date.parse(result.provenance.capturedAt);
-  return age>Number(maxAgeMs)&&['OK','PARTIAL','EMPTY'].includes(result.status)?freeze({...clone(result),status:'STALE',staleSince:result.provenance.capturedAt}):result;
+  return age>Number(maxAgeMs)&&['OK','PARTIAL','EMPTY'].includes(result.status)?(r=>isTrustedResult(result)?issue(r):r)(freeze({...clone(result),status:'STALE',staleSince:result.provenance.capturedAt})):result;
 }
 
 const usable=r=>r&&['OK','PARTIAL','EMPTY','STALE'].includes(r.status);
@@ -442,5 +454,5 @@ function toReleaseE(result,{releaseE,adapter}={}){
   return {status:result.status,records,provenance:clone(result.provenance),partial:clone(result.partial)};
 }
 
-return Object.freeze({RESULT_STATUSES,COST_MODELS,catalog,describe,runProviderRequest,openseoConnectivity,markStale,toReleaseC,toReleaseE,normalizeBacklinks,stableKey,redact});
+return Object.freeze({RESULT_STATUSES,COST_MODELS,catalog,describe,runProviderRequest,openseoConnectivity,markStale,toReleaseC,toReleaseE,normalizeBacklinks,stableKey,redact,isTrustedResult});
 });
