@@ -388,3 +388,14 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
   - `npm run verify`: 298 (296 pasan, 2 se omiten en Windows).
 - **CI:** run [36401174099](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401174099) del HEAD `66d76dc` verde en Node 20.20.2/22, 298/298 por job, 0 omitidas.
 - **Siguiente paso:** merge de `feat/core-8-1-offpage-operations` en `docs/core-9-platform-spec` y hallazgos 5 a 8 de PR #14.
+
+## Sesión 26 — revisión de PR #14, preparación de CORE-9 (28/09/2026)
+
+- **Base actualizada:** merge `4ffd68e` de `feat/core-8-1-offpage-operations` (`039a92a`) en `docs/core-9-platform-spec`, sin force push. Conflictos solo en README, ROADMAP, DECISIONS y HANDOFF; resueltos manteniendo cada fila y sección de su PR y el orden de D-24 → D-25.
+- **Hecho:** hallazgos 5 a 8 (gasto, aprobador, fechas de consentimiento y provenance serializada). Detalle en D-25, «Revisión del PR #14».
+- **Pruebas:**
+  - 7 regresiones en `tests/core-9-review-regressions.test.cjs`; las 6 iniciales fallan contra `82ec81b`;
+  - una mutación de 15 guardas mata las 15;
+  - `npm run verify`: 314 (312 pasan, 2 se omiten en Windows).
+- **CI:** pendiente del run de esta revisión.
+- **Pendiente:** revisión humana de #12 → #13 → #14. CORE-9 sigue bloqueada por PLATFORM-SPEC §10. No se fusiona, no se cambian las bases ni se despliega.

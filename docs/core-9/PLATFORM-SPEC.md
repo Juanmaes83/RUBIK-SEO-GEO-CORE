@@ -70,7 +70,10 @@ CORE-9 es el plano de control multi-proyecto que ejecuta en servidor lo que el C
 
 - **El Core es una librería pura** que el servidor importa: la plataforma no reimplementa reglas.
 - **Los conectores implementan** el `transport` de CORE-7 (`{kind:'live', request}`) o el cliente MCP de CORE-7.1 (`{kind:'live', callTool}`).
-- **Verificación:** el resultado emitido se firma (`signProvenance`) antes de persistirlo; al leerlo, `verifyProvenance` restablece la verificación. La adaptación de `offpage.measurement` para aceptar provenance firmada se decidirá en su PR, con una decisión propia.
+- **Verificación:** el resultado emitido se firma (`signProvenance`) antes de persistirlo. La firma cubre status, conexión, `partial`, errores, coste, provenance y el digest de los datos.
+  - Al leerlo, `verifyProvenance` exige los datos recuperados, detecta cambios en datos, firma o sobre, y devuelve el sobre reconstruido desde la firma.
+  - **Límite actual:** `offpage.measurement` no acepta provenance firmada (el sobre reconstruido es `UNTRUSTED_ENVELOPE`). Esa vía requiere una decisión propia con pruebas.
+  - **A sustituir en producción:** la forma canónica `stable()` (por ejemplo por RFC 8785 JCS), el digest `fnv()` (por SHA-256) y el firmante de prueba (por KMS/HMAC con `keyId` y rotación).
 
 ## 4. Límites de datos y propiedad
 
@@ -112,15 +115,19 @@ CORE-9 es el plano de control multi-proyecto que ejecuta en servidor lo que el C
 
 La matriz exacta es `MATRIX` en el módulo de contratos y está cubierta por pruebas.
 
+- **Aprobadores** (`APPROVER_ROLES`): los roles con `approve-external-action` en `MATRIX` (owner, account-manager, client-approver). La ejecución exige un aprobador con identidad, uno de esos roles, una fecha válida y el mismo scope.
+- **Frontera:** `authorize()` evalúa identidades y aprobaciones que el servidor ya autenticó y cargó. No es autenticación ni frontera de seguridad por sí misma.
+
 ## 6. Threat model (resumen)
 
 | Activo | Amenaza | Mitigación (contrato o prueba) |
 |---|---|---|
+| Consentimiento | Fechas malformadas interpretadas como indefinidas | `consentRecord` rechaza fechas inválidas (`INVALID_DATE`) y `hasConsent` ignora registros no canónicos. |
 | Datos de un cliente | Acceso de otro tenant | `scope` en todo; `authorize` exige pertenencia; el repositorio indexa por `tenant/project` (prueba de aislamiento). En producción, además, row-level security en la base de datos. |
 | Credenciales de proveedor | Fuga en logs, entradas o auditoría | `secretRef` rechaza valores; CORE-7 rechaza secretos en la entrada; la auditoría redacta y rechaza claves sensibles. |
 | Verificación de datos | Un objeto falsificado o una caché alterada pasan por verificados | `isTrustedResult` (CORE-8); `signProvenance`/`verifyProvenance` con hash de datos; firma KMS/HMAC en el servidor. |
 | Reputación del cliente | Envío o publicación sin permiso, outreach masivo, reseñas manipuladas | La IA no transiciona; `execute-approved-action` exige aprobación humana en el scope; los trabajos no pueden tener efectos externos; los borradores de CORE-8.1 no son enviables; `outreachBatchCheck`; reseñas neutrales. |
-| Presupuesto | Gasto no autorizado o bucles | `spendPolicy` finita, `toProviderBudget` → `BUDGET_EXCEEDED` en CORE-7 y `needsConfirmation`. |
+| Presupuesto | Gasto no autorizado, bucles o registros manipulados | `spendPolicy` finita, `toProviderBudget` → `BUDGET_EXCEEDED` en CORE-7 y `needsConfirmation`. `recordSpend` rechaza unidades negativas o peticiones no enteras, y un ledger con entradas inválidas da presupuesto 0 (`INVALID_LEDGER`). |
 | Integridad del historial | Borrado o edición retroactiva | Puertos append-only; `verifyAuditChain` detecta cambios de hash, orden y enlace. |
 | Privacidad de terceros | Datos personales en evidencia, prompts o borradores | `prepareEvidence`, guard `PERSONAL_DATA_IN_REQUEST`, sin direcciones de contacto ni datos de autores; consentimiento `ai-processing`. |
 | Cumplimiento de plataformas | Scraping o tácticas prohibidas | `METHOD_NOT_ALLOWED` en GEO y trabajos; `PROHIBITED_TACTICS` (CORE-8). |

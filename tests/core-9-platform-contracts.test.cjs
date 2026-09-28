@@ -38,7 +38,7 @@ test('permissions: AI only drafts/proposes; system executes only with a human ap
   assert.equal(ok(member('account-manager',B),'read').reason,'NOT_A_MEMBER_OF_SCOPE');
   const sys=member('system');
   assert.equal(ok(sys,'execute-approved-action').reason,'HUMAN_APPROVAL_REQUIRED');
-  assert.equal(ok(sys,'execute-approved-action',{approval:{by:'ai-1',role:'ai',at:'2026-09-26',scope:A}}).reason,'HUMAN_APPROVAL_REQUIRED');
+  assert.equal(ok(sys,'execute-approved-action',{approval:{by:'ai-1',role:'ai',at:'2026-09-26',scope:A}}).reason,'APPROVER_ROLE_NOT_ALLOWED');
   assert.equal(ok(sys,'execute-approved-action',{approval:{by:'am-1',role:'account-manager',at:'2026-09-26',scope:B}}).reason,'APPROVAL_SCOPE_MISMATCH');
   assert.equal(ok(sys,'execute-approved-action',{approval:{by:'am-1',role:'account-manager',at:'2026-09-26',scope:A}}).allowed,true);
   assert.equal(ok(sys,'approve-external-action').reason,'ROLE_NOT_ALLOWED');
@@ -95,7 +95,8 @@ test('signed provenance restores CORE-7 trust after serialization; forged or alt
   const s=platform.signProvenance(live,{providers,signer:mockSigner,keyId:'mock-key'}).signed;
   const stored=JSON.parse(JSON.stringify({signed:s,data:live.data}));
   assert.equal(offpage.measurement(JSON.parse(JSON.stringify(live)),{providers}).verified,false,'without the signature, serialization loses trust (CORE-8)');
-  assert.deepEqual(platform.verifyProvenance(stored.signed,{signer:mockSigner,data:stored.data}),{trust:'SIGNED_PROVENANCE',verified:true});
+  const ok=platform.verifyProvenance(stored.signed,{signer:mockSigner,data:stored.data});
+  assert.deepEqual([ok.trust,ok.verified,ok.result.status,ok.result.data],['SIGNED_PROVENANCE',true,'OK',stored.data]);
   assert.equal(platform.verifyProvenance(stored.signed,{signer:mockSigner,data:[]}).reason,'DATA_CHANGED');
   assert.equal(platform.verifyProvenance({...stored.signed,payload:{...stored.signed.payload,connection:'VERIFIED',provider:'x'}},{signer:mockSigner}).reason,'BAD_SIGNATURE');
   assert.equal(platform.signProvenance(JSON.parse(JSON.stringify(live)),{providers,signer:mockSigner}).error.code,'NOT_AN_ISSUED_RESULT');
