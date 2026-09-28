@@ -371,5 +371,5 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
   - 4 regresiones en `tests/core-8-1-review-regressions.test.cjs`, que fallan contra `5f60000`;
   - una mutación de 9 guardas mata las 9;
   - `npm run verify`: 298 (296 pasan, 2 se omiten en Windows).
-- **CI:** pendiente del run de esta revisión.
+- **CI:** run [36401174099](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401174099) del HEAD `66d76dc` verde en Node 20.20.2/22, 298/298 por job, 0 omitidas.
 - **Siguiente paso:** merge de `feat/core-8-1-offpage-operations` en `docs/core-9-platform-spec` y hallazgos 5 a 8 de PR #14.
