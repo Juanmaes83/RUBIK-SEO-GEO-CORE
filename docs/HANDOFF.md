@@ -1,6 +1,6 @@
 # Handoff — extracción de Rubik SEO/GEO Core
 
-**Última sesión:** 25/09/2026 · **Estado:** CORE-7.1 cerrado en `main@bc271fe` (PR #11) · **Siguiente:** CORE-8 (SEO off-page Core-only) · **Alcance:** solo `Juanmaes83/RUBIK-SEO-GEO-CORE` (D-12)
+**Última sesión:** 28/09/2026 · **Estado:** CORE-8, CORE-8.1 y preparación CORE-9 fusionadas en main@5e90362 · **Siguiente:** resolver decisiones bloqueantes de PLATFORM-SPEC §10 antes de implementar la plataforma · **Alcance:** solo Juanmaes83/RUBIK-SEO-GEO-CORE
 
 > Este documento resume la última sesión. El estado con autoridad está en [`ROADMAP.md`](ROADMAP.md).
 
@@ -399,3 +399,19 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
   - `npm run verify`: 314 (312 pasan, 2 se omiten en Windows).
 - **CI:** run [36401825240](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401825240) del HEAD `26c8589` verde en Node 20.20.2/22, 314/314 por job, 0 omitidas.
 - **Pendiente:** revisión humana de #12 → #13 → #14. CORE-9 sigue bloqueada por PLATFORM-SPEC §10. No se fusiona, no se cambian las bases ni se despliega.
+
+
+## Sesión 27 — cierre de CORE-8, CORE-8.1 y preparación de CORE-9 (28/09/2026)
+
+- **PR #12 / CORE-8:** fusionado en main mediante f5605ca3b0bd1c6f64fb8f4f437fa385121a4097. CI del HEAD 6e6afb1: run [36400713406](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36400713406), Node 20/22, 281/281 por job.
+  - Comparabilidad GEO y motivos de series no comparables se propagan a snapshots e informes.
+  - Se valida que el resultado de CORE-7 corresponde a la dimensión. CORE-7 no tiene operación de observaciones generativas; los GEO runs quedan declarados/no verificados.
+- **PR #13 / CORE-8.1:** fusionado mediante a08007361f2e6c38207deedde80c2a0f1051b395. CI del HEAD 039a92a: run [36401250044](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401250044), Node 20/22, 298/298 por job.
+  - Fechas inválidas de aprobación/vigencia se rechazan. Evidencia textual divergente sin valor estructurado queda ambigua y no utilizable hasta revisión.
+  - La IA produce borradores/propuestas; no hay modelo real, persistencia, publicación ni envío.
+- **PR #14 / preparación de CORE-9:** fusionado mediante 5e90362b74b951740953c26926a4755c4d6bbad9. CI del HEAD df0b003: run [36401906196](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401906196), Node 20/22, 314/314 por job. CI post-merge de main@5e90362: run [36402558674](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36402558674), Node 20/22, verde.
+  - Incluye especificación, threat model, esquema lógico documental, plan, contratos y mocks. No es una plataforma conectada.
+  - Hash/audit y signer siguen siendo mocks. No se usaron servicios reales, claves, cuentas de clientes ni despliegues.
+- **Bloqueo vigente:** responder [PLATFORM-SPEC.md §10](core-9/PLATFORM-SPEC.md): destino/proyecto, hosting e infraestructura, proveedores y presupuestos, modelo/retención IA, base legal/DPA y primer host. Las credenciales futuras deben residir en un gestor server-side de secretos; nunca en el Core, navegador o repositorio.
+- **CORE-2/4/5:** siguen dependiendo de adopción/validación en un host y quedan fuera de este trabajo Core-only.
+- **Ramas:** PR #12–#14 están fusionados. GitHub conserva referencias históricas de ramas asociadas a PRs fusionados; borrar solo tras comprobar que no contienen commits únicos.
