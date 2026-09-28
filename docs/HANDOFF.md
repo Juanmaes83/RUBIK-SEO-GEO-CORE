@@ -437,3 +437,12 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - D-26 y docs/core-9/EXECUTION-PLAN.md registran acuerdos, fases, criterios y reparto Claude/Codex/humano. La aplicación aún no está implementada; no hay integración live, gasto o despliegue autorizado por esta documentación.
 - Pendiente de decisión técnica: framework y forma reproducible de consumir el paquete Core, región/plan/configuración Supabase, términos Vercel, APIs/modelos y presupuesto exacto, revisión legal/DPA y validación de provenance productiva.
 - Próximo paso: Claude inicia CORE-9.0 en el repo de plataforma designado, primero verificando que no haya cambios que sobrescribir y fijando una ADR para framework/dependencia Core; scaffold local y mocks, sin servicios hosted ni datos reales. Codex revisa PR/documentación; el propietario hace tareas de consola/legal/visual y da autorizaciones.
+
+## Sesión 30 — dirección UX de CORE-9 aprobada (28/09/2026)
+
+- El propietario señaló que el prompt inicial de CORE-9.0 no especificaba frontend, contenido de pantallas ni estrategia móvil.
+- Decisiones aprobadas en D-27: identidad de producto Rubik premium; usuarios principales equipo de Rubik y clientes; enfoque mobile-first responsive.
+- CORE-9.0 ahora exige wireframe/pantalla inicial, estructura para operadores y clientes con permisos de servidor, pruebas a 360 px y adaptación a escritorio, estados vacíos honestos, fixtures demo claramente rotulados, accesibilidad básica y capturas para revisión visual.
+- No están definidos logo, paleta/tipografías de marca ni diseño visual final. Claude usará tokens neutrales reemplazables y mostrará la propuesta; el propietario revisa antes de consolidar identidad.
+- El estado de verdad no cambia: la app se trabaja solo en PLATAFORMA-RUBIK-SEO-GEO; sin datos, cuentas, integraciones live, gasto ni deploy.
+- Siguiente paso inmediato: pasar a Claude un addendum al prompt activo que incorpore D-27 y pida wireframe/capturas antes de comprometer el diseño. Actualizar luego el handoff de la plataforma con sus resultados.
