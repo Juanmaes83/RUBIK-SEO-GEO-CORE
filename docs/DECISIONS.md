@@ -714,3 +714,21 @@ La guía operativa reanudable está en [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS
 - Una mutación de 15 guardas mata las 15.
 - `npm run verify` da 314 (312 pasan, 2 se omiten en Windows).
 - CI: run [36401825240](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401825240) del HEAD `26c8589` verde en Node 20.20.2/22, 314/314 por job, 0 omitidas.
+
+
+## D-26 · Decisiones iniciales y reparto de trabajo para implementar CORE-9
+
+**Estado:** aprobadas por el propietario el 28/09/2026 como decisiones de producto e inicio. No representan credenciales conectadas, configuración verificada ni autorización para acciones externas.
+
+- **Destino de la aplicación:** el propietario designa Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO. La documentación y los contratos compartidos siguen en RUBIK-SEO-GEO-CORE. No trabajar en Restaurantes Premium ni en otros repositorios.
+- **Autenticación:** Supabase Auth aprobado. Supabase/Postgres se contempla para persistencia, sujeto a validar configuración, región, RLS, backups, límites y gestor server-side de secretos.
+- **Hosting:** preferencia por empezar con Vercel gratuito durante validación. Su uso para desarrollar un servicio comercial no se presume permitido: la documentación oficial actual limita Hobby a uso personal/no comercial ([plan Hobby](https://vercel.com/docs/plans/hobby)); revisar términos vigentes y elegir otro plan antes de publicar o comercializar. Cloudflare se contempla para DNS/CDN/proxy, no como backend o database.
+- **Dominio:** compra/configuración pospuesta hasta que la aplicación esté lista.
+- **Orden de integraciones:** importación manual; Google Search Console read-only; Bing Webmaster REST read-only; IndexNow con aprobación humana explícita por cada envío.
+- **Primer piloto:** SARAHKARENINA.COM cuando el propietario termine la nueva web y su migración; no se accede a ese trabajo externo durante esta fase.
+- **Retención:** el propietario aprueba la propuesta de PLATFORM-SPEC §4.3 como base de producto. Requiere revisión legal de plazos, base legal, DPA, exportación y borrado antes de tratar datos reales en producción.
+- **Tokens/modelos:** el propietario informa que dispone de tokens de Gemini, ChatGPT y Claude. No se ha validado si son credenciales de API, disponibilidad/planes de modelo, facturación, cuotas, región, retención o límites. Las suscripciones de chat no se consideran API credentials. No solicitar ni escribir secretos en código, prompts, logs o repositorios.
+- **División de responsabilidades:** Claude Code implementa por fases/PRs en el repo de plataforma designado, con pruebas y documentación. Codex mantiene decisiones/contratos Core, verifica GitHub/CI y revisa diffs y seguridad; no accede a consolas privadas sin evidencia compartida. El propietario gestiona cuentas, secretos, OAuth, presupuesto, legal, revisión visual y autorizaciones.
+- **Autorización acotada:** esta aprobación permite planificar e iniciar desarrollo local/mock en el destino nombrado; no implica autorización de llamadas reales, datos de clientes, gasto, publicaciones, contacto a terceros, dominio o despliegue. Los gates y sus responsables constan en [EXECUTION-PLAN.md](core-9/EXECUTION-PLAN.md).
+- **Plan autoritativo:** [PLATFORM-SPEC.md](core-9/PLATFORM-SPEC.md) define requisitos; [EXECUTION-PLAN.md](core-9/EXECUTION-PLAN.md) define fases, criterios y responsables; ROADMAP define estado; HANDOFF el último checkpoint.
+

@@ -12,12 +12,12 @@ Cada tema tiene **un solo documento con autoridad**. Si dos documentos chocan, m
 | De dónde viene cada fichero | [`PROVENANCE.md`](PROVENANCE.md) | `../SCULPT-SOURCE.md` (bootstrap histórico) |
 | Contrato de producto SEO/GEO (fórmulas, AUTO/CUSTOM, gates, GEO) | [`upstream/`](upstream/README.md) | Los estados de esos documentos no son normativos |
 | Integraciones con proveedores | [`integrations/`](integrations/) (p. ej. [`OPENSEO.md`](integrations/OPENSEO.md)) | `upstream/SEO-GEO-INTEGRATIONS.md` (contrato heredado) |
-| Plataforma CORE-9 (especificación, límites de datos, threat model, bloqueos) | [`core-9/PLATFORM-SPEC.md`](core-9/PLATFORM-SPEC.md) | [`DECISIONS.md`](DECISIONS.md) D-25 |
+| Plataforma CORE-9 (especificación, decisiones y ejecución) | [`core-9/PLATFORM-SPEC.md`](core-9/PLATFORM-SPEC.md), [`core-9/EXECUTION-PLAN.md`](core-9/EXECUTION-PLAN.md) (plan operativo y responsables) | [`DECISIONS.md`](DECISIONS.md) D-25/D-26; `ROADMAP.md` estado |
 | Evaluación de repositorios SEO/GEO relacionados | [`ECOSYSTEM-REFERENCES.md`](ECOSYSTEM-REFERENCES.md) | [`ROADMAP.md`](ROADMAP.md) (prioridad operativa) |
 
 ## Contratos upstream y alcance de repositorio
 
-`docs/upstream/` es una copia histórica congelada usada para procedencia del Core; no se sincroniza automáticamente. Todo cambio de código o documentación se hace solo en RUBIK-SEO-GEO-CORE. No modificar repositorios externos y no acceder a WEB-RESTAURACI-N-PREMIUM-DIN-MICA bajo ninguna circunstancia. Solo hacer lecturas puntuales de otros repositorios cuando el usuario autorice expresamente una evaluación concreta; registrar su alcance y resultado en `ECOSYSTEM-REFERENCES.md`.
+`docs/upstream/` es una copia histórica congelada usada para procedencia del Core; no se sincroniza automáticamente. Los contratos y documentación del Core se cambian en RUBIK-SEO-GEO-CORE. La aplicación CORE-9 se desarrolla solo en el destino designado Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO. No modificar otros repositorios y no acceder a WEB-RESTAURACI-N-PREMIUM-DIN-MICA bajo ninguna circunstancia. Solo hacer lecturas puntuales de otros repositorios cuando el usuario autorice expresamente una evaluación concreta; registrar su alcance y resultado en `ECOSYSTEM-REFERENCES.md`.
 
 Los cambios de contrato se deciden y documentan aquí, con pruebas y una entrada en `DECISIONS.md`. El estado operativo vive solo en `ROADMAP.md`.
 
@@ -25,7 +25,7 @@ Los cambios de contrato se deciden y documentan aquí, con pruebas y una entrada
 
 1. Leer, en este orden: `ROADMAP.md` §3–§4 (qué sigue y qué bloquea), `HANDOFF.md` y `DECISIONS.md`.
 2. Ejecutar `npm run verify`. Debe terminar sin errores antes de tocar nada.
-3. Trabajar en una rama nueva de este repositorio. No modificar repositorios externos; solo acceder en lectura a repositorios expresamente autorizados por el usuario para una evaluación concreta. Nunca acceder a WEB-RESTAURACI-N-PREMIUM-DIN-MICA.
+3. Trabajar en una rama nueva del repositorio correspondiente: Core para cambios del Core/documentación compartida; repo designado de plataforma para la aplicación. No ampliar el acceso a otros repositorios. Nunca acceder a WEB-RESTAURACI-N-PREMIUM-DIN-MICA.
 4. Al cerrar:
    - actualizar el estado **solo** en `ROADMAP.md`;
    - añadir las decisiones con evidencia en `DECISIONS.md`;

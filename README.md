@@ -38,17 +38,17 @@ Todo eso lo aporta cada producto anfitrión ([`docs/HOST-INTEGRATION-CONTRACT.md
 | Releases A–D | ✅ implementadas (fuente: PRs #44, #45, #46, #50) |
 | Hardening A–B | ✅ implementados en el Core (#53, #54) · Hardening C pertenece al host (#55) |
 | Release E | ✅ contratos base E1–E4 (#56) · ⏳ conexiones reales pendientes; su activación se planifica al final en CORE-9 |
-| Independencia | ✅ main@5e90362: CI Node 20/22 verde, 314/314 en cada job (run [36402558674](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36402558674)); Windows local omite 2 pruebas de symlink por permisos |
+| Independencia | ✅ main@88d299b: CI post-merge Node 20/22 verde (run [36405231516](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36405231516)); Windows local omite 2 pruebas de symlink por permisos |
 | Compatibilidad Restaurant | ✅ Golden de `publish()`/`preview()` sin cambios y materialización con 0 diferencias. CORE-3.2 eliminó rutas específicas de vertical en Intelligence (D-18). CORE-6 (PR #9, merge `304f655`) añadió multidioma explícito sin cambiar salida monolingüe; golden y fixtures sin cambios |
 | Extracción CORE-1 | ✅ PR #1 mergeado en `main` (merge `995207f38080cf319d4246a531895c85bc10759e`); CI Node 20/22 verde, 86/86 (run 36103571133) |
-| Siguiente paso | CORE-8, CORE-8.1 y la preparación documental de CORE-9 están fusionadas. La implementación real de CORE-9 está bloqueada por las decisiones de [PLATFORM-SPEC §10](docs/core-9/PLATFORM-SPEC.md). CORE-2/4/5 requieren validación de un host |
+| Siguiente paso | Preparación CORE-9 cerrada; decisiones iniciales y plan de ejecución documentados (D-26, [EXECUTION-PLAN](docs/core-9/EXECUTION-PLAN.md)). La aplicación se desarrolla en Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO. No hay plataforma funcional todavía; quedan gates de cuentas, framework, credenciales, legal, revisión y producción. CORE-2/4/5 requieren validación de un host |
 | Multidioma (CORE-6) | ✅ Cerrado por D-19 en [PR #9](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/9), merge `304f655`. CI verde en Node 20 y 22: 174/174 pruebas en cada versión, 0 omitidas, syntax/docs y smoke CLI ([run 36115604817](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36115604817)). La salida monolingüe sigue idéntica |
 | Contratos de proveedor (CORE-7) | ✅ Cerrado en [PR #10](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/10), merge `6ef8c4e`. D-21: contratos C/E, protección de secretos, presupuesto finito obligatorio para cuota/pago y normalización de backlinks. CI Node 20/22 verde: 205/205 por versión, 0 omitidas; syntax/docs y smoke CLI (run [36121912236](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36121912236)). Solo mocks; sin proveedores reales ni deploy |
 | Puente OpenSEO/MCP (CORE-7.1) | ✅ Cerrado en [PR #11](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/11), merge `bc271fe`. Contrato Core-only con cliente MCP inyectado y mocks (D-22); autenticación comprobada por `whoamiAuthenticated`, Lighthouse desactivado y auditoría manual. CI Node 20/22 verde: 233/233 por versión, 0 omitidas (run [36126029028](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36126029028)). Conexión real y backend siguen en CORE-9 |
 | SEO off-page (CORE-8) | ✅ Cerrada en [PR #12](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/12), merge f5605ca. D-23: snapshots, medición por dimensión y comparabilidad GEO propagada a informes; como CORE-7 aún no ofrece observaciones de motores generativos, GEO permanece declarado/no verificado. CI Node 20/22 281/281 por job ([run 36400713406](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36400713406)) |
 | CORE-8.1 | ✅ Cerrada en [PR #13](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/13), merge a080073. D-24: operación continua asistida por IA como borradores; evidencia aprobada, fechas inválidas rechazadas, ambigüedades bloqueadas y revisión humana obligatoria. Sin modelos, envío, publicación ni persistencia. CI Node 20/22 298/298 por job ([run 36401250044](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401250044)) |
-| CORE-9 | ✅ Preparación cerrada en [PR #14](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/14), merge 5e90362: especificación, threat model, contratos y mocks (D-25). CI Node 20/22 314/314 por job ([run 36401906196](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36401906196)). La plataforma y las conexiones reales no están implementadas; bloqueadas hasta responder §10 y autorizar destino |
-| Plataforma (CORE-9) | 📋 Última fase. Se permite preparar arquitectura, contratos y mocks en este repo; aplicación, integraciones reales y despliegue requieren autorización y destino explícitos. Los Project States permanecen en sus hosts |
+| CORE-9 | 🟡 Preparación Core cerrada (D-25); plan y decisiones iniciales aprobados (D-26). Aplicación pendiente en Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO; sin integraciones live, modelos ni despliegue. Ver [plan](docs/core-9/EXECUTION-PLAN.md) |
+| Plataforma (CORE-9) | 📋 Supabase Auth aprobado; Vercel gratuito es preferencia de validación sujeta a términos; Cloudflare para DNS/CDN; integraciones manual → GSC → Bing → IndexNow. Dominio tras preparación. Sarah será piloto al terminar su migración. Aún no se conectaron cuentas ni servicios |
 | Seguridad del materializer | ✅ path traversal, enlaces/junctions dentro de `outputDir` y nombres válidos con `..` cubiertos por regresiones (D-11/D-11b) |
 | OpenSEO | 📝 integración documentada y bloqueada ([`docs/integrations/OPENSEO.md`](docs/integrations/OPENSEO.md)). En CORE-3 `connectivity()` usa `/api/health` y nunca devuelve `CONNECTED` (D-14). `crawl()` sigue con el contrato heredado incompatible |
 
@@ -135,7 +135,7 @@ La CI está en `.github/workflows/core-ci.yml` (Node 20 y 22): verify + smoke de
 
 1. Leer `CLAUDE.md`, [`docs/AUTONOMOUS-CONTINUATION.md`](docs/AUTONOMOUS-CONTINUATION.md), [`docs/README.md`](docs/README.md), [`docs/ROADMAP.md`](docs/ROADMAP.md) §3–§6 y [`docs/HANDOFF.md`](docs/HANDOFF.md).
 2. Ejecutar `npm run verify` antes de cambiar nada.
-3. El único repositorio de trabajo es `RUBIK-SEO-GEO-CORE`: no acceder, clonar, leer ni modificar otros repositorios.
+3. Para trabajo del Core usar solo `RUBIK-SEO-GEO-CORE`. La aplicación CORE-9 va solo en el repo expresamente designado `PLATAFORMA-RUBIK-SEO-GEO`; no acceder a otros repositorios.
 4. El estado se actualiza solo en `ROADMAP.md` y las decisiones con evidencia, en `DECISIONS.md`.
 
 ## Reglas
@@ -143,5 +143,5 @@ La CI está en `.github/workflows/core-ci.yml` (Node 20 y 22): verify + smoke de
 - No crear un segundo Studio, Project State, Media Library ni Page Registry: el Core se conecta a los del host.
 - Honestidad: no se inventan métricas, reseñas, indexación ni citas. `NOT_MEASURED`, `NOT_CONNECTED` y `UNKNOWN` son estados válidos.
 - Cualquier cambio de salida cubierto por fixtures/golden exige actualizar el golden **y** registrar una decisión en [`docs/DECISIONS.md`](docs/DECISIONS.md).
-- Todo cambio de código y documentación se realiza en este repositorio; no se accede ni se escribe en otros repositorios.
+- Los cambios del Core se realizan en este repositorio. La aplicación CORE-9 corresponde únicamente a `PLATAFORMA-RUBIK-SEO-GEO`. No acceder ni escribir en otros repositorios, especialmente Restaurantes Premium.
 - España-first (`es` por defecto). Otros idiomas solo con páginas traducidas reales declaradas por el host, según D-19 (CORE-6 cerrado). El Core no genera traducciones.

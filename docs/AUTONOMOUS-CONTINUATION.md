@@ -1,39 +1,45 @@
-# Continuidad autónoma del Core
+# Continuidad autónoma de CORE-9
 
-**Estado al 28/09/2026:** CORE-8, CORE-8.1 y la preparación documental/contractual de CORE-9 ya están fusionadas en main@2e6ebc4. Esta guía reemplaza el plan de ejecución anterior, ya completado. La única fuente de estado es [ROADMAP.md](ROADMAP.md); el último checkpoint está en [HANDOFF.md](HANDOFF.md).
+**Estado (28/09/2026):** CORE-8, CORE-8.1 y la preparación de CORE-9 están fusionadas en RUBIK-SEO-GEO-CORE. La aplicación aún no existe. El propietario designó [Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO](https://github.com/Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO) y aprobó las decisiones iniciales en [CORE-9/EXECUTION-PLAN.md](core-9/EXECUTION-PLAN.md) y D-26. El estado del Core está en [ROADMAP.md](ROADMAP.md); último checkpoint: [HANDOFF.md](HANDOFF.md).
 
-## Fases completadas
+## Aprobado
 
-- **CORE-8 / PR #12:** merge f5605ca3b0bd1c6f64fb8f4f437fa385121a4097; CI del HEAD 6e6afb1, run 36400713406, 281/281 en Node 20 y 22.
-- **CORE-8.1 / PR #13:** merge a08007361f2e6c38207deedde80c2a0f1051b395; CI del HEAD 039a92a, run 36401250044, 298/298 en Node 20 y 22.
-- **CORE-9 preparación / PR #14:** merge 5e90362b74b951740953c26926a4755c4d6bbad9; CI del HEAD df0b003, run 36401906196, 314/314 en Node 20 y 22. CI post-merge de main, run 36402558674, verde en ambas versiones.
+- Aplicación: repo Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO.
+- Identidad: Supabase Auth.
+- Vercel gratuito como preferencia para validar, sujeto a verificar términos, elegibilidad comercial y cuotas antes de publicar.
+- Cloudflare se contempla para DNS/CDN/proxy; no reemplaza backend, DB ni gestor de secretos.
+- Sin compra de dominio/hosting comercial hasta que la aplicación esté lista.
+- Primer piloto: SARAHKARENINA.COM después de terminar cambios y migración.
+- Integraciones: importación manual; Google Search Console read-only; Bing Webmaster REST read-only; IndexNow con aprobación humana por cada envío.
+- Retención de producto §4.3 aprobada, pendiente de revisión legal antes de producción.
+- El usuario informa tener tokens Gemini, ChatGPT y Claude; no se confirmó que sean credenciales API ni sus cuotas, modelos, gasto, términos o retención.
 
-No hubo despliegue ni conexión a servicios reales, cuentas, modelos o secretos. Los hashes y firmas de prueba de CORE-9 no son criptografía productiva. CORE-8 tampoco puede declarar verificada la observación generativa mientras CORE-7 no tenga una operación compatible.
+## Qué puede avanzar Claude Code
 
-## Siguiente hito: decisiones del propietario para implementar CORE-9
+En el repo de plataforma designado, con prompt específico, Claude puede inspeccionar, decidir/documentar opciones técnicas reversibles y construir por PR fases locales, mockeadas y sin coste: bootstrap, arquitectura, consumo reproducible del Core, UI inicial, pruebas, auth/RLS en entorno local/aislado y contratos de persistencia. Mantener checkpoints y criterios de aceptación.
 
-La especificación está en [core-9/PLATFORM-SPEC.md §10](core-9/PLATFORM-SPEC.md). Antes de programar una plataforma real hay que decidir y registrar:
+Claude no fusiona PRs, despliega, publica, envía outreach, inicia llamadas live, accede a datos de clientes ni incurre en gasto. No usa claves reales ni pide que se peguen en el prompt. No trabaja en repositorios distintos de Core y la plataforma designada; WEB-RESTAURACI-N-PREMIUM-DIN-MICA queda prohibido.
 
-1. Proyecto/repositorio destino y autorización explícita para trabajar ahí.
-2. Hosting, autenticación, base de datos con aislamiento por tenant y gestor server-side de secretos/KMS.
-3. Proveedores iniciales, permisos/cuentas y presupuesto por tenant.
-4. Modelo/proveedor de IA, región, retención y límites de gasto.
-5. Base legal, DPA y retención de datos de clientes/terceros.
-6. Primer producto host y responsable de validar su contrato.
+## Qué hace Codex
 
-Las claves o tokens de API futuros se guardan solo en el gestor de secretos del backend, con referencias desde la plataforma. Nunca se incluyen en el Core, el navegador, Project State o Git.
+Codex puede revisar el estado GitHub, documentación, PR, CI, pruebas, seguridad y compatibilidad con el Core; mantener roadmap/decisiones compartidas en el Core; explicar opciones actuales de proveedores con fuentes oficiales; preparar prompts y revisar diffs. No inspecciona credenciales privadas o billing sin evidencia del propietario. Nunca solicita ni reproduce API keys.
 
-Hasta tener esas decisiones y autorización, no inventar credenciales ni iniciar integraciones reales, persistencia, trabajos, gasto o despliegue. Se puede seguir atendiendo trabajo Core-only independiente si el propietario lo indica. CORE-2/4/5 requieren validar/adoptar un host y no se simulan dentro de este repo.
+## Qué requiere al propietario / revisión humana
 
-## Reglas para Claude Code
+- Crear/configurar proyectos y planes desde sus cuentas; activar MFA; elegir regiones; conceder OAuth mínimo; cargar secretos directamente en almacén server-side.
+- Verificar términos de Vercel, cuotas y elegibilidad comercial; decidir gasto, modelos API y límites.
+- Validar base legal, DPA y retención con asesoría adecuada antes de datos reales.
+- Facilitar SARAH cuando esté migrada; revisar visualmente interfaz y resultados; aprobar acciones que afecten a cliente, sitio o tercero.
+- Autorizar explícitamente gasto, llamadas reales, despliegue, dominio y producción.
 
-- Trabajar exclusivamente en Juanmaes83/RUBIK-SEO-GEO-CORE, salvo autorización nueva y explícita para el proyecto destino; nunca acceder a WEB-RESTAURACI-N-PREMIUM-DIN-MICA ni a otros repositorios.
-- Al reanudar, leer CLAUDE.md, [docs/README.md](README.md), [ROADMAP.md](ROADMAP.md), y el final de [HANDOFF.md](HANDOFF.md); verificar HEAD, PRs y CI antes de continuar.
-- Ejecutar npm run verify si se modifica el Core. Actualizar ROADMAP/HANDOFF con SHA, resultados y siguiente paso real.
-- Usar ramas y PRs para cambios. Claude no fusiona, despliega, publica ni envía acciones externas; espera instrucciones del propietario para esos pasos.
-- No declarar conexión o medición verificada sin evidencia real autenticada. No colocar secretos ni datos personales innecesarios en código, prompts o logs.
+## Próxima tarea recomendada
 
+Comenzar CORE-9.0 según [EXECUTION-PLAN.md §4](core-9/EXECUTION-PLAN.md): inspección read-only del estado del repo PLATAFORMA-RUBIK-SEO-GEO, documentar una ADR de framework/dependencia del Core y preparar una base local con CI y mocks solo después de preservar lo existente. No se necesitan credenciales para este bloque. No integrar Supabase hosted, proveedores, IA o datos de clientes todavía.
 
-## Retención de ramas remotas
+## Reglas de continuidad
 
-Decisión del propietario (28/09/2026): conservar por ahora todas las ramas remotas. No borrar ni limpiar refs, incluidas las ramas de PRs fusionados, hasta recibir una nueva instrucción explícita. El inventario de 16 ramas observado y su estado está registrado en [ROADMAP §7](ROADMAP.md#7-ramas-remotas-conservadas-por-decisión-del-propietario). Volver a verificar antes de cualquier acción futura.
+- Al retomar, comprobar refs remotas, PRs abiertos, HEAD, CI y cambios sin commit; no confiar solo en este resumen.
+- Ejecutar validaciones por repo y anotar comandos/resultados exactos.
+- Una unidad coherente por rama/PR; esperar revisión humana y autorización de merge.
+- No borrar ramas remotas: el propietario pidió conservarlas.
+- Actualizar los documentos locales del repo correspondiente. Decisiones que alteren contratos compartidos se reflejan también en RUBIK-SEO-GEO-CORE/docs/DECISIONS.md.
