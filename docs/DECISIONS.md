@@ -722,7 +722,7 @@ La guía operativa reanudable está en [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS
 
 - **Destino de la aplicación:** el propietario designa Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO. La documentación y los contratos compartidos siguen en RUBIK-SEO-GEO-CORE. No trabajar en Restaurantes Premium ni en otros repositorios.
 - **Autenticación:** Supabase Auth aprobado. Supabase/Postgres se contempla para persistencia, sujeto a validar configuración, región, RLS, backups, límites y gestor server-side de secretos.
-- **Hosting:** preferencia por empezar con Vercel gratuito durante validación. Su uso para desarrollar un servicio comercial no se presume permitido: revisar términos vigentes y límites antes de publicar o comercializar; elegir otro plan si los términos lo exigen. Cloudflare se contempla para DNS/CDN/proxy, no como backend o database.
+- **Hosting:** preferencia por empezar con Vercel gratuito durante validación. Su uso para desarrollar un servicio comercial no se presume permitido: la documentación oficial actual limita Hobby a uso personal/no comercial ([plan Hobby](https://vercel.com/docs/plans/hobby)); revisar términos vigentes y elegir otro plan antes de publicar o comercializar. Cloudflare se contempla para DNS/CDN/proxy, no como backend o database.
 - **Dominio:** compra/configuración pospuesta hasta que la aplicación esté lista.
 - **Orden de integraciones:** importación manual; Google Search Console read-only; Bing Webmaster REST read-only; IndexNow con aprobación humana explícita por cada envío.
 - **Primer piloto:** SARAHKARENINA.COM cuando el propietario termine la nueva web y su migración; no se accede a ese trabajo externo durante esta fase.
