@@ -182,7 +182,7 @@ Las decisiones para planificar la siguiente etapa están en [EXECUTION-PLAN.md](
 
 - Repositorio de aplicación: `Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO`. El trabajo de este PR se limita a RUBIK-SEO-GEO-CORE; la aplicación tendrá su propio trabajo en el repo designado.
 - Supabase Auth aprobado. Supabase/Postgres es la opción prevista para autenticación y base de datos; faltan concretar plan, región, RLS, backups y gestor de secretos.
-- Vercel: preferencia de empezar con plan gratuito para validación. No se presume que Hobby permita el uso comercial previsto; revisar términos y límites vigentes antes de publicar o comercializar. Un cambio de plan posterior es técnicamente posible, pero no elimina cuotas, pausas ni restricciones previas.
+- Vercel: preferencia de empezar con plan gratuito para validación. No se presume que Hobby permita el uso comercial previsto; revisar términos y límites vigentes antes de publicar o comercializar; la documentación oficial actual indica que Hobby se limita a uso personal/no comercial ([plan Hobby](https://vercel.com/docs/plans/hobby)). Un cambio de plan posterior es técnicamente posible, pero no elimina cuotas, pausas ni restricciones previas.
 - Cloudflare se contempla para DNS/CDN/proxy cuando se configure; no sustituye backend, base de datos ni gestor de secretos.
 - Dominio y hosting comercial se posponen hasta que la aplicación esté lista y revisada.
 - Primer piloto: SARAHKARENINA.COM, después de que el propietario termine cambios y migración en su trabajo separado.
