@@ -747,3 +747,22 @@ La guía operativa reanudable está en [`AUTONOMOUS-CONTINUATION.md`](AUTONOMOUS
 - **Revisión humana:** Claude entrega capturas o vista previa local en anchos móvil y escritorio. El propietario aprueba dirección visual antes de fijar marca, densidad final o ampliar pantallas. Codex revisa la coherencia de estados, responsive y claims con los contratos del Core.
 
 La implementación debe seguir estos límites incluso si una librería de componentes sugiere un patrón distinto. Cualquier elección visual concreta no indicada aquí se documenta como decisión técnica reversible o se deja como propuesta para revisión.
+
+## D-28 · CORE-9.2: digest productivo inyectable y frontera de provenance firmada con offpage
+
+**Estado:** propuesta en PR para revisión del propietario (07/10/2026). Cambio de contrato Core-only; no conecta servicios ni usa claves reales.
+
+**Contexto.** D-25 dejó dos límites antes de confiar en mediciones persistidas: (1) `signProvenance`/`verifyProvenance` calculaban el digest de los datos con FNV, sin forma de inyectar SHA-256; (2) `offpage.measurement()` trataba el sobre reconstruido como `UNTRUSTED_ENVELOPE`. La plataforma (CORE-9.2) necesita ambos resueltos sin duplicar la lógica del Core.
+
+**Decisión.**
+
+1. **Digest inyectable y firmado.** `signProvenance` y `verifyProvenance` aceptan `digest: {alg, hash(text)}`. El payload firmado incluye `dataHashAlg`. Sin `digest`, el valor por defecto sigue siendo el mock `fnv1a32-mock` (pruebas y documentación).
+2. **Sin downgrade.** `verifyProvenance` exige que `payload.dataHashAlg` coincida con el algoritmo que espera el verificador (`DIGEST_ALG_MISMATCH`). Un payload mock nunca pasa por un verificador SHA-256 y cambiar la etiqueta invalida la firma.
+3. **Forma canónica.** `canonicalJson()` (exportada) se usa para el digest y la firma: claves ordenadas por unidades UTF-16 y serialización JSON de ECMAScript, equivalente a RFC 8785 (JCS) para datos JSON con números finitos. Rechaza números no finitos y valores no representables en JSON; omite miembros `undefined`.
+4. **Rotación.** El firmante recibe `{keyId}` al firmar y al verificar, de modo que un keyring del servidor elige la clave. Un `keyId` desconocido o intercambiado no verifica. La custodia de claves (KMS/HMAC) es de la plataforma.
+5. **Frontera offpage.** `verifyProvenance` registra el resultado reconstruido (congelado) en un `WeakSet` y expone `isVerifiedProvenance()`. `offpage.measurement()` y `snapshot()` aceptan la opción `platform`; solo con ese módulo inyectado y el objeto exacto reconstruido la medición tiene `trust:'SIGNED_PROVENANCE'`. Se mantiene la vinculación operación↔dimensión (`SIGNED_PROVENANCE_WRONG_OPERATION`). `verified` sigue exigiendo `method:'api'` y `connection:'VERIFIED'`. Copias, objetos parecidos y reconstrucciones fallidas siguen sin confianza.
+
+**Límites.** El Core no puede saber si el firmante inyectado es productivo: esa garantía es de la plataforma (claves fuera de BD, logs y código). Una importación manual sigue siendo `DECLARED`/`import`; esta vía no la eleva a resultado verificado de proveedor.
+
+**Pruebas.** `tests/core-9-2-provenance-boundary.test.cjs` (7 pruebas). Mutaciones: quitar el control de algoritmo, aceptar cualquier objeto en offpage o no registrar el resultado reconstruido hacen fallar la suite.
+

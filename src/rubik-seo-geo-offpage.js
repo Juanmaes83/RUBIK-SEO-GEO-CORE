@@ -99,17 +99,23 @@ function profile(input={},{core,config}={}){
    the one that dimension expects (DIMENSION_TARGETS); a trusted result of another
    operation is refused (NOT_MEASURED/OPERATION_MISMATCH, no rows). Without a declared
    dimension a trusted result is never verified. Dimensions with no CORE-7 operation yet
-   (mentions, referrals) can only be declared or imported. */
+   (mentions, referrals) can only be declared or imported.
+   Signed provenance (D-28): a result rebuilt by platform.verifyProvenance() after storage is
+   accepted only when that platform-contracts module is injected as `platform` and
+   platform.isVerifiedProvenance() recognises the exact object; its trust is
+   'SIGNED_PROVENANCE' (never 'CORE7_RESULT') and the same operation binding applies. */
 const DIMENSION_TARGETS=Object.freeze({backlinks:Object.freeze(['intelligence.backlinks']),localCitations:Object.freeze(['authority.presence']),mentions:Object.freeze([]),referrals:Object.freeze([])});
-function measurement(input,{providers,dimension}={}){
+function measurement(input,{providers,dimension,platform}={}){
   const v=input&&typeof input==='object'?input:{};
   const shaped=!!(v.provenance&&typeof v.provenance==='object'&&'connection' in v);
-  const trusted=shaped&&typeof providers?.isTrustedResult==='function'&&providers.isTrustedResult(input)===true;
+  const core7=shaped&&typeof providers?.isTrustedResult==='function'&&providers.isTrustedResult(input)===true;
+  const signed=shaped&&!core7&&typeof platform?.isVerifiedProvenance==='function'&&platform.isVerifiedProvenance(input)===true;
+  const trusted=core7||signed,trustLabel=core7?'CORE7_RESULT':'SIGNED_PROVENANCE';
   const envelope=shaped;
   const targets=dimension==null?null:DIMENSION_TARGETS[dimension];
   if(dimension!=null&&!targets)throw new Error('unknown measurement dimension: '+dimension);
   if(trusted&&targets&&!targets.includes(v.target))return {status:'NOT_MEASURED',reason:'OPERATION_MISMATCH',provider:text(v.provider),operation:text(v.operation)||null,
-    method:v.provenance.method==='api'?'api':'mock',trust:'CORE7_RESULT_WRONG_OPERATION',verified:false,capturedAt:isoOrNull(v.provenance.capturedAt),coverage:'NONE',rows:[]};
+    method:v.provenance.method==='api'?'api':'mock',trust:trustLabel+'_WRONG_OPERATION',verified:false,capturedAt:isoOrNull(v.provenance.capturedAt),coverage:'NONE',rows:[]};
   const status=MEASUREMENT_STATUSES.includes(v.status)?v.status:'NOT_MEASURED';
   const capturedAt=isoOrNull(envelope?v.provenance.capturedAt:v.capturedAt);
   const usable=USABLE.includes(status)&&!!capturedAt;
@@ -118,7 +124,7 @@ function measurement(input,{providers,dimension}={}){
     status:usable?(coverage==='PARTIAL'&&status==='OK'?'PARTIAL':status):(USABLE.includes(status)?'NOT_MEASURED':status),
     provider:text(v.provider),
     method:trusted?(v.provenance.method==='api'?'api':'mock'):envelope?'import':(SOURCE_METHODS.includes(v.method)&&v.method!=='api'?v.method:'manual'),
-    trust:trusted?'CORE7_RESULT':envelope?'UNTRUSTED_ENVELOPE':'DECLARED',
+    trust:trusted?trustLabel:envelope?'UNTRUSTED_ENVELOPE':'DECLARED',
     verified:trusted&&!!targets&&v.provenance.method==='api'&&v.connection==='VERIFIED',
     capturedAt,coverage,
     rows:usable?arr(envelope?v.data:v.rows):[]
@@ -164,7 +170,7 @@ function citationConsistency(listings,{core,config}={}){
 
 /* snapshot(input, deps): one observation period. Per dimension the measurement status,
    coverage and limits are kept; counts are null when a source did not measure. */
-function snapshot(input={},{providers,releaseE,core,config}={}){
+function snapshot(input={},{providers,releaseE,core,config,platform}={}){
   const v=input&&typeof input==='object'?input:{},p=v.profile||{};
   const period={id:text(v.period?.id),start:isoOrNull(v.period?.start),end:isoOrNull(v.period?.end)};
   if(!period.id||!period.start||!period.end||period.end<period.start)throw new Error('snapshot period requires id, start and end (end >= start)');
@@ -173,14 +179,14 @@ function snapshot(input={},{providers,releaseE,core,config}={}){
   // Backlinks: CORE-7 normalizeBacklinks is the only row normaliser.
   if(v.backlinks){
     if(providers==null||typeof providers.normalizeBacklinks!=='function')throw new TypeError('providers module must be injected for backlinks');
-    const m=measurement(v.backlinks,{providers,dimension:'backlinks'}),n=providers.normalizeBacklinks(m.rows,{measuredAt:m.capturedAt,provider:m.provider});
+    const m=measurement(v.backlinks,{providers,dimension:'backlinks',platform}),n=providers.normalizeBacklinks(m.rows,{measuredAt:m.capturedAt,provider:m.provider});
     if(n.rejected&&m.coverage!=='NONE'){m.coverage='PARTIAL';if(m.status==='OK')m.status='PARTIAL';}
     const ref=register('backlinks',m,{rejectedRows:n.rejected}),live=n.rows.filter(r=>r.lost!==true);
     out.dimensions.backlinks={status:m.status,reason:m.reason||null,provider:m.provider,method:m.method,verified:m.verified,trust:m.trust,capturedAt:m.capturedAt,coverage:m.coverage,rejectedRows:n.rejected,rows:n.rows,
       metrics:{backlinks:metric(live.length,m,ref),referringDomains:metric(uniq(live.map(r=>r.sourceDomain)).length,m,ref),targets:metric(uniq(live.map(r=>r.targetUrl)).length,m,ref),reportedLost:metric(n.rows.length-live.length,m,ref)}};
   }
   if(v.mentions){
-    const m=measurement(v.mentions,{providers,dimension:'mentions'}),records=[],rejected=[];
+    const m=measurement(v.mentions,{providers,dimension:'mentions',platform}),records=[],rejected=[];
     for(const row of m.rows){const r=mention({...row,provider:row?.provider||m.provider},{releaseE,profile:p});r.ok?records.push(r.record):rejected.push(r.error);}
     if(rejected.length&&m.coverage!=='NONE'){m.coverage='PARTIAL';if(m.status==='OK')m.status='PARTIAL';}
     const ref=register('mentions',m,{rejectedRows:rejected.length});
@@ -188,7 +194,7 @@ function snapshot(input={},{providers,releaseE,core,config}={}){
       metrics:{mentions:metric(records.length,m,ref),linked:metric(records.filter(r=>r.linked===true).length,m,ref),unlinked:metric(records.filter(r=>r.linked===false).length,m,ref),linkStatusUnknown:metric(records.filter(r=>r.linked===null).length,m,ref)}};
   }
   if(v.localCitations){
-    const m=measurement(v.localCitations,{providers,dimension:'localCitations'}),c=m.status==='NOT_MEASURED'&&!m.rows.length?{status:'NOT_MEASURED',listings:[]}:citationConsistency(m.rows,{core,config});
+    const m=measurement(v.localCitations,{providers,dimension:'localCitations',platform}),c=m.status==='NOT_MEASURED'&&!m.rows.length?{status:'NOT_MEASURED',listings:[]}:citationConsistency(m.rows,{core,config});
     const applicable=c.status!=='NOT_APPLICABLE';if(!applicable)m.status='NOT_MEASURED';
     const ref=register('localCitations',m);
     out.dimensions.localCitations={status:applicable?m.status:'NOT_APPLICABLE',provider:m.provider,method:m.method,verified:m.verified,trust:m.trust,capturedAt:m.capturedAt,coverage:m.coverage,listings:c.listings,
@@ -202,7 +208,7 @@ function snapshot(input={},{providers,releaseE,core,config}={}){
   }
   // Referral traffic is its own dimension: never merged into GEO observations or outcomes.
   if(v.referrals){
-    const m=measurement(v.referrals,{providers,dimension:'referrals'}),rows=m.rows.map(r=>({source:fold(r?.source),medium:fold(r?.medium),sessions:Number.isFinite(Number(r?.sessions))&&r?.sessions!==''&&r?.sessions!=null?Number(r.sessions):null,landingPage:cleanUrl(r?.landingPage)||null})).filter(r=>r.source&&r.sessions!=null);
+    const m=measurement(v.referrals,{providers,dimension:'referrals',platform}),rows=m.rows.map(r=>({source:fold(r?.source),medium:fold(r?.medium),sessions:Number.isFinite(Number(r?.sessions))&&r?.sessions!==''&&r?.sessions!=null?Number(r.sessions):null,landingPage:cleanUrl(r?.landingPage)||null})).filter(r=>r.source&&r.sessions!=null);
     const ref=register('referrals',m),ai=rows.filter(r=>/(^|\.)chatgpt\.com$|perplexity\.ai$|copilot\.microsoft\.com$|gemini\.google\.com$/.test(r.source));
     out.dimensions.referrals={status:m.status,provider:m.provider,method:m.method,verified:m.verified,trust:m.trust,capturedAt:m.capturedAt,coverage:m.coverage,rows,
       metrics:{aiReferralSessions:metric(ai.reduce((a,r)=>a+r.sessions,0),m,ref),chatgptSessions:metric(ai.filter(r=>/chatgpt\.com$/.test(r.source)).reduce((a,r)=>a+r.sessions,0),m,ref)},

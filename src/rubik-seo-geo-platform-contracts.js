@@ -203,34 +203,71 @@ const CONNECTORS=freeze([
    rehydrated envelope must match the signed fields. On success it returns the envelope
    rebuilt from the signed payload plus the verified rows, so status or coverage cannot be
    swapped after storage.
-   Mocks: `stable()` (canonical JSON), `fnv()` (digest) and the injected test signer are
-   NOT cryptographic. Production replaces the canonical form with a specified one (e.g.
-   RFC 8785 JCS), the digest with SHA-256 and the signer with a server-side KMS/HMAC key
-   identified by keyId (rotation). Integration limit: offpage.measurement() does NOT accept
-   signed provenance today; a rebuilt envelope is a plain object and stays UNTRUSTED for the
-   Core until a separate, tested decision adds that path. */
+   Mocks: `fnv()` (default digest) and the injected test signer are NOT cryptographic.
+   Production injects a SHA-256 digest and a server-side KMS/HMAC signer keyed
+   identified by keyId (rotation); the signer receives {keyId} so a keyring can pick the key.
+   Integration (D-28): offpage.measurement() accepts a rebuilt result only when this module is
+   injected as `platform` and isVerifiedProvenance() recognises the exact object returned by
+   verifyProvenance(); a plain or serialized copy stays UNTRUSTED_ENVELOPE. */
 const SIGNED_FIELDS=Object.freeze(['provider','operation','release','target','status','connection','cached']);
-const signedPayload=r=>({...Object.fromEntries(SIGNED_FIELDS.map(k=>[k,r?.[k]??null])),
+/* Digest and canonical form (D-28). The default {alg:'fnv1a32-mock'} is the historical
+   non-cryptographic mock and is kept only for tests and documentation. Production injects
+   {alg:'sha256', hash} computed on the server. The algorithm is part of the signed payload
+   (dataHashAlg) and verification refuses a payload whose algorithm differs from the one the
+   verifier expects (DIGEST_ALG_MISMATCH), so a stored mock digest can never be accepted by a
+   production verifier (no downgrade). canonicalJson() is the canonical form that is hashed
+   and signed: object keys sorted by UTF-16 code units and ECMAScript JSON serialization of
+   strings and numbers, which matches RFC 8785 (JCS) for JSON data with finite numbers; it
+   refuses non-finite numbers and values JSON cannot represent instead of silently
+   coercing them. */
+const MOCK_DIGEST=Object.freeze({alg:'fnv1a32-mock',hash:fnv});
+const DIGEST_ALG=/^[a-z0-9][a-z0-9-]{1,31}$/;
+function canonicalJson(v){
+  if(v===null)return 'null';
+  if(typeof v==='number'){if(!Number.isFinite(v))throw new TypeError('canonicalJson: non-finite number');return JSON.stringify(v);}
+  if(typeof v==='string'||typeof v==='boolean')return JSON.stringify(v);
+  if(Array.isArray(v))return '['+v.map(x=>x===undefined?'null':canonicalJson(x)).join(',')+']';
+  if(typeof v==='object'){if(typeof v.toJSON==='function')return canonicalJson(v.toJSON());return '{'+Object.keys(v).filter(k=>v[k]!==undefined).sort().map(k=>JSON.stringify(k)+':'+canonicalJson(v[k])).join(',')+'}';}
+  throw new TypeError('canonicalJson: unsupported type '+typeof v);
+}
+const digestOf=d=>{
+  if(d==null)return MOCK_DIGEST;
+  if(typeof d?.hash!=='function'||!DIGEST_ALG.test(text(d?.alg)))throw new TypeError('digest must be {alg, hash(text)}');
+  return d;
+};
+const signedPayload=(r,d)=>({...Object.fromEntries(SIGNED_FIELDS.map(k=>[k,r?.[k]??null])),
   partial:clone(r?.partial??null),errorCodes:arr(r?.errors).map(e=>text(e?.code)).filter(Boolean),
-  cost:clone(r?.cost??null),provenance:clone(r?.provenance??null),dataHash:fnv(stable(r?.data??null))});
-function signProvenance(result,{providers,signer,keyId}={}){
+  cost:clone(r?.cost??null),provenance:clone(r?.provenance??null),dataHashAlg:d.alg,dataHash:d.hash(canonicalJson(clone(r?.data??null)))});
+function signProvenance(result,{providers,signer,keyId,digest}={}){
   if(typeof providers?.isTrustedResult!=='function')throw new TypeError('providers module must be injected');
   if(typeof signer?.sign!=='function')throw new TypeError('signer must be injected');
+  const d=digestOf(digest);
   if(!providers.isTrustedResult(result))return refuse('NOT_AN_ISSUED_RESULT');
-  const payload=signedPayload(result);
-  return freeze({ok:true,signed:{payload,keyId:text(keyId)||null,signature:signer.sign(stable(payload))}});
+  const payload=signedPayload(result,d);
+  return freeze({ok:true,signed:{payload,keyId:text(keyId)||null,signature:signer.sign(canonicalJson(payload),{keyId:text(keyId)||null})}});
 }
-function verifyProvenance(signed,{signer,data,envelope}={}){
+/* Results rebuilt by a successful verifyProvenance() are registered here, like CORE-7 does
+   with issued results: offpage.measurement() accepts them only when this module is injected
+   and says it rebuilt that exact object (isVerifiedProvenance). A copy, a look-alike or a
+   hand-built object is never accepted. */
+const VERIFIED=new WeakSet();
+const isVerifiedProvenance=r=>!!r&&typeof r==='object'&&VERIFIED.has(r);
+function verifyProvenance(signed,{signer,data,envelope,digest}={}){
   if(typeof signer?.verify!=='function')throw new TypeError('signer must be injected');
+  const d=digestOf(digest);
   const no=reason=>freeze({trust:'UNTRUSTED',verified:false,reason});
   if(!signed?.payload||!signed.signature)return no('NOT_SIGNED');
-  if(signer.verify(stable(signed.payload),signed.signature)!==true)return no('BAD_SIGNATURE');
+  let canonical;try{canonical=canonicalJson(signed.payload);}catch{return no('NOT_SIGNED');}
+  if(signer.verify(canonical,signed.signature,{keyId:signed.keyId??null})!==true)return no('BAD_SIGNATURE');
+  if(signed.payload.dataHashAlg!==d.alg)return no('DIGEST_ALG_MISMATCH');
   if(data===undefined)return no('DATA_REQUIRED');
-  if(fnv(stable(data))!==signed.payload.dataHash)return no('DATA_CHANGED');
-  if(envelope!==undefined){const e=signedPayload({...envelope,data});if(stable(e)!==stable(signed.payload))return no('ENVELOPE_CHANGED');}
+  let dataHash;try{dataHash=d.hash(canonicalJson(clone(data)));}catch{return no('DATA_CHANGED');}
+  if(dataHash!==signed.payload.dataHash)return no('DATA_CHANGED');
+  if(envelope!==undefined){let e;try{e=canonicalJson(signedPayload({...envelope,data},d));}catch{return no('ENVELOPE_CHANGED');}if(e!==canonical)return no('ENVELOPE_CHANGED');}
   const p=signed.payload;
-  return freeze({trust:'SIGNED_PROVENANCE',reason:null,verified:p.connection==='VERIFIED'&&p.provenance?.method==='api',
-    result:{...Object.fromEntries(SIGNED_FIELDS.map(k=>[k,p[k]])),partial:clone(p.partial),cost:clone(p.cost),provenance:clone(p.provenance),data:clone(data),errors:p.errorCodes.map(code=>({code}))}});
+  const result=freeze({...Object.fromEntries(SIGNED_FIELDS.map(k=>[k,p[k]])),partial:clone(p.partial),cost:clone(p.cost),provenance:clone(p.provenance),data:clone(data),errors:arr(p.errorCodes).map(code=>({code}))});
+  VERIFIED.add(result);
+  return freeze({trust:'SIGNED_PROVENANCE',reason:null,verified:p.connection==='VERIFIED'&&p.provenance?.method==='api',keyId:signed.keyId??null,dataHashAlg:p.dataHashAlg,result});
 }
 
 /* ── Repository ports and an in-memory MOCK (tests only) ─────────────────── */
@@ -279,5 +316,5 @@ function jobSpec(input){
 
 return Object.freeze({ROLES,ACTIONS,MATRIX,APPROVER_ROLES,CONSENT_PURPOSES,CONNECTORS,REPOSITORY_PORTS,JOB_TYPES,
   scope,authorize,secretRef,auditEvent,verifyAuditChain,spendPolicy,toProviderBudget,spendCheck,recordSpend,
-  consentRecord,hasConsent,signProvenance,verifyProvenance,createMemoryRepository,jobSpec});
+  consentRecord,hasConsent,canonicalJson,signProvenance,verifyProvenance,isVerifiedProvenance,createMemoryRepository,jobSpec});
 });

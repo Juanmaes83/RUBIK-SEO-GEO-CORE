@@ -71,7 +71,7 @@ CORE-9 es el plano de control multi-proyecto que ejecuta en servidor lo que el C
 - **Los conectores implementan** el `transport` de CORE-7 (`{kind:'live', request}`) o el cliente MCP de CORE-7.1 (`{kind:'live', callTool}`).
 - **Verificación:** el resultado emitido se firma (`signProvenance`) antes de persistirlo. La firma cubre status, conexión, `partial`, errores, coste, provenance y el digest de los datos.
   - Al leerlo, `verifyProvenance` exige los datos recuperados, detecta cambios en datos, firma o sobre, y devuelve el sobre reconstruido desde la firma.
-  - **Límite actual:** `offpage.measurement` no acepta provenance firmada (el sobre reconstruido es `UNTRUSTED_ENVELOPE`). Esa vía requiere una decisión propia con pruebas.
+  - **Frontera (D-28):** `offpage.measurement` acepta el resultado reconstruido por `verifyProvenance` solo con el módulo `platform` inyectado (`trust:'SIGNED_PROVENANCE'`); las copias siguen como `UNTRUSTED_ENVELOPE`. El digest productivo (`sha256`) se inyecta y queda firmado (`dataHashAlg`).
   - **A sustituir en producción:** la forma canónica `stable()` (por ejemplo por RFC 8785 JCS), el digest `fnv()` (por SHA-256) y el firmante de prueba (por KMS/HMAC con `keyId` y rotación).
 
 ## 4. Límites de datos y propiedad
