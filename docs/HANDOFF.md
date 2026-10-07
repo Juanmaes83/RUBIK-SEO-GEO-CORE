@@ -446,3 +446,13 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - No están definidos logo, paleta/tipografías de marca ni diseño visual final. Claude usará tokens neutrales reemplazables y mostrará la propuesta; el propietario revisa antes de consolidar identidad.
 - El estado de verdad no cambia: la app se trabaja solo en PLATAFORMA-RUBIK-SEO-GEO; sin datos, cuentas, integraciones live, gasto ni deploy.
 - Siguiente paso inmediato: pasar a Claude un addendum al prompt activo que incorpore D-27 y pida wireframe/capturas antes de comprometer el diseño. Actualizar luego el handoff de la plataforma con sus resultados.
+
+
+## Sesión 31 — CORE-9.2: contrato de provenance productiva (07/10/2026)
+
+- **Base:** `main@f276837`. `npm run verify` previo: 314/314.
+- **Rama:** `feat/core-9-2-provenance-boundary`. Cambios en `platform-contracts` (digest inyectable, `dataHashAlg`, `canonicalJson`, `keyId` al firmante, `isVerifiedProvenance`) y `offpage` (opción `platform` en `measurement`/`snapshot`). Detalle en D-28.
+- **Pruebas:** `npm run verify` 321/321 (7 nuevas). Mutación de 3 guardas: las 3 detectadas.
+- **Sin** servicios reales, claves, datos de clientes, merge ni despliegue.
+- **Siguiente paso:** revisión y merge del PR por el propietario; la plataforma fija el Core en el commit resultante en su unidad CORE-9.2.
+
