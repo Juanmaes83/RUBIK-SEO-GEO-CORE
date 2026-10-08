@@ -209,6 +209,9 @@ const CONNECTORS=freeze([
    Integration (D-28): offpage.measurement() accepts a rebuilt result only when this module is
    injected as `platform` and isVerifiedProvenance() recognises the exact object returned by
    verifyProvenance(); a plain or serialized copy stays UNTRUSTED_ENVELOPE. */
+/* Optional scope v1 uses stable tenant/project identifiers. Callers verifying in a
+   project MUST pass the expected scope; legacy unscoped signatures then fail closed.
+   Slug/UUID lookup and RLS remain the host's responsibility, not proof supplied by users. */
 const SIGNED_FIELDS=Object.freeze(['provider','operation','release','target','status','connection','cached']);
 /* Digest and canonical form (D-28). The default {alg:'fnv1a32-mock'} is the historical
    non-cryptographic mock and is kept only for tests and documentation. Production injects
@@ -235,15 +238,17 @@ const digestOf=d=>{
   if(typeof d?.hash!=='function'||!DIGEST_ALG.test(text(d?.alg)))throw new TypeError('digest must be {alg, hash(text)}');
   return d;
 };
-const signedPayload=(r,d)=>({...Object.fromEntries(SIGNED_FIELDS.map(k=>[k,r?.[k]??null])),
+const signedPayload=(r,d,boundScope)=>({...(boundScope?{scopeVersion:1,scope:clone(boundScope)}:{}),...Object.fromEntries(SIGNED_FIELDS.map(k=>[k,r?.[k]??null])),
   partial:clone(r?.partial??null),errorCodes:arr(r?.errors).map(e=>text(e?.code)).filter(Boolean),
   cost:clone(r?.cost??null),provenance:clone(r?.provenance??null),dataHashAlg:d.alg,dataHash:d.hash(canonicalJson(clone(r?.data??null)))});
-function signProvenance(result,{providers,signer,keyId,digest}={}){
+function signProvenance(result,{providers,signer,keyId,digest,scope:requestedScope}={}){
   if(typeof providers?.isTrustedResult!=='function')throw new TypeError('providers module must be injected');
   if(typeof signer?.sign!=='function')throw new TypeError('signer must be injected');
   const d=digestOf(digest);
   if(!providers.isTrustedResult(result))return refuse('NOT_AN_ISSUED_RESULT');
-  const payload=signedPayload(result,d);
+  let boundScope;
+  if(requestedScope!==undefined){const parsed=scope(requestedScope);if(!parsed.ok)return parsed;boundScope={tenantId:parsed.scope.tenantId,projectId:parsed.scope.projectId};}
+  const payload=signedPayload(result,d,boundScope);
   return freeze({ok:true,signed:{payload,keyId:text(keyId)||null,signature:signer.sign(canonicalJson(payload),{keyId:text(keyId)||null})}});
 }
 /* Results rebuilt by a successful verifyProvenance() are registered here, like CORE-7 does
@@ -252,22 +257,34 @@ function signProvenance(result,{providers,signer,keyId,digest}={}){
    hand-built object is never accepted. */
 const VERIFIED=new WeakSet();
 const isVerifiedProvenance=r=>!!r&&typeof r==='object'&&VERIFIED.has(r);
-function verifyProvenance(signed,{signer,data,envelope,digest}={}){
+function verifyProvenance(signed,{signer,data,envelope,digest,scope:requestedScope}={}){
   if(typeof signer?.verify!=='function')throw new TypeError('signer must be injected');
   const d=digestOf(digest);
   const no=reason=>freeze({trust:'UNTRUSTED',verified:false,reason});
   if(!signed?.payload||!signed.signature)return no('NOT_SIGNED');
   let canonical;try{canonical=canonicalJson(signed.payload);}catch{return no('NOT_SIGNED');}
   if(signer.verify(canonical,signed.signature,{keyId:signed.keyId??null})!==true)return no('BAD_SIGNATURE');
+  let boundScope;
+  if(signed.payload.scope!==undefined||signed.payload.scopeVersion!==undefined){
+    if(signed.payload.scopeVersion!==1)return no('SCOPE_VERSION_UNSUPPORTED');
+    const parsed=scope(signed.payload.scope);if(!parsed.ok)return no('INVALID_SIGNED_SCOPE');
+    boundScope={tenantId:parsed.scope.tenantId,projectId:parsed.scope.projectId};
+  }
+  if(boundScope&&requestedScope===undefined)return no('SCOPE_EXPECTATION_REQUIRED');
+  if(requestedScope!==undefined){
+    const parsed=scope(requestedScope);if(!parsed.ok)return no('INVALID_SCOPE');
+    if(!boundScope)return no('SCOPE_REQUIRED');
+    if(!sameScope(boundScope,parsed.scope))return no('SCOPE_MISMATCH');
+  }
   if(signed.payload.dataHashAlg!==d.alg)return no('DIGEST_ALG_MISMATCH');
   if(data===undefined)return no('DATA_REQUIRED');
   let dataHash;try{dataHash=d.hash(canonicalJson(clone(data)));}catch{return no('DATA_CHANGED');}
   if(dataHash!==signed.payload.dataHash)return no('DATA_CHANGED');
-  if(envelope!==undefined){let e;try{e=canonicalJson(signedPayload({...envelope,data},d));}catch{return no('ENVELOPE_CHANGED');}if(e!==canonical)return no('ENVELOPE_CHANGED');}
+  if(envelope!==undefined){let e;try{e=canonicalJson(signedPayload({...envelope,data},d,boundScope));}catch{return no('ENVELOPE_CHANGED');}if(e!==canonical)return no('ENVELOPE_CHANGED');}
   const p=signed.payload;
   const result=freeze({...Object.fromEntries(SIGNED_FIELDS.map(k=>[k,p[k]])),partial:clone(p.partial),cost:clone(p.cost),provenance:clone(p.provenance),data:clone(data),errors:arr(p.errorCodes).map(code=>({code}))});
   VERIFIED.add(result);
-  return freeze({trust:'SIGNED_PROVENANCE',reason:null,verified:p.connection==='VERIFIED'&&p.provenance?.method==='api',keyId:signed.keyId??null,dataHashAlg:p.dataHashAlg,result});
+  return freeze({trust:'SIGNED_PROVENANCE',reason:null,verified:p.connection==='VERIFIED'&&p.provenance?.method==='api',keyId:signed.keyId??null,dataHashAlg:p.dataHashAlg,...(boundScope?{scopeVersion:1,scope:boundScope}:{}),result});
 }
 
 /* ── Repository ports and an in-memory MOCK (tests only) ─────────────────── */
