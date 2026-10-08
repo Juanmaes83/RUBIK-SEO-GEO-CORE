@@ -202,3 +202,25 @@ Las decisiones para planificar la siguiente etapa están en [EXECUTION-PLAN.md](
 - Sustituir mocks por serialización canónica, SHA-256 y KMS/HMAC con rotación; decidir cómo `offpage.measurement()` aceptará provenance firmada antes de confiar en mediciones persistidas (D-25 §8).
 
 Esto no bloquea estructura, interfaz local ni pruebas mock. Sí bloquea credenciales reales, datos de clientes, IA con información real, acciones externas, uso comercial y producción hasta cerrar los gates respectivos.
+
+
+## Provenance vinculada al cliente y proyecto (09/10/2026)
+
+`signProvenance(result, { providers, signer, keyId, digest, scope })` acepta
+`scope: { tenantId, projectId }` con identificadores estables según el contrato
+`scope()`. Añade `scopeVersion: 1` y ambos identificadores al payload canónico
+firmado. El host usa los UUID de organización y proyecto, nunca slugs cambiantes.
+
+Al leer, `verifyProvenance(signed, { signer, digest, data, scope })` exige el
+contexto esperado obtenido de la sesión y del proyecto autorizado. Un payload
+vinculado sin contexto esperado falla con `SCOPE_EXPECTATION_REQUIRED`; un
+contexto distinto falla con `SCOPE_MISMATCH`. No se registra el resultado como
+verificado en esos casos. El host debe conservar además los filtros de consulta
+y RLS: la firma no sustituye a la autorización.
+
+Compatibilidad: las firmas antiguas sin contexto siguen funcionando con la API
+antigua, pero no se aceptan cuando el verificador exige `scope` (`SCOPE_REQUIRED`).
+No se puede vincular una firma antigua usando únicamente UUID de una fila
+mutable: se necesita recuperar el resultado original de una fuente autorizada
+y firmarlo con contexto. La versión desconocida y los identificadores inválidos
+se rechazan. Digest, rotación por keyId y verificación del sobre siguen vigentes.

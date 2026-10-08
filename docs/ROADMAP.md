@@ -113,3 +113,11 @@ Ramas conservadas:
 - `sculpt/import-seo-geo-core`
 
 Este inventario es una fotografía del 28/09/2026; volver a comprobar las referencias antes de cualquier futura limpieza. Las ramas no sustituyen a `main` como fuente del producto y no deben usarse como base de trabajo sin revisar su relación con `main`.
+
+
+### Refuerzo del aislamiento de provenance — 09/10/2026
+
+Contrato en preparación: firmar los identificadores estables de tenant/proyecto
+y exigir el contexto esperado al rehidratar resultados (issue #21). El consumidor
+PLATAFORMA-RUBIK-SEO-GEO debe actualizar su pin y pasar ese contexto antes de
+activar persistencia multicliente. RLS y filtros de lectura siguen siendo obligatorios.

@@ -456,3 +456,11 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - **Sin** servicios reales, claves, datos de clientes, merge ni despliegue.
 - **Siguiente paso:** revisión y merge del PR por el propietario; la plataforma fija el Core en el commit resultante en su unidad CORE-9.2.
 
+
+
+## Sesión 32 — firma vinculada a tenant/proyecto (09/10/2026)
+
+- Base `main@b85fd6f`. Se revisaron ramas/PR y el consumidor de plataforma antes de editar. Issue Core #21: los UUID de la fila de almacenamiento no estaban incluidos en la firma.
+- Rama `feat/provenance-signed-scope`: extensión opcional `scopeVersion:1` y `{tenantId,projectId}` firmados. Verificación con contexto esperado; rechazo de replay, contexto ausente, versión desconocida y legacy sin contexto cuando se exige aislamiento.
+- `npm run verify`: 331/331, sintaxis y documentación correctas. Siete regresiones nuevas con HMAC generado solo en memoria y transporte simulado, sin llamadas reales. Contrato explicado en `core-9/PLATFORM-SPEC.md`.
+- La plataforma aún debe fijar este commit, pasar sus UUID al firmar/verificar y ejecutar las pruebas de integración. Las tablas/claves alojadas no se declaran activas.
