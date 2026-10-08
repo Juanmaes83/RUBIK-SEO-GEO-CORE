@@ -419,3 +419,30 @@ test('empty errors values do not reject a whoami the verifier confirms',async()=
   assert.equal((await providers.openseoConnectivity({health:HEALTH_OK,mcp:mock.mcp,clock,whoamiAuthenticated:VERIFY})).reason,'MOCK_CLIENT');
   assert.equal((await providers.openseoConnectivity({health:HEALTH_OK,clock,whoamiAuthenticated:VERIFY})).status,'NOT_CONNECTED');
 });
+
+test('real OpenSEO nested audit status preserves progress and injected classification',async()=>{
+  for(const [status,state] of [['running','SYNCING'],['completed','COMPLETED'],['failed','FAILED'],['new-status','UNCLASSIFIED']]){
+    const {mcp}=mcpMock({get_audit_status:sc({status:{id:AUDIT,status,currentPhase:'crawl',pagesCrawled:7,pagesTotal:10,startUrl:'https://example.test/',internal:'raw-body-XYZ'}})});
+    const r=await run('auditStatus',{projectId:'p',auditId:AUDIT},{mcp});
+    assert.equal(r.data[0].state,state);
+    assert.equal(r.data[0].providerStatus,status);
+    assert.equal(r.data[0].phase,'crawl');
+    assert.equal(r.data[0].pagesCrawled,7);
+    assert.equal(r.data[0].pagesTotal,10);
+    noLeak(r,'nested status');
+  }
+});
+test('nested malformed status cannot become completed or expose raw content',async()=>{
+  for(const status of [null,[],{currentPhase:'crawl'},{status:{}},{status:['completed']}]){
+    const {mcp}=mcpMock({get_audit_status:sc({status})});
+    const r=await run('auditStatus',{projectId:'p',auditId:AUDIT},{mcp});
+    assert.equal(r.status,'ERROR');
+    assert.equal(r.errors[0].code,'INVALID_RESPONSE');
+    assert.equal(r.data.length,0);
+  }
+});
+test('nested completed status remains unclassified without injected vocabulary',async()=>{
+  const {mcp}=mcpMock({get_audit_status:sc({status:{status:'completed',currentPhase:'done',pagesCrawled:10,pagesTotal:10}})});
+  const r=await providers.runProviderRequest({provider:'openseo',operation:'auditStatus',input:{projectId:'p',auditId:AUDIT},clock,mcp});
+  assert.equal(r.data[0].state,'UNCLASSIFIED');
+});

@@ -337,10 +337,13 @@ async function runOpenSEO(d,request,base,budget){
     return done('OK',[{jobId:id,auditId:id,provider:'openseo',state:'SYNCING',startedAt:capturedAt,url:built.args.url,maxPages:built.args.maxPages,runLighthouse:false}],{extra:{auditId:id}});
   }
   if(d.operation==='auditStatus'){
-    const providerStatus=bounded(sc.status,40);
+    // Current OpenSEO MCP wraps the audit row in structuredContent.status.
+    // Keep the earlier flat contract; classification still uses the injected vocabulary.
+    const audit=sc.status&&typeof sc.status==='object'&&!Array.isArray(sc.status)?sc.status:sc;
+    const providerStatus=bounded(audit.status,40);
     if(!providerStatus)return fail(capturedAt,'ERROR',{code:'INVALID_RESPONSE',message:'get_audit_status returned no status',retryable:false});
     const state=classifyStatus(providerStatus,request.statusVocabulary);
-    const row={jobId:auditId,auditId,providerStatus,state,phase:bounded(sc.phase,60)||null,pagesCrawled:numOrNull(sc.pagesCrawled),pagesTotal:numOrNull(sc.pagesTotal)};
+    const row={jobId:auditId,auditId,providerStatus,state,phase:bounded(audit.currentPhase??audit.phase,60)||null,pagesCrawled:numOrNull(audit.pagesCrawled),pagesTotal:numOrNull(audit.pagesTotal)};
     if(state==='FAILED')return envelope({...base,budget:spent},{status:'ERROR',data:[row],cost,provenance:provenanceOf(capturedAt,{rowCount:1}),errors:[{code:'AUDIT_FAILED',message:'OpenSEO reports the audit as failed',retryable:false}]});
     if(state==='UNCLASSIFIED')return done('PARTIAL',[row],{partial:{reason:'unclassified-status',received:1,expected:1,rejected:0,capped:0,truncated:false},errors:[{code:'UNCLASSIFIED_STATUS',message:'Status not in the injected statusVocabulary; the job stays SYNCING',retryable:true}]});
     return done('OK',[row]);
