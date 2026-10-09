@@ -471,3 +471,22 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - Rama `feat/openseo-scoped-provider-results`: `acceptUrl` inyectado por el host limita `auditIssues`/`auditPages` después de normalizar y antes de emitir el resultado confiable. Solo recibe URL y `{operation,auditId}`; rechazo contabilizado como `scopeFiltered`; excepción falla cerrada sin datos.
 - Pruebas nuevas cubren incidencia global sin URL, URL propia/externa, páginas, confianza del resultado, callback inválido y excepción redactada. Todo usa MCP simulado; sin red, credenciales, gasto ni persistencia.
 - El host debe fijar el commit resultante, pasar un predicado derivado del proyecto autorizado y persistir únicamente esos resultados firmados. RLS, auditId vinculado y firma tenant/proyecto siguen siendo obligatorios.
+
+## Sesión 34 — GA4 como proveedor con transporte inyectado (09/10/2026)
+
+- **Base:** `main@ae9a8ab`.
+- **Rama:** `feat/ga4-provider-contract`. Implementa D-29:
+  - proveedor `google-analytics` con las operaciones `report` y `searchOpportunities`, de coste `quota` y `sourceType` `ANALYTICS`;
+  - lista blanca del contexto de consulta ampliada con los campos de los informes y con `propertyId`.
+- **Pruebas:**
+  - `tests/core-9-google-analytics.test.cjs` (7) con transporte simulado: confianza, evidencia de la propiedad, contexto, `PARTIAL`/`EMPTY`, 401/403/429, oportunidades, y Search Console sin cambios.
+  - Catálogo actualizado.
+  - `npm run verify`: 346/346.
+- **Fuera de esta sesión:** red, credenciales, gasto y merge.
+- **Siguiente:** la plataforma fija el commit resultante e implementa el transporte OpenSEO de GA4, comprobando la propiedad antes de firmar.
+
+## Sesión 35 — rechazo semántico de filas GA4 (09/10/2026)
+
+- El caso `{}` y `{landingPage:'/', sessions:-1, activeUsers:'8', keyEvents:true}` se reprodujo contra #27: `OK`, `VERIFIED` y `isTrustedResult=true`. La prueba negativa se añadió primero y falló como se esperaba.
+- Rama `fix/ga4-semantic-validation` basada en `feat/ga4-provider-contract@b25ba92`; el Core normaliza por lista blanca **solo** `organic_landing_pages`, comprueba propiedad, tipos/rangos y métricas restringidas, y devuelve `ERROR` sin filas ante valores inválidos. Otros informes y `searchOpportunities` quedan `NOT_CONFIGURED` hasta tener normalizadores propios. El host OpenSEO conserva la responsabilidad de validar envoltorio, conexión, propiedad autorizada, paginación y metadatos de cobertura.
+- `node --test tests/core-9-google-analytics.test.cjs`: 10/10. `npm run verify`: 347 pruebas correctas, 2 omitidas; sintaxis y documentación correctas. Todo con datos simulados, sin red de proveedor, credenciales ni gasto. Falta actualizar el pin y la prueba del adaptador en la plataforma antes de integrar #57/#58.

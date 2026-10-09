@@ -1,5 +1,7 @@
 # Roadmap operativo — Rubik SEO/GEO Core
 
+**Checkpoint GA4 (09/10/2026, prevalece sobre los estados históricos de abajo):** [PR #27](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/pull/27) propone el proveedor `google-analytics`; su revisión semántica acepta como confiable solo `organic_landing_pages` con filas normalizadas, propiedad coincidente y tipos/rangos válidos. Los otros informes y `searchOpportunities` siguen `NOT_CONFIGURED` hasta contrato propio. El caso de filas vacías/negativas se reprodujo y quedó cubierto por pruebas; `npm run verify` local pasó (347 correctas, 2 omitidas). Pendiente: CI del SHA final, integración del PR y pin de plataforma #58. No hubo consulta real ni gasto.
+
 **Única fuente de estado del Core.** Estado actualizado el 28/09/2026; main@88d299b38fcff26696492976ca6bac104eaa9987. CI post-merge de main: run [36405231516](https://github.com/Juanmaes83/RUBIK-SEO-GEO-CORE/actions/runs/36405231516), Node 20/22, verde. La documentación de CORE-9 se actualiza en este repo; la aplicación vive exclusivamente en el repo designado Juanmaes83/PLATAFORMA-RUBIK-SEO-GEO. Nunca acceder ni escribir en WEB-RESTAURACI-N-PREMIUM-DIN-MICA ni otros repositorios.
 
 ## 1. Estado heredado (verificado)

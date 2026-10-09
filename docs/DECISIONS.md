@@ -766,3 +766,19 @@ La implementación debe seguir estos límites incluso si una librería de compon
 
 **Pruebas.** `tests/core-9-2-provenance-boundary.test.cjs` (7 pruebas). Mutaciones: quitar el control de algoritmo, aceptar cualquier objeto en offpage o no registrar el resultado reconstruido hacen fallar la suite.
 
+
+## D-29 · Google Analytics 4 como proveedor de solo lectura con transporte inyectado
+
+- **Contexto:** el 09/10/2026 el propietario decidió leer Search Console y GA4 del piloto a través de OpenSEO, que guarda el OAuth de Google y fija una propiedad por proyecto. Search Console ya tenía contrato (`search-console.searchAnalytics`). GA4 no tenía proveedor, así que la plataforma no podía emitir ni firmar sus resultados.
+- **Decisión:** nuevo proveedor `google-analytics`.
+  - Datos del proveedor: `sourceType: 'ANALYTICS'`, autenticación `oauth-server-side`.
+  - Operaciones `report` y `searchOpportunities`, ambas de release C, coste `quota`.
+  - El host inyecta el transporte. En la plataforma es OpenSEO MCP, con herramientas de GA4 gratuitas y de solo lectura.
+  - El Core no conoce la herramienta ni el proveedor intermedio: aplica el contrato común de transporte (filas, `truncated`, `sourceUrl`, estados 401/403/429).
+  - La propiedad de GA4 (`properties/<n>`) se guarda como `sourceUrl` en la evidencia.
+- **Contexto de consulta:** la lista blanca añade `report`, `breakdown`, `channel`, `trend`, `includeDate`, `comparePreviousPeriod`, `onlyWithTransactions`, `limit`, `offset` y `propertyId` (`properties/<n>`). Search Console no envía esos campos, así que su procedencia no cambia.
+- **Límites:**
+  - Sin red, credenciales ni coste en el Core.
+  - El host debe comprobar que la conexión/proyecto, propiedad, envoltorio, cobertura y paginación pertenecen a la petición; el Core también exige que `sourceUrl` coincida con `input.propertyId` antes de confiar en filas.
+  - **Revisión semántica del 09/10/2026:** solo `report: organic_landing_pages` tiene normalizador de filas. Exige `hostName`, `landingPage` y las ocho métricas del informe de referencia; elimina campos no permitidos y rechaza la fila completa si faltan métricas, sus tipos/rangos son inválidos o `engagedSessions > sessions`. Los contadores de sesiones, usuarios, sesiones comprometidas y transacciones son enteros no negativos; `keyEvents` es número no negativo; las dos tasas son fracciones de 0 a 1; `purchaseRevenue` es número finito en la moneda de la propiedad y puede ser negativo por devoluciones. `null` solo representa una métrica declarada restringida y obliga `PARTIAL`. Referencia: [definiciones GA4 de OpenSEO](https://github.com/Juanmaes83/open-seo/blob/0ffff93/src/server/features/ga4/services/Ga4ReportDefinitions.ts) y [esquema oficial de métricas GA4](https://developers.google.com/analytics/devguides/reporting/data/v1/api-schema).
+  - El catálogo declara `searchOpportunities` y los nombres de otros informes, pero el Core devuelve `NOT_CONFIGURED` hasta que tengan contrato semántico propio. No hace falta completar todos los informes para usar el primero. `toReleaseC` no transforma filas GA4; una firma registra integridad y contexto, no demuestra cobertura total ni exactitud de Google.
