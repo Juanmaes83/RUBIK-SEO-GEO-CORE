@@ -169,7 +169,7 @@ Una ausencia de datos nunca es `READY` ni PASS.
 `src/rubik-seo-geo-providers.js` implementa, Core-only, el lado del Core del puente descrito en §4.
 
 - **Dependencia:** un cliente MCP inyectado `{kind:'mock'|'live', callTool(name,args)}`, que ejecuta el backend del host o la plataforma (CORE-9) con las credenciales. Sin él: `NOT_CONFIGURED`/`BRIDGE_PENDING`.
-- **Operaciones** (`runProviderRequest({provider:'openseo', operation, input, mcp, statusVocabulary, registry, activeJob})`):
+- **Operaciones** (`runProviderRequest({provider:'openseo', operation, input, mcp, statusVocabulary, registry, activeJob, acceptUrl})`):
 
   | Operación | Herramienta | Salida del Core |
   |---|---|---|
@@ -185,6 +185,7 @@ Una ausencia de datos nunca es `READY` ni PASS.
   - Sin verificador: `NOT_CONNECTED`/`WHOAMI_UNVERIFIED`.
   - La identidad nunca se copia.
 - **Lectura de respuestas:** solo `structuredContent`. Los errores se redactan y se limitan a 200 caracteres.
+- **Ámbito antes de firmar/persistir:** para `auditIssues` y `auditPages`, el host puede inyectar `acceptUrl(url, {operation,auditId})`. Solo recibe la URL ya normalizada y contexto mínimo; debe devolver exactamente `true`. Las demás filas se eliminan **antes** de emitir el resultado confiable del Core, se contabilizan en `provenance.evidence.scopeFiltered` y dejan el resultado `PARTIAL`/`scope-filtered`. Si el filtro lanza una excepción, el Core falla cerrado con `SCOPE_FILTER_FAILED`, sin datos ni mensaje interno. El Core no decide qué dominio pertenece a un cliente: esa autorización sigue en el host.
 - **Límite documental:** OPENSEO.md no enumera los valores de `get_audit_status.status` ni la forma de `get_audit_pages` o de `whoami`. Por eso el vocabulario de estados y el verificador de `whoami` son inyectados, y de las páginas solo se usa `url`. Los tres se validarán contra una instancia real en CORE-9.
 
 ## 8. Lo que no se debe hacer

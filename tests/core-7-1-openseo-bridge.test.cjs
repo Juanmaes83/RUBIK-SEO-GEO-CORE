@@ -246,6 +246,41 @@ test('get_audit_pages: canonical correlation beyond the Page Registry, totals an
   assert.deepEqual([capped.status,capped.partial.reason,capped.data.length],['PARTIAL','max-rows',2]);
 });
 
+test('the host can scope issues and pages before the Core issues a trusted result',async()=>{
+  const acceptUrl=(url,context)=>{
+    assert.ok(['auditIssues','auditPages'].includes(context.operation));
+    assert.equal(context.auditId,AUDIT);
+    return !url||new URL(url).hostname==='site.example';
+  };
+  const issues=await run('auditIssues',{projectId:'p',auditId:AUDIT},{
+    mcp:mcpMock({get_audit_issues:sc({issues:[
+      {issueType:'sitewide',severity:'info'},
+      {issueType:'own',severity:'warning',url:'https://site.example/a'},
+      {issueType:'foreign',severity:'critical',url:'https://other.example/x'}
+    ]})}).mcp,acceptUrl
+  });
+  assert.deepEqual(issues.data.map(r=>r.category),['sitewide','own']);
+  assert.deepEqual([issues.status,issues.partial.reason,issues.partial.rejected,issues.provenance.evidence.scopeFiltered],['PARTIAL','scope-filtered',1,1]);
+  assert.equal(providers.isTrustedResult(issues),true,'filtering happens before the trusted envelope is issued');
+
+  const pages=await run('auditPages',{projectId:'p',auditId:AUDIT},{
+    mcp:mcpMock({get_audit_pages:sc({total:2,pages:[{url:'https://site.example/'},{url:'https://other.example/'}]})}).mcp,acceptUrl,registry:REGISTRY
+  });
+  assert.deepEqual(pages.data,[{url:'https://site.example/',pageId:'home',inRegistry:true}]);
+  assert.deepEqual([pages.partial.reason,pages.provenance.evidence.scopeFiltered],['scope-filtered',1]);
+  assert.equal(providers.isTrustedResult(pages),true);
+});
+
+test('the injected URL scope filter fails closed and never leaks its exception',async()=>{
+  const result=await run('auditPages',{projectId:'p',auditId:AUDIT},{
+    mcp:mcpMock({get_audit_pages:sc({pages:[{url:'https://site.example/'}]})}).mcp,
+    acceptUrl:()=>{throw new Error('private tenant detail');}
+  });
+  assert.deepEqual([result.status,result.data.length,result.errors[0].code],['ERROR',0,'SCOPE_FILTER_FAILED']);
+  assert.doesNotMatch(JSON.stringify(result),/private tenant detail/);
+  await assert.rejects(run('auditPages',{projectId:'p',auditId:AUDIT},{mcp:mcpMock({get_audit_pages:sc({pages:[]})}).mcp,acceptUrl:true}),/acceptUrl must be a function/);
+});
+
 // ── Transport and MCP failures ───────────────────────────────────────────────
 
 test('401/403/429 with Retry-After, usage exceeded, timeout and MCP errors are controlled',async()=>{
