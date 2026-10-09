@@ -30,6 +30,11 @@ test('calendar dates and pagination offsets must be exact',async()=>{
   assert.equal(normalized.provenance.requestContext,undefined);
 });
 
+test('Search Console type is captured under searchType',async()=>{
+  const r=await run({type:'googleNews',siteUrl:'sc-domain:example.com'});
+  assert.deepEqual(r.provenance.requestContext,{searchType:'googleNews',siteUrl:'sc-domain:example.com'});
+});
+
 test('a result without context keeps the earlier provenance shape (backward compatible)',async()=>{
   const r=await run({});
   assert.deepEqual(Object.keys(r.provenance).sort(),['capturedAt','evidence','method','operation','provider','requestedAt','sourceType']);
