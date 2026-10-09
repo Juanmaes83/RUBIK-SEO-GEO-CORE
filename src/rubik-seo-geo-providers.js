@@ -171,6 +171,22 @@ function requestContextOf(input){
   return Object.keys(c).length?freeze(c):null;
 }
 
+/* Optional host-resolved source identity. The host must obtain these values from its
+   authorized server-side connection, never from a browser payload. Core validates the
+   shape, records it separately from provider input and includes it in signed provenance. */
+const SOURCE_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function sourceContextOf(value){
+  if(value===undefined)return null;
+  if(!value||typeof value!=='object'||Array.isArray(value)||
+    Object.keys(value).sort().join('|')!=='connectionId|grantedAt|propertyBindingId|providerProjectId'||
+    !SOURCE_UUID.test(value.connectionId)||!SOURCE_UUID.test(value.propertyBindingId)||
+    typeof value.providerProjectId!=='string'||!(/^[A-Za-z0-9_-]{1,128}$/).test(value.providerProjectId)||
+    typeof value.grantedAt!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(value.grantedAt)||
+    !Number.isFinite(Date.parse(value.grantedAt)))return false;
+  return freeze({connectionId:value.connectionId,propertyBindingId:value.propertyBindingId,
+    providerProjectId:value.providerProjectId,grantedAt:new Date(value.grantedAt).toISOString()});
+}
+
 /* GA4's first implemented report has a fixed schema. A live transport is evidence of a
    response, not evidence that arbitrary JSON fields are valid GA4 measurements. The
    OpenSEO host validates its envelope/pagination; Core owns semantic row normalization.
@@ -219,7 +235,7 @@ const isTrustedResult=r=>!!r&&typeof r==='object'&&ISSUED.has(r);
 function envelope(base,extra){return issue(freeze({provider:base.provider,operation:base.operation,release:base.release||null,target:base.target||null,status:'ERROR',data:[],partial:null,errors:[],cost:{units:0,estimatedUsd:null,charged:false},budget:publicBudget(base.budget),cached:false,connection:'NOT_VERIFIED',provenance:null,...extra}));}
 
 /**
- * runProviderRequest({provider, operation, input, transport, clock, budget, cache, confirmCost, maxRows})
+ * runProviderRequest({provider, operation, input, sourceContext, transport, clock, budget, cache, confirmCost, maxRows})
  * - transport: {kind:'mock'|'live', request(operation,input) => Promise<raw>} injected by the host/platform.
  *   raw: {httpStatus?, rows?, expected?, truncated?, errors?[], requestId?, externalId?, sourceUrl?, retryAfter?, charged?}
  * - Never uses globalThis.fetch, never stores anything, never marks a mock as verified.
@@ -229,6 +245,8 @@ async function runProviderRequest(request={}){
   const d=describe(provider,operation),budget=normalizeBudget(request.budget);
   const base={provider:text(provider),operation:text(operation),release:d?.release,target:d?.target,budget};
   if(!d)return envelope(base,{status:'ERROR',errors:[{code:'UNKNOWN_OPERATION',message:'Unknown provider/operation',retryable:false}]});
+  const sourceContext=sourceContextOf(request.sourceContext);
+  if(sourceContext===false)return envelope(base,{status:'ERROR',errors:[{code:'INVALID_SOURCE_CONTEXT',message:'Source identity is invalid',retryable:false}]});
   const secret=findSecret(input);
   if(secret)return envelope(base,{status:'ERROR',errors:[{code:'SECRET_IN_INPUT',message:redact(`Secrets must stay in the server-side transport (${secret==='(value)'?'credential-like value':'field "'+secret+'"'})`),retryable:false}]});
   try{JSON.stringify(input);}catch{return envelope(base,{status:'ERROR',errors:[{code:'INVALID_INPUT',message:'Input must be JSON-serializable (no cycles)',retryable:false}]});}
@@ -244,7 +262,7 @@ async function runProviderRequest(request={}){
   if(transport==null)return envelope(base,{status:'NOT_CONNECTED',errors:[{code:'NO_TRANSPORT',message:'No transport injected; provider is not connected',retryable:false}]});
   if(typeof transport.request!=='function')throw new TypeError('transport.request must be a function');
   if(cache!=null&&(typeof cache.get!=='function'||typeof cache.set!=='function'))throw new TypeError('cache must provide get() and set()');
-  const requestedAt=iso(clock),key=provider+'|'+operation+'|'+stableKey(input);
+  const requestedAt=iso(clock),key=provider+'|'+operation+'|'+stableKey(input)+(sourceContext?'|'+stableKey(sourceContext):'');
   if(cache&&cache.get(key)){const hit=cache.get(key);return issue(freeze({...clone(hit),cached:true,cost:{units:0,estimatedUsd:null,charged:false},budget:publicBudget(budget),...(isTrustedResult(hit)?{}:{connection:'NOT_VERIFIED'})}));}
   if(d.costModel==='paid'&&confirmCost!==true)return envelope(base,{status:'COST_CONFIRMATION_REQUIRED',errors:[{code:'COST_CONFIRMATION_REQUIRED',message:'Paid operation requires explicit confirmation',retryable:false}]});
   if(d.costModel!=='free'&&!finiteBudget(budget))return envelope(base,{status:'BUDGET_REQUIRED',errors:[{code:'BUDGET_REQUIRED',message:`A finite budget (maxUnits and maxRequests) is required for ${d.costModel} operations`,retryable:false}]});
@@ -260,6 +278,7 @@ async function runProviderRequest(request={}){
   const capturedAt=iso(clock),http=Number(raw?.httpStatus);
   const provenance={provider:base.provider,sourceType:d.sourceType,operation:base.operation,requestedAt,capturedAt,method:kind==='live'?'api':'mock',evidence:evidenceOf(raw,0)};
   const requestContext=requestContextOf(input);if(requestContext)provenance.requestContext=requestContext;
+  if(sourceContext)provenance.sourceContext=sourceContext;
   if(http===401)return envelope({...base,budget:spent},{status:'NOT_CONNECTED',cost,provenance:freeze(provenance),errors:[{code:'AUTH',message:'Authorization rejected by provider',retryable:false}]});
   if(http===429){const retry=Number(raw?.retryAfter);return envelope({...base,budget:spent},{status:'RATE_LIMITED',cost,provenance:freeze(provenance),errors:[{code:'RATE_LIMITED',message:'Provider rate limit reached',retryable:true,retryAfterSeconds:Number.isFinite(retry)&&retry>=0?retry:null}]});}
   if(Number.isFinite(http)&&http>=400)return envelope({...base,budget:spent},{status:'ERROR',cost,provenance:freeze(provenance),errors:[{code:http===403?'FORBIDDEN':'HTTP_'+http,message:redact(raw?.message||'Provider error'),retryable:http>=500}]});
