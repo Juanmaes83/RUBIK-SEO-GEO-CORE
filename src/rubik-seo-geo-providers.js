@@ -20,6 +20,14 @@ const CATALOG=freeze({
   'search-console':{label:'Google Search Console',sourceType:'SEARCH_CONSOLE',auth:'oauth-server-side',operations:{
     searchAnalytics:{release:'C',costModel:'quota',units:1,target:'intelligence.searchConsole'},
     urlInspection:{release:'E',costModel:'quota',units:1,target:'authority.indexation'}}},
+  /* CORE-9 (platform decision of 09/10/2026): Google Analytics 4 reports, read only. The host
+     injects the transport (e.g. OpenSEO's credit-free GA4 MCP tools, which keep the OAuth grant
+     and map one property per OpenSEO project). `report` names a fixed report; the host cannot
+     pass dimensions or metrics. `sourceUrl` in the raw result is the GA4 property id, recorded
+     as evidence so the host can bind it to the expected property. */
+  'google-analytics':{label:'Google Analytics 4',sourceType:'ANALYTICS',auth:'oauth-server-side',operations:{
+    report:{release:'C',costModel:'quota',units:1,target:'intelligence.analytics'},
+    searchOpportunities:{release:'C',costModel:'quota',units:1,target:'intelligence.opportunities'}}},
   'bing-webmaster':{label:'Bing Webmaster Tools',sourceType:'BING_WEBMASTER',auth:'api-key-server-side',operations:{
     urlInfo:{release:'E',costModel:'quota',units:1,target:'authority.indexation'}}},
   'indexnow':{label:'IndexNow',sourceType:'INDEXNOW',auth:'key-file-server-side',operations:{
@@ -150,12 +158,16 @@ function requestContextOf(input){
     if(!Number.isNaN(date.getTime())&&date.toISOString().slice(0,10)===i[k])c[k]=i[k];
   }
   if(Array.isArray(i.dimensions)&&i.dimensions.length<=8&&i.dimensions.every(v=>typeof v==='string'&&WORD.test(v)))c.dimensions=[...i.dimensions];
-  for(const k of ['searchType','dataState','aggregationType'])if(typeof i[k]==='string'&&WORD.test(i[k]))c[k]=i[k];
+  for(const k of ['searchType','dataState','aggregationType','report','breakdown','channel','trend'])if(typeof i[k]==='string'&&WORD.test(i[k]))c[k]=i[k];
+  for(const k of ['includeDate','comparePreviousPeriod','onlyWithTransactions'])if(typeof i[k]==='boolean')c[k]=i[k];
+  if(Number.isInteger(i.limit)&&i.limit>0&&i.limit<=100000)c.limit=i.limit;
+  if(Number.isSafeInteger(i.offset)&&i.offset>=0)c.offset=i.offset;
   // The Search Console transport sends `type`; it takes precedence over any host-only alias.
   if(typeof i.type==='string'&&WORD.test(i.type))c.searchType=i.type;
   if(Number.isInteger(i.rowLimit)&&i.rowLimit>0&&i.rowLimit<=100000)c.rowLimit=i.rowLimit;
   if(Number.isSafeInteger(i.startRow)&&i.startRow>=0)c.startRow=i.startRow;
   for(const k of ['siteUrl','url']){const v=text(i[k]);if(v&&v.length<=2048)c[k]=redact(v);}
+  if(typeof i.propertyId==='string'&&/^properties\/[0-9]{1,20}$/.test(i.propertyId))c.propertyId=i.propertyId;
   return Object.keys(c).length?freeze(c):null;
 }
 

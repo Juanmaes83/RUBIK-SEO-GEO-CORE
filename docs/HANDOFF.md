@@ -471,3 +471,16 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - Rama `feat/openseo-scoped-provider-results`: `acceptUrl` inyectado por el host limita `auditIssues`/`auditPages` después de normalizar y antes de emitir el resultado confiable. Solo recibe URL y `{operation,auditId}`; rechazo contabilizado como `scopeFiltered`; excepción falla cerrada sin datos.
 - Pruebas nuevas cubren incidencia global sin URL, URL propia/externa, páginas, confianza del resultado, callback inválido y excepción redactada. Todo usa MCP simulado; sin red, credenciales, gasto ni persistencia.
 - El host debe fijar el commit resultante, pasar un predicado derivado del proyecto autorizado y persistir únicamente esos resultados firmados. RLS, auditId vinculado y firma tenant/proyecto siguen siendo obligatorios.
+
+## Sesión 34 — GA4 como proveedor con transporte inyectado (09/10/2026)
+
+- **Base:** `main@ae9a8ab`.
+- **Rama:** `feat/ga4-provider-contract`. Implementa D-29:
+  - proveedor `google-analytics` con las operaciones `report` y `searchOpportunities`, de coste `quota` y `sourceType` `ANALYTICS`;
+  - lista blanca del contexto de consulta ampliada con los campos de los informes y con `propertyId`.
+- **Pruebas:**
+  - `tests/core-9-google-analytics.test.cjs` (7) con transporte simulado: confianza, evidencia de la propiedad, contexto, `PARTIAL`/`EMPTY`, 401/403/429, oportunidades, y Search Console sin cambios.
+  - Catálogo actualizado.
+  - `npm run verify`: 346/346.
+- **Fuera de esta sesión:** red, credenciales, gasto y merge.
+- **Siguiente:** la plataforma fija el commit resultante e implementa el transporte OpenSEO de GA4, comprobando la propiedad antes de firmar.

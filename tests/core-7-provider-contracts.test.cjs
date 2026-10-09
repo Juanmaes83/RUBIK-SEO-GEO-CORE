@@ -24,7 +24,7 @@ const run=(extra)=>providers.runProviderRequest({clock,...('budget' in extra?{}:
 
 test('catalogue is declarative: release, cost model and source type per operation; no endpoints or secrets',()=>{
   const cat=providers.catalog();
-  assert.deepEqual(Object.keys(cat).sort(),['ai-assist','bing-webmaster','dataforseo','indexnow','manual-import','openseo','search-console']);
+  assert.deepEqual(Object.keys(cat).sort(),['ai-assist','bing-webmaster','dataforseo','google-analytics','indexnow','manual-import','openseo','search-console']);
   for(const [id,p] of Object.entries(cat)){
     assert.doesNotMatch(JSON.stringify(p),/https?:|apiKey|token|password|secret/i,id);
     for(const [op,d] of Object.entries(p.operations)){

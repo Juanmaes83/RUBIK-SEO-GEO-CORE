@@ -766,3 +766,18 @@ La implementación debe seguir estos límites incluso si una librería de compon
 
 **Pruebas.** `tests/core-9-2-provenance-boundary.test.cjs` (7 pruebas). Mutaciones: quitar el control de algoritmo, aceptar cualquier objeto en offpage o no registrar el resultado reconstruido hacen fallar la suite.
 
+
+## D-29 · Google Analytics 4 como proveedor de solo lectura con transporte inyectado
+
+- **Contexto:** el 09/10/2026 el propietario decidió leer Search Console y GA4 del piloto a través de OpenSEO, que guarda el OAuth de Google y fija una propiedad por proyecto. Search Console ya tenía contrato (`search-console.searchAnalytics`). GA4 no tenía proveedor, así que la plataforma no podía emitir ni firmar sus resultados.
+- **Decisión:** nuevo proveedor `google-analytics`.
+  - Datos del proveedor: `sourceType: 'ANALYTICS'`, autenticación `oauth-server-side`.
+  - Operaciones `report` y `searchOpportunities`, ambas de release C, coste `quota`.
+  - El host inyecta el transporte. En la plataforma es OpenSEO MCP, con herramientas de GA4 gratuitas y de solo lectura.
+  - El Core no conoce la herramienta ni el proveedor intermedio: aplica el contrato común de transporte (filas, `truncated`, `sourceUrl`, estados 401/403/429).
+  - La propiedad de GA4 (`properties/<n>`) se guarda como `sourceUrl` en la evidencia.
+- **Contexto de consulta:** la lista blanca añade `report`, `breakdown`, `channel`, `trend`, `includeDate`, `comparePreviousPeriod`, `onlyWithTransactions`, `limit`, `offset` y `propertyId` (`properties/<n>`). Search Console no envía esos campos, así que su procedencia no cambia.
+- **Límites:**
+  - Sin red, credenciales ni coste en el Core.
+  - El host debe comprobar que la propiedad devuelta es la esperada para el proyecto antes de firmar.
+  - Normalizar las filas para la release C queda para una fase posterior: `toReleaseC` no las transforma.
