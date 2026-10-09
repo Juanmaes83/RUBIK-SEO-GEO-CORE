@@ -23,6 +23,13 @@ test('unknown, malformed or oversized fields never reach provenance',async()=>{
   assert.equal(many.provenance.requestContext,undefined);
 });
 
+test('calendar dates and pagination offsets must be exact',async()=>{
+  const r=await run({startDate:'2024-02-29',endDate:'2025-02-29',startRow:Number.MAX_SAFE_INTEGER+1});
+  assert.deepEqual(r.provenance.requestContext,{startDate:'2024-02-29'});
+  const normalized=await run({startDate:'2026-02-30'});
+  assert.equal(normalized.provenance.requestContext,undefined);
+});
+
 test('a result without context keeps the earlier provenance shape (backward compatible)',async()=>{
   const r=await run({});
   assert.deepEqual(Object.keys(r.provenance).sort(),['capturedAt','evidence','method','operation','provider','requestedAt','sourceType']);

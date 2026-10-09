@@ -145,11 +145,14 @@ function evidenceOf(raw,rowCount){
 const DAY=/^\d{4}-\d{2}-\d{2}$/,WORD=/^[A-Za-z][A-Za-z_]{0,29}$/;
 function requestContextOf(input){
   const i=input&&typeof input==='object'&&!Array.isArray(input)?input:{},c={};
-  for(const k of ['startDate','endDate'])if(typeof i[k]==='string'&&DAY.test(i[k])&&!Number.isNaN(Date.parse(i[k]+'T00:00:00Z')))c[k]=i[k];
+  for(const k of ['startDate','endDate'])if(typeof i[k]==='string'&&DAY.test(i[k])){
+    const date=new Date(i[k]+'T00:00:00Z');
+    if(!Number.isNaN(date.getTime())&&date.toISOString().slice(0,10)===i[k])c[k]=i[k];
+  }
   if(Array.isArray(i.dimensions)&&i.dimensions.length<=8&&i.dimensions.every(v=>typeof v==='string'&&WORD.test(v)))c.dimensions=[...i.dimensions];
   for(const k of ['searchType','dataState','aggregationType'])if(typeof i[k]==='string'&&WORD.test(i[k]))c[k]=i[k];
   if(Number.isInteger(i.rowLimit)&&i.rowLimit>0&&i.rowLimit<=100000)c.rowLimit=i.rowLimit;
-  if(Number.isInteger(i.startRow)&&i.startRow>=0)c.startRow=i.startRow;
+  if(Number.isSafeInteger(i.startRow)&&i.startRow>=0)c.startRow=i.startRow;
   for(const k of ['siteUrl','url']){const v=text(i[k]);if(v&&v.length<=2048)c[k]=redact(v);}
   return Object.keys(c).length?freeze(c):null;
 }
