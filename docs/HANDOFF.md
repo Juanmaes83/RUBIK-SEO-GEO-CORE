@@ -484,3 +484,9 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
   - `npm run verify`: 346/346.
 - **Fuera de esta sesión:** red, credenciales, gasto y merge.
 - **Siguiente:** la plataforma fija el commit resultante e implementa el transporte OpenSEO de GA4, comprobando la propiedad antes de firmar.
+
+## Sesión 35 — rechazo semántico de filas GA4 (09/10/2026)
+
+- El caso `{}` y `{landingPage:'/', sessions:-1, activeUsers:'8', keyEvents:true}` se reprodujo contra #27: `OK`, `VERIFIED` y `isTrustedResult=true`. La prueba negativa se añadió primero y falló como se esperaba.
+- Rama `fix/ga4-semantic-validation` basada en `feat/ga4-provider-contract@b25ba92`; el Core normaliza por lista blanca **solo** `organic_landing_pages`, comprueba propiedad, tipos/rangos y métricas restringidas, y devuelve `ERROR` sin filas ante valores inválidos. Otros informes y `searchOpportunities` quedan `NOT_CONFIGURED` hasta tener normalizadores propios. El host OpenSEO conserva la responsabilidad de validar envoltorio, conexión, propiedad autorizada, paginación y metadatos de cobertura.
+- `node --test tests/core-9-google-analytics.test.cjs`: 10/10. `npm run verify`: 347 pruebas correctas, 2 omitidas; sintaxis y documentación correctas. Todo con datos simulados, sin red de proveedor, credenciales ni gasto. Falta actualizar el pin y la prueba del adaptador en la plataforma antes de integrar #57/#58.

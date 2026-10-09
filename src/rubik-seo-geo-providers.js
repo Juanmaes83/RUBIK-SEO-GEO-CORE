@@ -171,6 +171,44 @@ function requestContextOf(input){
   return Object.keys(c).length?freeze(c):null;
 }
 
+/* GA4's first implemented report has a fixed schema. A live transport is evidence of a
+   response, not evidence that arbitrary JSON fields are valid GA4 measurements. The
+   OpenSEO host validates its envelope/pagination; Core owns semantic row normalization.
+   Count metrics are integers except keyEvents (attribution may be fractional). Revenue
+   is in the property's currency and may be negative after refunds. Null is only allowed
+   for a metric explicitly named as restricted by the transport. */
+const GA4_LANDING_METRICS=Object.freeze(['sessions','activeUsers','engagedSessions','engagementRate','keyEvents','sessionKeyEventRate','transactions','purchaseRevenue']);
+function ga4LandingRows(raw,input){
+  if(!Array.isArray(raw?.rows)||raw.rows.length>input.limit)return null;
+  if(raw.sourceUrl!==input.propertyId)return null;
+  const restricted=raw.restrictedMetrics===undefined?[]:raw.restrictedMetrics;
+  if(!Array.isArray(restricted)||restricted.length>GA4_LANDING_METRICS.length||
+     !restricted.every(k=>typeof k==='string'&&GA4_LANDING_METRICS.includes(k))||
+     new Set(restricted).size!==restricted.length)return null;
+  const normalized=[];
+  for(const row of raw.rows){
+    if(!row||typeof row!=='object'||Array.isArray(row)||findSecretKey(row))return null;
+    const hostName=row.hostName,landingPage=row.landingPage;
+    if(typeof hostName!=='string'||!hostName.trim()||hostName.length>253||/[\x00-\x1f]/.test(hostName)||
+       typeof landingPage!=='string'||!landingPage.trim()||landingPage.length>2048||/[\x00-\x1f]/.test(landingPage))return null;
+    const out={hostName,landingPage};
+    for(const metric of GA4_LANDING_METRICS){
+      const value=row[metric];
+      if(value===null){if(!restricted.includes(metric))return null;out[metric]=null;continue;}
+      if(typeof value!=='number'||!Number.isFinite(value))return null;
+      if(['sessions','activeUsers','engagedSessions','transactions'].includes(metric)){
+        if(!Number.isSafeInteger(value)||value<0)return null;
+      }else if(['engagementRate','sessionKeyEventRate'].includes(metric)){
+        if(value<0||value>1)return null;
+      }else if(metric==='keyEvents'&&value<0)return null;
+      out[metric]=value;
+    }
+    if(out.sessions!==null&&out.engagedSessions!==null&&out.engagedSessions>out.sessions)return null;
+    normalized.push(out);
+  }
+  return {rows:normalized,restricted};
+}
+
 /* CORE-8 review (D-23): every result envelope is registered as issued by this module
    instance. `isTrustedResult` lets consumers (offpage) tell a real CORE-7 result from an
    object that merely copies its shape. Trust does not survive serialization: a copied,
@@ -194,6 +232,14 @@ async function runProviderRequest(request={}){
   const secret=findSecret(input);
   if(secret)return envelope(base,{status:'ERROR',errors:[{code:'SECRET_IN_INPUT',message:redact(`Secrets must stay in the server-side transport (${secret==='(value)'?'credential-like value':'field "'+secret+'"'})`),retryable:false}]});
   try{JSON.stringify(input);}catch{return envelope(base,{status:'ERROR',errors:[{code:'INVALID_INPUT',message:'Input must be JSON-serializable (no cycles)',retryable:false}]});}
+  if(provider==='google-analytics'){
+    if(operation!=='report'||input?.report!=='organic_landing_pages')return envelope(base,{status:'NOT_CONFIGURED',errors:[{code:'GA4_REPORT_NOT_IMPLEMENTED',message:'This GA4 report has no semantic normalizer yet',retryable:false}]});
+    const c=requestContextOf(input);
+    if(!c||Object.keys(input).some(k=>!['report','propertyId','startDate','endDate','limit','offset'].includes(k))||
+       !/^properties\/[0-9]{1,20}$/.test(input.propertyId)||!c.startDate||!c.endDate||c.startDate>c.endDate||
+       !Number.isInteger(input.limit)||input.limit<1||input.limit>1000||!Number.isSafeInteger(input.offset)||input.offset<0)
+      return envelope(base,{status:'ERROR',errors:[{code:'INVALID_GA4_INPUT',message:'GA4 landing-page request is invalid',retryable:false}]});
+  }
   if(d.requires==='mcp')return runOpenSEO(d,request,base,budget);
   if(transport==null)return envelope(base,{status:'NOT_CONNECTED',errors:[{code:'NO_TRANSPORT',message:'No transport injected; provider is not connected',retryable:false}]});
   if(typeof transport.request!=='function')throw new TypeError('transport.request must be a function');
@@ -217,13 +263,18 @@ async function runProviderRequest(request={}){
   if(http===401)return envelope({...base,budget:spent},{status:'NOT_CONNECTED',cost,provenance:freeze(provenance),errors:[{code:'AUTH',message:'Authorization rejected by provider',retryable:false}]});
   if(http===429){const retry=Number(raw?.retryAfter);return envelope({...base,budget:spent},{status:'RATE_LIMITED',cost,provenance:freeze(provenance),errors:[{code:'RATE_LIMITED',message:'Provider rate limit reached',retryable:true,retryAfterSeconds:Number.isFinite(retry)&&retry>=0?retry:null}]});}
   if(Number.isFinite(http)&&http>=400)return envelope({...base,budget:spent},{status:'ERROR',cost,provenance:freeze(provenance),errors:[{code:http===403?'FORBIDDEN':'HTTP_'+http,message:redact(raw?.message||'Provider error'),retryable:http>=500}]});
+  let ga4=null;
+  if(provider==='google-analytics'){
+    ga4=ga4LandingRows(raw,input);
+    if(!ga4)return envelope({...base,budget:spent},{status:'ERROR',cost,provenance:freeze(provenance),errors:[{code:'INVALID_GA4_REPORT',message:'GA4 landing-page rows or property are invalid',retryable:false}]});
+  }
   if(raw?.rows===undefined||raw?.rows===null)return envelope({...base,budget:spent},{status:'NOT_MEASURED',cost,provenance:freeze(provenance),errors:[]});
-  const rows=arr(raw.rows),accepted=rows.filter(r=>r&&typeof r==='object'&&!Array.isArray(r)&&!findSecretKey(r)),rejected=rows.length-accepted.length,valid=accepted.slice(0,maxRows),capped=accepted.length-valid.length;
+  const rows=ga4?ga4.rows:arr(raw.rows),accepted=rows.filter(r=>r&&typeof r==='object'&&!Array.isArray(r)&&!findSecretKey(r)),rejected=rows.length-accepted.length,valid=accepted.slice(0,maxRows),capped=accepted.length-valid.length;
   const itemErrors=arr(raw.errors).map(e=>({code:text(e?.code)||'ITEM_ERROR',message:redact(e?.message),retryable:e?.retryable===true}));
   const expected=Number(raw.expected),missing=Number.isFinite(expected)&&expected>valid.length?expected-valid.length:0;
   provenance.evidence=evidenceOf(raw,valid.length);
-  const isPartial=raw.truncated===true||rejected>0||itemErrors.length>0||missing>0||capped>0;
-  const partial=isPartial?{received:valid.length,expected:Number.isFinite(expected)?expected:null,rejected,capped,truncated:raw.truncated===true||capped>0,reason:rejected?'invalid-rows':capped?'max-rows':raw.truncated===true?'truncated':missing?'missing-rows':'item-errors'}:null;
+  const isPartial=raw.truncated===true||rejected>0||itemErrors.length>0||missing>0||capped>0||(ga4&&ga4.restricted.length>0);
+  const partial=isPartial?{received:valid.length,expected:Number.isFinite(expected)?expected:null,rejected,capped,truncated:raw.truncated===true||capped>0,reason:rejected?'invalid-rows':capped?'max-rows':raw.truncated===true?'truncated':missing?'missing-rows':ga4&&ga4.restricted.length?'restricted-metrics':'item-errors'}:null;
   const status=valid.length===0&&!isPartial?'EMPTY':isPartial?'PARTIAL':'OK';
   const result=envelope({...base,budget:spent},{status,data:redactDeep(valid),partial,errors:itemErrors,cost,provenance:freeze(provenance),connection:kind==='live'&&(status==='OK'||status==='PARTIAL'||status==='EMPTY')?'VERIFIED':'NOT_VERIFIED'});
   if(cache&&(status==='OK'||status==='PARTIAL'||status==='EMPTY'))cache.set(key,result);

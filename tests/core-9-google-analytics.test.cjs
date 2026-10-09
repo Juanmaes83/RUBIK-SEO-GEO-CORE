@@ -8,7 +8,7 @@ const providers=require('../src/rubik-seo-geo-providers.js');
 
 const clock=()=>new Date('2026-10-09T10:00:00Z');
 const BUDGET=Object.freeze({maxUnits:10,maxRequests:10});
-const ROWS=[{landingPage:'/',sessions:10,activeUsers:8,keyEvents:1}];
+const ROWS=[{hostName:'cliente.example',landingPage:'/',sessions:10,activeUsers:8,engagedSessions:7,engagementRate:0.7,keyEvents:1,sessionKeyEventRate:0.1,transactions:0,purchaseRevenue:0}];
 const transport=(raw={rows:ROWS,sourceUrl:'properties/123'},kind='live')=>({kind,request:async()=>raw});
 const run=(input,raw,kind,operation='report')=>providers.runProviderRequest({provider:'google-analytics',operation,input,transport:transport(raw,kind),clock,budget:BUDGET});
 const input={report:'organic_landing_pages',propertyId:'properties/123',startDate:'2026-09-01',endDate:'2026-09-28',limit:100,offset:0};
@@ -32,9 +32,55 @@ test('a live report is trusted, keeps the property as evidence and records the r
   assert.deepEqual(r.data,ROWS);
 });
 
-test('report options are whitelisted; malformed values never reach provenance',async()=>{
-  const r=await run({report:'key_events',breakdown:'event_and_landing_page',channel:'organic_search',comparePreviousPeriod:true,includeDate:'yes',trend:'daily; drop',propertyId:'123',limit:0,offset:-1});
-  assert.deepEqual(r.provenance.requestContext,{report:'key_events',breakdown:'event_and_landing_page',channel:'organic_search',comparePreviousPeriod:true});
+test('a GA4 landing report does not trust empty or semantically invalid rows',async()=>{
+  const malformed=[{}, {landingPage:'/',sessions:-1,activeUsers:'8',keyEvents:true}];
+  const r=await run(input,{rows:malformed,sourceUrl:'properties/123'});
+  assert.equal(r.status,'ERROR');
+  assert.equal(r.connection,'NOT_VERIFIED');
+  assert.deepEqual(r.data,[]);
+});
+
+test('only the implemented GA4 report can be issued as trusted',async()=>{
+  const unsupported=await run({...input,report:'key_events'});
+  assert.equal(unsupported.status,'NOT_CONFIGURED');
+  assert.equal(unsupported.connection,'NOT_VERIFIED');
+  const invalid=await run({...input,limit:0,channel:'all'});
+  assert.equal(invalid.status,'ERROR');
+  assert.equal(invalid.errors[0].code,'INVALID_GA4_INPUT');
+});
+
+test('landing-page normalization permits only typed, bounded known fields',async()=>{
+  const extra=await run(input,{rows:[{...ROWS[0],privateNote:'not exported'}],sourceUrl:'properties/123'});
+  assert.equal(extra.status,'OK');
+  assert.deepEqual(extra.data,ROWS);
+  for(const field of ['sessions','activeUsers','engagedSessions','transactions']){
+    for(const value of [-1,'8',true,1.5]){
+      const row={...ROWS[0],[field]:value};
+      const r=await run(input,{rows:[row],sourceUrl:'properties/123'});
+      assert.equal(r.status,'ERROR',`${field}=${String(value)}`);
+      assert.deepEqual(r.data,[]);
+    }
+  }
+  for(const field of ['engagementRate','sessionKeyEventRate']){
+    for(const value of [-0.01,1.01,'0.5',true]){
+      assert.equal((await run(input,{rows:[{...ROWS[0],[field]:value}],sourceUrl:'properties/123'})).status,'ERROR');
+    }
+  }
+  for(const row of [{...ROWS[0],keyEvents:true},{...ROWS[0],keyEvents:-1},{...ROWS[0],engagedSessions:11},{...ROWS[0],landingPage:''},{...ROWS[0],purchaseRevenue:'5'}]){
+    assert.equal((await run(input,{rows:[row],sourceUrl:'properties/123'})).status,'ERROR');
+  }
+  const refunded=await run(input,{rows:[{...ROWS[0],purchaseRevenue:-3.5}],sourceUrl:'properties/123'});
+  assert.equal(refunded.status,'OK');
+  assert.equal(refunded.data[0].purchaseRevenue,-3.5);
+});
+
+test('restricted metric nulls remain partial, never a complete zero',async()=>{
+  const raw={rows:[{...ROWS[0],purchaseRevenue:null}],sourceUrl:'properties/123',restrictedMetrics:['purchaseRevenue']};
+  const r=await run(input,raw);
+  assert.equal(r.status,'PARTIAL');
+  assert.equal(r.data[0].purchaseRevenue,null);
+  assert.equal((await run(input,{rows:raw.rows,sourceUrl:'properties/123'})).status,'ERROR');
+  assert.equal((await run(input,{...raw,restrictedMetrics:['unknown']})).status,'ERROR');
 });
 
 test('more pages is PARTIAL, no rows is EMPTY, a mock is never verified',async()=>{
@@ -52,11 +98,10 @@ test('authorization, quota and forbidden map to the shared states',async()=>{
   assert.equal((await run(input,{httpStatus:403})).data.length,0);
 });
 
-test('search opportunities run under the same contract',async()=>{
+test('search opportunities need their own normalizer before they can be trusted',async()=>{
   const r=await run({propertyId:'properties/123',siteUrl:'sc-domain:example.com',limit:50},{rows:[{page:'https://example.com/',score:72}],sourceUrl:'properties/123'},'live','searchOpportunities');
-  assert.equal(r.status,'OK');
-  assert.equal(r.target,'intelligence.opportunities');
-  assert.deepEqual(r.provenance.requestContext,{limit:50,siteUrl:'sc-domain:example.com',propertyId:'properties/123'});
+  assert.equal(r.status,'NOT_CONFIGURED');
+  assert.equal(r.connection,'NOT_VERIFIED');
 });
 
 test('Search Console provenance is unchanged by the new context fields',async()=>{
