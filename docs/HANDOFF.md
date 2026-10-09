@@ -464,3 +464,10 @@ Estado revisado: HEAD `007bb2e` con `core-ci` en verde ([run 36101151706](https:
 - Rama `feat/provenance-signed-scope`: extensión opcional `scopeVersion:1` y `{tenantId,projectId}` firmados. Verificación con contexto esperado; rechazo de replay, contexto ausente, versión desconocida y legacy sin contexto cuando se exige aislamiento.
 - `npm run verify`: 331/331, sintaxis y documentación correctas. Siete regresiones nuevas con HMAC generado solo en memoria y transporte simulado, sin llamadas reales. Contrato explicado en `core-9/PLATFORM-SPEC.md`.
 - La plataforma aún debe fijar este commit, pasar sus UUID al firmar/verificar y ejecutar las pruebas de integración. Las tablas/claves alojadas no se declaran activas.
+
+## Sesión 33 — resultados OpenSEO limitados antes del sobre confiable (09/10/2026)
+
+- Base `main@bd1b9e9`; ramas/PR revisados antes de editar. La plataforma ya filtra la presentación, pero no puede firmar de forma segura un resultado original que todavía contenga URLs de otros ámbitos.
+- Rama `feat/openseo-scoped-provider-results`: `acceptUrl` inyectado por el host limita `auditIssues`/`auditPages` después de normalizar y antes de emitir el resultado confiable. Solo recibe URL y `{operation,auditId}`; rechazo contabilizado como `scopeFiltered`; excepción falla cerrada sin datos.
+- Pruebas nuevas cubren incidencia global sin URL, URL propia/externa, páginas, confianza del resultado, callback inválido y excepción redactada. Todo usa MCP simulado; sin red, credenciales, gasto ni persistencia.
+- El host debe fijar el commit resultante, pasar un predicado derivado del proyecto autorizado y persistir únicamente esos resultados firmados. RLS, auditId vinculado y firma tenant/proyecto siguen siendo obligatorios.

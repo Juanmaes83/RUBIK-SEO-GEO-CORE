@@ -303,6 +303,7 @@ async function runOpenSEO(d,request,base,budget){
   const {input={},mcp,clock}=request,maxRows=Number.isInteger(request.maxRows)&&request.maxRows>=0?request.maxRows:Infinity;
   if(mcp==null)return envelope(base,{status:'NOT_CONFIGURED',errors:[{code:'BRIDGE_PENDING',message:'OpenSEO needs an injected server-side MCP client; none was provided',retryable:false}]});
   if(typeof mcp.callTool!=='function')throw new TypeError('mcp.callTool must be a function');
+  if(request.acceptUrl!==undefined&&typeof request.acceptUrl!=='function')throw new TypeError('acceptUrl must be a function');
   const job=request.activeJob;
   if(d.operation==='siteAudit'&&job&&text(job.jobId)&&job.state==='SYNCING')return envelope(base,{status:'OK',data:[{...clone(job),reused:true}],errors:[]});
   const built=openseoArgs(d.operation,input);
@@ -351,14 +352,23 @@ async function runOpenSEO(d,request,base,budget){
   const listKey=d.operation==='auditIssues'?'issues':'pages';
   if(!Array.isArray(sc[listKey]))return fail(capturedAt,'ERROR',{code:'INVALID_RESPONSE',message:`${d.tool} returned no ${listKey} array`,retryable:false});
   const normalized=d.operation==='auditIssues'?normalizeOpenSEOIssues(sc.issues,{auditId,capturedAt,index}):normalizeOpenSEOPages(sc.pages,{index});
-  const rows=normalized.rows.slice(0,maxRows),capped=normalized.rows.length-rows.length;
+  let scoped=normalized.rows,scopeRejected=0;
+  if(request.acceptUrl){
+    scoped=[];
+    for(const row of normalized.rows){
+      let accepted=false;
+      try{accepted=request.acceptUrl(row.url,{operation:d.operation,auditId})===true;}catch{return fail(capturedAt,'ERROR',{code:'SCOPE_FILTER_FAILED',message:'The injected URL scope filter failed',retryable:false});}
+      if(accepted)scoped.push(row);else scopeRejected++;
+    }
+  }
+  const rows=scoped.slice(0,maxRows),capped=scoped.length-rows.length;
   const total=d.operation==='auditPages'?numOrNull(sc.total):null,missing=total!==null&&total>normalized.rows.length?total-normalized.rows.length:0;
   const limitReached=d.operation==='auditIssues'&&sc.issues.length>=built.args.limit;
-  const isPartial=normalized.rejected>0||capped>0||missing>0||limitReached;
-  const reason=normalized.rejected?'invalid-rows':capped?'max-rows':missing?'missing-rows':limitReached?'limit-reached':null;
-  const extra=d.operation==='auditIssues'?{summaryCount:Array.isArray(sc.summary)?sc.summary.length:null}:{total};
+  const isPartial=normalized.rejected>0||scopeRejected>0||capped>0||missing>0||limitReached;
+  const reason=normalized.rejected?'invalid-rows':scopeRejected?'scope-filtered':capped?'max-rows':missing?'missing-rows':limitReached?'limit-reached':null;
+  const extra=d.operation==='auditIssues'?{summaryCount:Array.isArray(sc.summary)?sc.summary.length:null,scopeFiltered:scopeRejected}:{total,scopeFiltered:scopeRejected};
   if(!rows.length&&!isPartial)return done('EMPTY',[],{extra});
-  return done(isPartial?'PARTIAL':'OK',rows,{partial:isPartial?{reason,received:rows.length,expected:total,rejected:normalized.rejected,capped,truncated:capped>0||limitReached}:null,extra});
+  return done(isPartial?'PARTIAL':'OK',rows,{partial:isPartial?{reason,received:rows.length,expected:total,rejected:normalized.rejected+scopeRejected,capped,truncated:capped>0||limitReached}:null,extra});
 }
 
 /* Connectivity (D-14 + D-22): CONNECTED only when the health check (the injected result of
