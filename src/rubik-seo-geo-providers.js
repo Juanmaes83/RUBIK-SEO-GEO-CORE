@@ -151,7 +151,8 @@ function requestContextOf(input){
   }
   if(Array.isArray(i.dimensions)&&i.dimensions.length<=8&&i.dimensions.every(v=>typeof v==='string'&&WORD.test(v)))c.dimensions=[...i.dimensions];
   for(const k of ['searchType','dataState','aggregationType'])if(typeof i[k]==='string'&&WORD.test(i[k]))c[k]=i[k];
-  if(c.searchType===undefined&&typeof i.type==='string'&&WORD.test(i.type))c.searchType=i.type;
+  // The Search Console transport sends `type`; it takes precedence over any host-only alias.
+  if(typeof i.type==='string'&&WORD.test(i.type))c.searchType=i.type;
   if(Number.isInteger(i.rowLimit)&&i.rowLimit>0&&i.rowLimit<=100000)c.rowLimit=i.rowLimit;
   if(Number.isSafeInteger(i.startRow)&&i.startRow>=0)c.startRow=i.startRow;
   for(const k of ['siteUrl','url']){const v=text(i[k]);if(v&&v.length<=2048)c[k]=redact(v);}
