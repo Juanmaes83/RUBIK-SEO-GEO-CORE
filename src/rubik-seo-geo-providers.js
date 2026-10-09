@@ -139,6 +139,24 @@ function evidenceOf(raw,rowCount){
   return e;
 }
 
+/* Request context (CORE-9, ADR 0009 of the platform): what was asked, taken from the
+   host's own input and whitelisted, so a stored result says which dates, dimensions and
+   property it covers. Omitted when empty, so earlier results keep their exact shape. */
+const DAY=/^\d{4}-\d{2}-\d{2}$/,WORD=/^[A-Za-z][A-Za-z_]{0,29}$/;
+function requestContextOf(input){
+  const i=input&&typeof input==='object'&&!Array.isArray(input)?input:{},c={};
+  for(const k of ['startDate','endDate'])if(typeof i[k]==='string'&&DAY.test(i[k])){
+    const date=new Date(i[k]+'T00:00:00Z');
+    if(!Number.isNaN(date.getTime())&&date.toISOString().slice(0,10)===i[k])c[k]=i[k];
+  }
+  if(Array.isArray(i.dimensions)&&i.dimensions.length<=8&&i.dimensions.every(v=>typeof v==='string'&&WORD.test(v)))c.dimensions=[...i.dimensions];
+  for(const k of ['searchType','dataState','aggregationType'])if(typeof i[k]==='string'&&WORD.test(i[k]))c[k]=i[k];
+  if(Number.isInteger(i.rowLimit)&&i.rowLimit>0&&i.rowLimit<=100000)c.rowLimit=i.rowLimit;
+  if(Number.isSafeInteger(i.startRow)&&i.startRow>=0)c.startRow=i.startRow;
+  for(const k of ['siteUrl','url']){const v=text(i[k]);if(v&&v.length<=2048)c[k]=redact(v);}
+  return Object.keys(c).length?freeze(c):null;
+}
+
 /* CORE-8 review (D-23): every result envelope is registered as issued by this module
    instance. `isTrustedResult` lets consumers (offpage) tell a real CORE-7 result from an
    object that merely copies its shape. Trust does not survive serialization: a copied,
@@ -181,6 +199,7 @@ async function runProviderRequest(request={}){
   }
   const capturedAt=iso(clock),http=Number(raw?.httpStatus);
   const provenance={provider:base.provider,sourceType:d.sourceType,operation:base.operation,requestedAt,capturedAt,method:kind==='live'?'api':'mock',evidence:evidenceOf(raw,0)};
+  const requestContext=requestContextOf(input);if(requestContext)provenance.requestContext=requestContext;
   if(http===401)return envelope({...base,budget:spent},{status:'NOT_CONNECTED',cost,provenance:freeze(provenance),errors:[{code:'AUTH',message:'Authorization rejected by provider',retryable:false}]});
   if(http===429){const retry=Number(raw?.retryAfter);return envelope({...base,budget:spent},{status:'RATE_LIMITED',cost,provenance:freeze(provenance),errors:[{code:'RATE_LIMITED',message:'Provider rate limit reached',retryable:true,retryAfterSeconds:Number.isFinite(retry)&&retry>=0?retry:null}]});}
   if(Number.isFinite(http)&&http>=400)return envelope({...base,budget:spent},{status:'ERROR',cost,provenance:freeze(provenance),errors:[{code:http===403?'FORBIDDEN':'HTTP_'+http,message:redact(raw?.message||'Provider error'),retryable:http>=500}]});
